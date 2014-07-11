@@ -3,9 +3,11 @@ package tk.ivybits.engine.gl.texture;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GLContext;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -43,6 +45,10 @@ public class TextureLoader {
             ret <<= 1;
         }
         return ret;
+    }
+
+    public static int getSystemTexture(String name, int target, int filter, boolean mipmapped) throws IOException {
+        return getTexture(ImageIO.read(ClassLoader.getSystemResourceAsStream(name)), target, filter, mipmapped);
     }
 
     public static int getTexture(BufferedImage in, int target, int filter, boolean mipmapped) {

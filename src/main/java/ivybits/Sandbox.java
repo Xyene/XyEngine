@@ -4,83 +4,123 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
-import tk.ivybits.engine.gl.Projection;
+import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.TrueTypeFont;
-import tk.ivybits.engine.gl.shader.BloomShader;
-import tk.ivybits.engine.gl.shader.PhongLightingShader;
+import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
+import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.model.ModelIO;
-import tk.ivybits.engine.scene.IActor;
-import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.SceneFactory;
 import tk.ivybits.engine.scene.camera.ICamera;
-import tk.ivybits.engine.scene.light.AtmosphereModel;
-import tk.ivybits.engine.scene.light.Lights;
-import tk.ivybits.engine.scene.light.PointLight;
+import tk.ivybits.engine.scene.node.IAtmosphere;
+import tk.ivybits.engine.scene.node.IFog;
+import tk.ivybits.engine.scene.node.ISceneGraph;
+import tk.ivybits.engine.scene.node.ISceneNode;
+import tk.ivybits.engine.scene.node.impl.DefaultSceneGraph;
 import tk.ivybits.engine.util.FrameTimer;
 import tk.ivybits.engine.util.Natives;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
-import static org.lwjgl.opengl.GL11.*;
+import static tk.ivybits.engine.gl.GL.*;
 
-public class SceneTester {
+public class Sandbox {
     private static float speed = 4f;
-    private static boolean wireframe;
     private static FrameTimer timer;
     private static IScene scene;
-    private static PhongLightingShader lighting;
-    private static BloomShader bloom;
     private static TrueTypeFont font;
     private static ICamera camera;
-
-    public static void loadShaders() {
-        if (lighting != null) lighting.destroy();
-        if (bloom != null) bloom.destroy();
-        lighting = new PhongLightingShader(scene);
-        // Set a shader that all objects should be rendered with by default
-        scene.setDefaultShader(lighting);
-        // Sets a post-render shader
-        // If not null, the scene will be rendered to a texture, which will be passed
-        // to the rendered shader
-        bloom = new tk.ivybits.engine.gl.shader.BloomShader().setBloomIntensity(0.15f).setSampleCount(4);
-        scene.setRenderedShader(scene.getRenderedShader() != null ? bloom : null);
-    }
+    private static Console console;
 
     public static void main(String[] args) throws Exception {
         setup();
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 
-        font = new TrueTypeFont(new Font("Consolas", Font.PLAIN, 12), true);
+        font = new TrueTypeFont(new Font("Consolas", Font.PLAIN, 16), true);
+
+        console = new Console();
+        console.registerCommand("broadcast", new CommandExecutor() {
+            @Override
+            public void execute(String command, String[] args) {
+                console.log(args[0]);
+            }
+        });
+
+        ISceneGraph graph = new DefaultSceneGraph();
 
         // Create a scene graph
-        scene = SceneFactory.createScene();
-        // Load a model into the scene
-        IActor model = scene.createActor(ModelIO.read(new File("texturing.obj")));
-        // We can transform it via the IActor instance returned
-        model.position(0, 0, 0);
+        scene = new GL20Scene(Display.getWidth(), Display.getHeight(), graph);
+        ISceneNode root = graph.getRoot();
 
-        AtmosphereModel atmo = scene.getAtmosphere();
+        IActor ship = root.track(new GeometryActor(ModelIO.read(new File("serenity.obj"))));
+        ship.position(0, 40, 0);
+        IActor crate = root.track(new GeometryActor(ModelIO.read(new File("ground2.obj"))));
+        crate.position(0, 0, 0);
 
-        // Create a directional light at the same setDirection as the spotlight, but blue
-        PointLight diffuseLight = Lights.newDirectionalLight()
-                .setPosition(0, 300, 100)
+        // scene.createActor(ModelIO.read(new File("serenity.obj"))).position(0, 50, 0);
+
+        //LensFlare flare = new LensFlare();
+        //scene.track(flare).position(100, 50, 60);
+
+//        BoundingBox bb = BoundingBox.getBoundingBox(ground);
+//        System.out.println(bb);
+//
+//        for (int x = -2; x != 2; x++) {
+//            for (int y = -2; y != 2; y++) {
+//                IActor modelMatrix = scene.createActor(ground);
+//                modelMatrix.position(x * bb.getLength() - bb.getLength(), 0, y * bb.getWidth() - bb.getWidth());
+//            }
+//        }
+
+        //  IActor shiny = scene.createActor(ModelIO.read(new File("transformers-lowpoly.obj")));
+        // shiny.position(0, 50, 0);
+
+        final IAtmosphere atmo = graph.getAtmosphere();
+        atmo.getFog().setFogColor(Color.WHITE).setFogNear(400).setFogFar(1100);
+        console.registerCommand("fog", new CommandExecutor() {
+            @Override
+            public void execute(String command, String[] args) {
+                IFog fog = atmo.getFog();
+                switch (args[0]) {
+                    case "color":
+                        fog.setFogColor(Color.decode(args[1]));
+                        break;
+                    case "znear":
+                        fog.setFogNear(Float.parseFloat(args[1]));
+                        break;
+                    case "zfar":
+                        fog.setFogFar(Float.parseFloat(args[1]));
+                        break;
+                    case "on":
+                        fog.setEnabled(true);
+                        break;
+                    case "off":
+                        fog.setEnabled(false);
+                        break;
+                }
+            }
+        });
+        console.registerCommand("bloom", new CommandExecutor() {
+            @Override
+            public void execute(String command, String[] args) {
+                scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
+            }
+        });
+
+        root.createPointLight()
+                .setPosition(0, 1000, 0)
                 .setDiffuseColor(WHITE)
-                .setIntensity(0.5f)
-                .build();
-        atmo.getPointLights().add(diffuseLight);
-
-        loadShaders();
+                .setIntensity(1.5f)
+                .setSpecularColor(Color.BLACK);
 
         // Fetch the camera and configure it
         camera = scene.getCamera()
                 .setAspectRatio((float) Display.getWidth() / Display.getHeight())
-                .setPosition(5, 12, 5)
+                .setPosition(5, 100, 5)
                 .setFieldOfView(60)
                 .setZNear(0.3f)
                 .setZFar(Float.MAX_VALUE);
@@ -90,6 +130,8 @@ public class SceneTester {
 
         timer = new FrameTimer();
         timer.start();
+        //double n = 0;
+        //double nm = 0.25;
         while (!Display.isCloseRequested()) {
             timer.update();
             if (Display.wasResized()) {
@@ -101,32 +143,30 @@ public class SceneTester {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glLoadIdentity();
+            ship.rotate(ship.pitch(), ship.yaw() + 0.5f, ship.roll());
+//            ship.position(ship.x(), (float) (40 + n), ship.z());
+//            n += nm;
+//            if(Math.abs(n) > 30) nm = -nm;
+            //  flare.position(flare.x() + 0.5f, flare.y(), flare.z() + 0.25f);
 
             scene.draw();
 
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glActiveTexture(GL_TEXTURE0); // Who knows what texture was used in what shader?
             glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
+            glDisable(GL_CULL_FACE);
             glEnable(GL_TEXTURE_2D);
 
-            Projection.toOrthographicProjection(0, 0, Display.getWidth(), Display.getHeight());
+            ImmediateProjection.toOrthographicProjection();
 
-            glPushAttrib(GL_CURRENT_BIT);
             glColor4f(0.4f, 0.4f, 0.4f, 1);
 
-            font.drawString(2, Display.getHeight() - 20, String.format(
-                    "%s FPS\n" +
-                            "%s point lights\n" +
-                            "%s spot lights\n" +
-                            "Render shader: %s\n" +
-                            "Post shader:   %s\n",
-                    timer.fps(),
-                    scene.getAtmosphere().getPointLights().size(),
-                    scene.getAtmosphere().getSpotLights().size(),
-                    scene.getDefaultShader().getClass().getName(),
-                    scene.getRenderedShader() != null ? scene.getRenderedShader().getClass().getName() : "None"), 1, 1);
+            font.drawString(2, Display.getHeight() - 20, String.format("%s FPS (%d ms)", timer.fps(), timer.getLastDelta()), 1, 1);
 
+            console.draw();
             glPopAttrib();
-            Projection.toFrustrumProjection();
+            ImmediateProjection.toFrustrumProjection();
             Display.update();
         }
 
@@ -134,57 +174,50 @@ public class SceneTester {
     }
 
     private static void input() throws IOException {
+        while (Mouse.next()) {
+            if (Mouse.isButtonDown(0)) {
+                Mouse.setGrabbed(true);
+            } else if (Mouse.isButtonDown(1)) {
+                Mouse.setGrabbed(false);
+            }
+        }
         if (Mouse.isGrabbed()) {
             while (Keyboard.next()) {
                 int key = Keyboard.getEventKey();
-                if (key == Keyboard.KEY_TAB) wireframe = !wireframe;
                 if (Keyboard.getEventKeyState()) {
-                    switch (key) {
-                        case Keyboard.KEY_ESCAPE:
-                            System.exit(0);
-                        case Keyboard.KEY_ADD:
-                            speed += 2f;
-                            break;
-                        case Keyboard.KEY_SUBTRACT:
-                            speed -= 2f;
-                            break;
-                        case Keyboard.KEY_L:
-                            scene.getAtmosphere().getPointLights().add(Lights.newDirectionalLight()
-                                    .setPosition(camera.x(), camera.y(), camera.z())
-                                    .setDiffuseColor(WHITE)
-                                    .setIntensity(2)
-                                    .build());
-                            break;
-                        case Keyboard.KEY_P:
-                            Color[] colors = {RED, BLUE, GREEN, CYAN, YELLOW, MAGENTA, ORANGE, PINK};
+                    if (!console.isShowing())
+                        switch (key) {
+                            case Keyboard.KEY_ESCAPE:
+                                System.exit(0);
+                            case Keyboard.KEY_ADD:
+                                speed += 2f;
+                                break;
+                            case Keyboard.KEY_SUBTRACT:
+                                speed -= 2f;
+                                break;
+                            case Keyboard.KEY_L:
+                                scene.getSceneGraph().getRoot().createPointLight()
+                                        .setPosition(camera.x(), camera.y(), camera.z())
+                                        .setDiffuseColor(WHITE)
+                                        .setIntensity(2);
+                                break;
+                            case Keyboard.KEY_P:
+                                scene.getSceneGraph().getRoot().createSpotLight()
+                                        .setPosition(camera.x(), camera.y(), camera.z())
+                                        .setRotation(camera.pitch(), camera.yaw())
+                                        .setDiffuseColor(Color.GREEN)
+                                        .setIntensity(2)
+                                        .setCutoff(10);
+                                break;
+                            case Keyboard.KEY_C:
+                                // TODO
+                                break;
+                        }
 
-                            scene.getAtmosphere().getSpotLights().add(Lights.newSpotLight()
-                                    .setPosition(camera.x(), camera.y(), camera.z())
-                                    .setDirection(camera.dx(), camera.dy(), camera.dz())
-                                    .setDiffuseColor(colors[new Random().nextInt(colors.length)])
-                                    .setIntensity(2)
-                                    .setCutoff(10)
-                                    .build());
-                            break;
-                        case Keyboard.KEY_B:
-                            scene.setRenderedShader(scene.getRenderedShader() != null ? null : bloom);
-                            break;
-                        case Keyboard.KEY_R:
-                            System.out.println("Reloading shaders...");
-                            loadShaders();
-                            break;
-                        case Keyboard.KEY_C:
-                            scene.getAtmosphere().getPointLights().clear();
-                            scene.getAtmosphere().getSpotLights().clear();
-                            break;
-                        case Keyboard.KEY_U:
-                            IActor model = scene.createActor(ModelIO.read(new File("texturing.obj")));
-                            // We can transform it via the IActor instance returned
-                            model.position(camera.x(), camera.y(), camera.z());
-                            break;
-                    }
+                    console.charEntered(key, Keyboard.getEventCharacter());
                 }
             }
+            if (console.isShowing()) return;
             //camera.processKeyboard(speed, timer.getDelta() * (16 * speed));
 
             float delta = timer.getDelta() * (16 * speed);
@@ -247,23 +280,16 @@ public class SceneTester {
             }
             camera.setRotation(pitch, yaw, camera.roll());
         }
-
-        while (Mouse.next()) {
-            if (Mouse.isButtonDown(0)) {
-                Mouse.setGrabbed(true);
-            } else if (Mouse.isButtonDown(1)) {
-                Mouse.setGrabbed(false);
-            }
-        }
     }
 
     private static void setup() {
         Natives.unpack();
         try {
-            Display.setDisplayMode(new DisplayMode(1024, 768));
-            Display.setTitle("IvyEngine");
+            Display.setDisplayMode(new DisplayMode(1024, 600));
+            Display.setTitle("Xy Sandbox");
             Display.setResizable(true);
-            //Display.setFullscreen(true);
+
+            // Display.setFullscreen(true);
             Display.create();
             Keyboard.create();
             Mouse.create();
@@ -281,6 +307,7 @@ public class SceneTester {
         System.out.printf("%s max texture size\n", glGetInteger(GL_MAX_TEXTURE_SIZE));
         System.out.printf("\tNon power-of-2 textures supported? %s\n", GLContext.getCapabilities().GL_ARB_texture_non_power_of_two);
         System.out.println("Uniform buffers? " + GLContext.getCapabilities().GL_ARB_uniform_buffer_object);
+        System.out.println("# uniforms: " + glGetInteger(GL20.GL_MAX_VERTEX_UNIFORM_COMPONENTS));
         System.out.println("CG shaders supported? " + GLContext.getCapabilities().GL_EXT_Cg_shader);
         System.out.println("Assembly shaders supported? " + GLContext.getCapabilities().GL_ARB_shader_objects);
 
@@ -293,7 +320,9 @@ public class SceneTester {
         glMatrixMode(GL_MODELVIEW);
 
         //glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        //glCullFace(GL_BACK);
+
+        glShadeModel(GL_SMOOTH);
 
         glEnable(GL_COLOR_MATERIAL);
         glColorMaterial(GL_FRONT, GL_DIFFUSE);

@@ -1,5 +1,7 @@
 package tk.ivybits.engine.scene.camera;
 
+import javax.vecmath.Vector3f;
+
 public interface ICamera {
     void move(float dx, float dy, float dz);
 
@@ -32,4 +34,20 @@ public interface ICamera {
     float dy();
 
     float dz();
+
+    float getFieldOfView();
+
+    float getAspectRatio();
+
+    float getZNear();
+
+    float getZFar();
+
+    Vector3f position();
+
+    Vector3f direction();
+
+    boolean isSphereInFrustum(Vector3f position, float v);
+
+    boolean isOccluded(Vector3f position);
 }

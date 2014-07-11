@@ -1,7 +1,9 @@
 package tk.ivybits.engine.scene;
 
 public interface IDrawable {
-    void draw();
+    void draw(IScene scene);
 
     void destroy();
+
+    int priority();
 }

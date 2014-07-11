@@ -1,22 +1,23 @@
 package tk.ivybits.engine.gl.shader;
 
-import static org.lwjgl.opengl.ARBShaderObjects.glDeleteObjectARB;
-import static org.lwjgl.opengl.ARBShaderObjects.glUseProgramObjectARB;
-
+import static tk.ivybits.engine.gl.GL.*;
 public abstract class AbstractShader implements IShader {
+    protected boolean isAttached = false;
     @Override
     public void attach() {
-        glUseProgramObjectARB(getShaderHandle());
+        isAttached = true;
+        glUseProgram(getShaderHandle());
     }
 
     @Override
     public void detach() {
-        glUseProgramObjectARB(0);
+        isAttached = false;
+        glUseProgram(0);
     }
 
     @Override
     public void destroy() {
-        glDeleteObjectARB(getShaderHandle());
+        glDeleteShader(getShaderHandle());
     }
 
     protected abstract int getShaderHandle();

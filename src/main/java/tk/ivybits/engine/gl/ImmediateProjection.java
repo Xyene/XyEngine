@@ -1,10 +1,14 @@
 package tk.ivybits.engine.gl;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glPushMatrix;
+import org.lwjgl.opengl.Display;
 
-public class Projection {
+import static tk.ivybits.engine.gl.GL.*;
+
+public class ImmediateProjection {
+    public static void toOrthographicProjection() {
+        toOrthographicProjection(0, 0, Display.getWidth(), Display.getHeight());
+    }
+
     public static void toOrthographicProjection(int x, int y, int width, int height) {
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();

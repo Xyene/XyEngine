@@ -8,6 +8,12 @@ public class FrameTimer {
     private int fps;
     private int frames;
 
+    public int getLastDelta() {
+        return lastDelta;
+    }
+
+    private int lastDelta;
+
     public void start() {
         getDelta();
         lastFPS = getTime();
@@ -25,6 +31,7 @@ public class FrameTimer {
         long time = getTime();
         int delta = (int) (time - lastFrame);
         lastFrame = time;
+        lastDelta = delta;
 
         return delta;
     }

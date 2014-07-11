@@ -3,7 +3,11 @@ package tk.ivybits.engine.scene;
 import tk.ivybits.engine.scene.model.IGeometry;
 import tk.ivybits.engine.gl.shader.IShader;
 
-public interface IActor {
+import javax.vecmath.Vector3f;
+
+public interface IActor  {
+    void update(float delta);
+
     void position(float x, float y, float z);
 
     float x();
@@ -18,9 +22,9 @@ public interface IActor {
 
     float roll();
 
-    IGeometry getGeometry();
+    IDrawable createDrawable(IDrawContext context);
 
-    void setShader(IShader shader);
+    Vector3f position();
 
     void rotate(float pitch, float yaw, float roll);
 }

@@ -3,14 +3,11 @@ package tk.ivybits.engine.scene;
 import tk.ivybits.engine.scene.model.IGeometry;
 import tk.ivybits.engine.gl.shader.IShader;
 
-public class DefaultActor implements IActor {
-    private IGeometry model;
+import javax.vecmath.Vector3f;
+
+public abstract class AbstractActor implements IActor {
     private float x, y, z;
     private float pitch, yaw, roll;
-
-    public DefaultActor(IGeometry model) {
-        this.model = model;
-    }
 
     @Override
     public void position(float x, float y, float z) {
@@ -35,6 +32,11 @@ public class DefaultActor implements IActor {
     }
 
     @Override
+    public Vector3f position() {
+        return new Vector3f(x, y, z);
+    }
+
+    @Override
     public void rotate(float pitch, float yaw, float roll) {
         this.pitch = pitch;
         this.yaw = yaw;
@@ -54,15 +56,5 @@ public class DefaultActor implements IActor {
     @Override
     public float roll() {
         return roll;
-    }
-
-    @Override
-    public IGeometry getGeometry() {
-        return model;
-    }
-
-    @Override
-    public void setShader(IShader shader) {
-
     }
 }

@@ -13,9 +13,8 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.util.glu.GLU.gluBuild2DMipmaps;
-
+import static tk.ivybits.engine.gl.GL.*;
 
 /**
  * A TrueType font implementation originally for Slick, edited for Bobjob's Engine

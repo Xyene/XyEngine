@@ -10,23 +10,26 @@ public class Fog {
         return fogColor;
     }
 
-    public void setFogColor(Color fogColor) {
+    public Fog setFogColor(Color fogColor) {
         this.fogColor = fogColor;
+        return this;
     }
 
     public float getFogNear() {
         return fogNear;
     }
 
-    public void setFogNear(float fogNear) {
+    public Fog setFogNear(float fogNear) {
         this.fogNear = fogNear;
+        return this;
     }
 
     public float getFogFar() {
         return fogFar;
     }
 
-    public void setFogFar(float fogFar) {
+    public Fog setFogFar(float fogFar) {
         this.fogFar = fogFar;
+        return this;
     }
 }

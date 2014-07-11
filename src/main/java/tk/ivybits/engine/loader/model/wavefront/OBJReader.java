@@ -1,7 +1,8 @@
 package tk.ivybits.engine.loader.model.wavefront;
 
-import tk.ivybits.engine.scene.model.IModelReader;
 import tk.ivybits.engine.gl.texture.BufferedTexture;
+import tk.ivybits.engine.scene.model.IModelReader;
+import tk.ivybits.engine.scene.model.TangentSpace;
 import tk.ivybits.engine.scene.model.node.Face;
 import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.model.node.Mesh;
@@ -13,8 +14,10 @@ import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 import java.awt.*;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
@@ -56,6 +59,7 @@ public class OBJReader implements IModelReader {
         List<Face> faces = mesh.getFaces();
         Material currentMaterial = null;
         HashMap<String, Material> materials = new HashMap<>();
+        boolean tangent = false;
 
         for (String line; (line = reader.readLine()) != null; ) {
             if ((line = line.trim()).isEmpty())
@@ -97,12 +101,16 @@ public class OBJReader implements IModelReader {
                         vertices[i] = v;
                     }
                     faces.add(face);
+                    if(tangent) {
+                        TangentSpace.calculateTangents(face);
+                    }
                     break;
                 case NEW_GROUP:
                 case NEW_OBJECT:
                     break;
                 case USE_MATERIAL:
                     currentMaterial = materials.get(concatTokens(tokens));
+                    tangent = currentMaterial.bumpMap != null;
                     break;
                 case MATERIAL_FILE:
                     materials = loadMaterials(new File(in.getParentFile(), concatTokens(tokens)));

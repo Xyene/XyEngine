@@ -2,6 +2,7 @@ package tk.ivybits.engine.scene.model;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GLContext;
+import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.model.node.Face;
 import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.model.node.Vertex;
@@ -11,6 +12,7 @@ import tk.ivybits.engine.scene.ITesselator;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,11 +29,10 @@ public class GeometryDrawable implements IDrawable {
         if (!GLContext.getCapabilities().OpenGL15)
             throw new IllegalArgumentException("OpenGL 1.5+ is needed for VBOs.");
         this.model = model;
-        TangentSpace.calculateTangents(model);
     }
 
     @Override
-    public void draw() {
+    public void draw(IScene scene) {
         if (meshes == null) {
             meshes = compile();
         }
@@ -40,7 +41,7 @@ public class GeometryDrawable implements IDrawable {
 
         for (int m = 0; m < meshes.size(); m++) {
             BufferedMesh mesh = meshes.get(m);
-            ctx.useMaterial(mesh.material);
+            if(mesh.material != null) ctx.useMaterial(mesh.material);
             mesh.buffer.draw(GL_TRIANGLES);
         }
 
@@ -57,7 +58,7 @@ public class GeometryDrawable implements IDrawable {
 
         Material currentMaterial = faces.get(0).getMaterial();
 
-        int position = 0, limit = 0;
+        int position = 0, limit;
         boolean normals = false, uvs = false, tangents = false;
 
         for (int i = 0; i < faces.size(); i++) {
@@ -77,8 +78,8 @@ public class GeometryDrawable implements IDrawable {
 
                 int indexSize = 3;
                 if (normals) indexSize += 3;
-                if (tangents) indexSize += 3;
                 if (uvs) indexSize += 2;
+                if (tangents) indexSize += 3;
 
                 FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(totalIndexCount * indexSize * 3);
 
@@ -104,10 +105,21 @@ public class GeometryDrawable implements IDrawable {
                 buffer.update(vertexBuffer);
 
                 int stride = indexSize * 4;
-                buffer.withOffset(VERTEX, stride, 0);
-                if (normals) buffer.withOffset(NORMAL, stride, 12);
-                if (uvs) buffer.withOffset(UV, stride, normals ? 24 : 12);
-                if (tangents) buffer.withOffset(TANGENT, stride, uvs ? 32 : 24);
+
+                int offset = 0;
+                buffer.withOffset(VERTEX_BUFFER, stride, offset);
+                offset += 12;
+                if (normals) {
+                    buffer.withOffset(NORMAL_BUFFER, stride, offset);
+                    offset += 12;
+                }
+                if (uvs) {
+                    buffer.withOffset(UV_BUFFER, stride, offset);
+                    offset += 8;
+                }
+                if (tangents) {
+                    buffer.withOffset(TANGENT_BUFFER, stride, offset);
+                }
 
                 buffer.flush();
                 buffer.withIndiceCount(totalIndexCount * 3);
@@ -136,20 +148,31 @@ public class GeometryDrawable implements IDrawable {
         meshes.clear();
     }
 
+    @Override
+    public int priority() {
+        return 0;
+    }
+
     private static void vertex(Vertex vertex, FloatBuffer vertexBuffer, boolean normals, boolean tangents, boolean uvs) {
         float[] buffer = new float[3];
         vertex.pos.get(buffer);
         vertexBuffer.put(buffer);
-        if (normals && vertex.normal != null) {
-            vertex.normal.get(buffer);
+        if (normals) {
+            if (vertex.normal != null) {
+                vertex.normal.get(buffer);
+            } else Arrays.fill(buffer, 0);
             vertexBuffer.put(buffer);
         }
-        if (uvs && vertex.uv != null) {
-            vertex.uv.get(buffer);
+        if (uvs) {
+            if (vertex.uv != null) {
+                vertex.uv.get(buffer);
+            } else Arrays.fill(buffer, 0);
             vertexBuffer.put(buffer, 0, 2);
         }
-        if (tangents && vertex.tangent != null) {
-            vertex.tangent.get(buffer);
+        if (tangents) {
+            if (vertex.tangent != null) {
+                vertex.tangent.get(buffer);
+            } else Arrays.fill(buffer, 0);
             vertexBuffer.put(buffer);
         }
     }

@@ -2,6 +2,7 @@ package tk.ivybits.engine.gl.texture;
 
 import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.scene.texture.ITexture;
+import tk.ivybits.engine.scene.texture.IWriteableTexture;
 
 import java.nio.ByteBuffer;
 
@@ -10,13 +11,15 @@ import static org.lwjgl.opengl.EXTFramebufferObject.glBindRenderbufferEXT;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT32;
+import static org.lwjgl.opengl.GL14.*;
+import static org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
-public class FrameBuffer implements ITexture {
+public class FrameBuffer implements IWriteableTexture {
     private final int target;
     private int fbo_texture;
     private int fbo;
-    private int rbo_depth;
+    private int depthBuffer;
     private int width, height;
 
     public FrameBuffer(int width, int height, int target) {
@@ -38,15 +41,15 @@ public class FrameBuffer implements ITexture {
         glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(target, 0);
 
-        rbo_depth = glGenRenderbuffersEXT();
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, rbo_depth);
+        depthBuffer = glGenRenderbuffersEXT();
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, width, height);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
 
         fbo = glGenFramebuffersEXT();
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, target, fbo_texture, 0);
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, rbo_depth);
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthBuffer);
 
         int status;
         if ((status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)) != GL_FRAMEBUFFER_COMPLETE_EXT) {
@@ -55,12 +58,20 @@ public class FrameBuffer implements ITexture {
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
     }
 
+    @Override
     public void bind() {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+        glBindTexture(GL_TEXTURE_2D, fbo_texture);
     }
 
+    @Override
     public void unbind() {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    }
+
+    @Override
+    public void bindForWriting() {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     }
 
     @Override
@@ -85,7 +96,7 @@ public class FrameBuffer implements ITexture {
         glTexImage2D(target, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(target, 0);
 
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, rbo_depth);
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, width, height);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
         return this;
@@ -95,11 +106,7 @@ public class FrameBuffer implements ITexture {
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
         glDeleteFramebuffersEXT(fbo);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-        glDeleteRenderbuffersEXT(rbo_depth);
+        glDeleteRenderbuffersEXT(depthBuffer);
         glDeleteTextures(fbo_texture);
-    }
-
-    public int getTexture() {
-        return fbo_texture;
     }
 }

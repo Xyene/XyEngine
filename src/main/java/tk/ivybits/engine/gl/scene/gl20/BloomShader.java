@@ -1,18 +1,17 @@
-package tk.ivybits.engine.gl.shader;
+package tk.ivybits.engine.gl.scene.gl20;
 
+import tk.ivybits.engine.gl.shader.AbstractShader;
+import tk.ivybits.engine.gl.shader.Program;
 import tk.ivybits.engine.scene.model.node.Material;
 
-import java.io.IOException;
+import static tk.ivybits.engine.gl.GL.*;
 
-import static java.lang.ClassLoader.getSystemResourceAsStream;
-import static org.lwjgl.opengl.ARBShaderObjects.*;
-
-public class BloomShader extends AbstractShader {
-    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.f.glsl";
+public class BloomShader {
+/*    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.v.glsl";
     private static final int INTENSITY_UNIFORM_LOCATION = 0;
     private static final int SAMPLE_UNIFORM_LOCATION = 1;
-    private int handle;
+    private Program shader;
     private float intensity;
     private int sampleCount;
 
@@ -48,16 +47,17 @@ public class BloomShader extends AbstractShader {
     @Override
     public int getShaderHandle() {
         try {
-            return handle == 0 ? handle = ShaderBinder.loadShaderPair(
-                    getSystemResourceAsStream(VERTEX_SHADER_LOCATION),
-                    getSystemResourceAsStream(FRAGMENT_SHADER_LOCATION)) : handle;
-        } catch (IOException e) {
-            return handle = -1;
+            return (shader == null ? shader = Program.builder()
+                    .loadSystemShader(Program.ShaderType.FRAGMENT, FRAGMENT_SHADER_LOCATION)
+                    .loadSystemShader(Program.ShaderType.VERTEX, VERTEX_SHADER_LOCATION)
+                    .build() : shader).getId();
+        } catch (Exception e) {
+            return -1;
         }
     }
 
     @Override
     public void useMaterial(Material material) {
         throw new UnsupportedOperationException("cannot apply a post-render material");
-    }
+    }*/
 }

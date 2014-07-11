@@ -14,11 +14,12 @@ public class Lights {
     }
 
     public static class SpotLightBuilder implements IBuilder<SpotLight> {
-        private Color ambientColor = Color.BLACK, diffuseColor = Color.WHITE, specularColor = Color.WHITE;
+        private Color ambientColor = Color.WHITE, diffuseColor = Color.WHITE, specularColor = Color.WHITE;
         private float x, y, z;
-        private float dx, dy, dz;
         private float cutoff;
         private float intensity = 1;
+        private float pitch;
+        private float yaw;
 
         @Override
         public SpotLight build() {
@@ -27,7 +28,7 @@ public class Lights {
             spotLight.setDiffuseColor(diffuseColor);
             spotLight.setSpecularColor(specularColor);
             spotLight.setPosition(x, y, z);
-            spotLight.setDirection(dx, dy, dz);
+            spotLight.setRotation(pitch, yaw);
             spotLight.setCutoff(cutoff);
             spotLight.setIntensity(intensity);
             return spotLight;
@@ -40,15 +41,10 @@ public class Lights {
             return this;
         }
 
-        public SpotLightBuilder setDirection(float dx, float dy, float dz) {
-            this.dx = dx;
-            this.dy = dy;
-            this.dz = dz;
+        public SpotLightBuilder setRotation(float pitch, float yaw) {
+            this.pitch = pitch;
+            this.yaw = yaw;
             return this;
-        }
-
-        public SpotLightBuilder directAt(float dx, float dy, float dz) {
-            return setDirection(x - dx, y - dy, z - dz);
         }
 
         public SpotLightBuilder setAmbientColor(Color ambientColor) {

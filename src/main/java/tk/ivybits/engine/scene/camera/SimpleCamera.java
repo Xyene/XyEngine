@@ -1,33 +1,34 @@
 package tk.ivybits.engine.scene.camera;
 
+import javax.vecmath.Vector3f;
+
 import static java.lang.Math.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glPopAttrib;
 import static org.lwjgl.util.glu.GLU.gluPerspective;
 
-public class EulerCamera implements ICamera {
+public class SimpleCamera implements ICamera {
     private float x = 0;
     private float y = 0;
     private float z = 0;
     private float pitch = 0;
     private float yaw = 0;
     private float roll = 0;
-    private float fov = 90;
-    private float aspectRatio = 1;
-    private float zNear;
-    private float zFar;
+    private Projection proj;
+    private float fieldOfView, aspectRatio, zNear, zFar;
 
-    public EulerCamera() {
-
+    public SimpleCamera(Projection proj) {
+        this.proj = proj;
     }
-
 
     @Override
     public void move(float dx, float dy, float dz) {
-        this.z += dx * cos(toRadians(this.yaw - 90)) + dz * cos(toRadians(this.yaw));
-        this.x -= dx * sin(toRadians(this.yaw - 90)) + dz * sin(toRadians(this.yaw));
-        this.y += dy * sin(toRadians(this.pitch - 90)) + dz * sin(toRadians(this.pitch));
+        setPosition(
+                (float) (x - dx * sin(toRadians(this.yaw - 90)) + dz * sin(toRadians(this.yaw))),
+                (float) (y + dy * sin(toRadians(this.pitch - 90)) + dz * sin(toRadians(this.pitch))),
+                (float) (z + dx * cos(toRadians(this.yaw - 90)) + dz * cos(toRadians(this.yaw)))
+        );
     }
 
     @Override
@@ -35,6 +36,9 @@ public class EulerCamera implements ICamera {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
+        proj.resetViewMatrix();
+        proj.rotateCamera(pitch, yaw, roll);
+        proj.translateCamera(-x, -y, -z);
         return this;
     }
 
@@ -68,18 +72,9 @@ public class EulerCamera implements ICamera {
         return roll;
     }
 
-    public void applyPerspectiveMatrix() {
-        glPushAttrib(GL_TRANSFORM_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluPerspective(fov, aspectRatio, zNear, zFar);
-        glPopAttrib();
-    }
-
     @Override
     public ICamera setAspectRatio(float aspectRatio) {
-        this.aspectRatio = aspectRatio;
-        applyPerspectiveMatrix();
+        proj.setProjection(fieldOfView, this.aspectRatio = aspectRatio, zNear, zFar);
         return this;
     }
 
@@ -88,27 +83,27 @@ public class EulerCamera implements ICamera {
         this.x = x;
         this.y = y;
         this.z = z;
+        proj.resetViewMatrix();
+        proj.rotateCamera(pitch, yaw, roll);
+        proj.translateCamera(-x, -y, -z);
         return this;
     }
 
     @Override
     public ICamera setFieldOfView(float fov) {
-        this.fov = fov;
-        applyPerspectiveMatrix();
+        proj.setProjection(this.fieldOfView = fov, aspectRatio, zNear, zFar);
         return this;
     }
 
     @Override
     public ICamera setZFar(float zFar) {
-        this.zFar = zFar;
-        applyPerspectiveMatrix();
+        proj.setProjection(fieldOfView, aspectRatio, zNear, this.zFar = zFar);
         return this;
     }
 
     @Override
     public ICamera setZNear(float zNear) {
-        this.zNear = zNear;
-        applyPerspectiveMatrix();
+        proj.setProjection(fieldOfView, aspectRatio, this.zNear = zNear, zFar);
         return this;
     }
 
@@ -129,5 +124,45 @@ public class EulerCamera implements ICamera {
 
     private final float m() {
         return (float) cos(toRadians(pitch));
+    }
+
+    @Override
+    public float getFieldOfView() {
+        return fieldOfView;
+    }
+
+    @Override
+    public float getAspectRatio() {
+        return aspectRatio;
+    }
+
+    @Override
+    public float getZNear() {
+        return zNear;
+    }
+
+    @Override
+    public float getZFar() {
+        return zFar;
+    }
+
+    @Override
+    public Vector3f position() {
+        return new Vector3f(x(), y(), z());
+    }
+
+    @Override
+    public Vector3f direction() {
+        return new Vector3f(dx(), dy(), dz());
+    }
+
+    @Override
+    public boolean isSphereInFrustum(Vector3f position, float v) {
+        return true;
+    }
+
+    @Override
+    public boolean isOccluded(Vector3f position) {
+        return false;
     }
 }
