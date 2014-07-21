@@ -1,4 +1,4 @@
-package tk.ivybits.engine.al;
+package tk.ivybits.engine.sound;
 
 import java.io.InputStream;
 

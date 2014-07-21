@@ -234,7 +234,7 @@ public class TrueTypeFont {
                 if (i < 256) { // standard characters
                     charArray[i] = newIntObject;
                 } else { // custom characters
-                    customChars.put(new Character(ch), newIntObject);
+                    customChars.put(ch, newIntObject);
                 }
 
                 fontImage = null;
@@ -281,7 +281,7 @@ public class TrueTypeFont {
             if (currentChar < 256) {
                 intObject = charArray[currentChar];
             } else {
-                intObject = (IntObject) customChars.get(new Character((char) currentChar));
+                intObject = (IntObject) customChars.get((char) currentChar);
             }
 
             if (intObject != null)
@@ -347,7 +347,7 @@ public class TrueTypeFont {
                     if (charCurrent < 256) {
                         intObject = charArray[charCurrent];
                     } else {
-                        intObject = (IntObject) customChars.get(new Character((char) charCurrent));
+                        intObject = (IntObject) customChars.get((char) charCurrent);
                     }
                     totalwidth += intObject.width - correctL;
                 }
@@ -371,7 +371,7 @@ public class TrueTypeFont {
             if (charCurrent < 256) {
                 intObject = charArray[charCurrent];
             } else {
-                intObject = (IntObject) customChars.get(new Character((char) charCurrent));
+                intObject = (IntObject) customChars.get((char) charCurrent);
             }
 
             if (intObject != null) {
@@ -386,7 +386,7 @@ public class TrueTypeFont {
                             if (charCurrent < 256) {
                                 intObject = charArray[charCurrent];
                             } else {
-                                intObject = (IntObject) customChars.get(new Character((char) charCurrent));
+                                intObject = (IntObject) customChars.get((char) charCurrent);
                             }
                             totalwidth += intObject.width - correctL;
                         }

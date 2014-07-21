@@ -82,8 +82,7 @@ public class Reflection {
             if (methods != null) {
                 List<Method> get = methods.get(name);
                 if (get != null)
-                    for (int i = 0; i < get.size(); i++) {
-                        Method m = get.get(i);
+                    for (Method m : get) {
                         Class<?>[] args = m.getParameterTypes();
                         boolean noParams = param == null;
                         if ((args.length == 0 && noParams) || (!noParams && Arrays.equals(args, param))) {
@@ -145,8 +144,7 @@ public class Reflection {
 
         public Constructor<?> getRaw() {
             try {
-                Constructor<?> raw = (param != null && param.length > 0) ? target.getDeclaredConstructor(param) : target.getDeclaredConstructor();
-                return raw;
+                return (param != null && param.length > 0) ? target.getDeclaredConstructor(param) : target.getDeclaredConstructor();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

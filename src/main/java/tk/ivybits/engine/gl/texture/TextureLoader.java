@@ -13,9 +13,9 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Hashtable;
 
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_BGR;
+import static tk.ivybits.engine.gl.GL.*;
 import static org.lwjgl.util.glu.GLU.gluBuild2DMipmaps;
+import static tk.ivybits.engine.gl.GL.glGenerateMipmap;
 
 public class TextureLoader {
     private static final ComponentColorModel RGB_CM = new ComponentColorModel(
@@ -110,8 +110,10 @@ public class TextureLoader {
             ByteBuffer textureBuffer = imageBuffer;
 
             if (target == GL_TEXTURE_2D) {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+               // glGenerateMipmap(GL_TEXTURE_2D);
+                glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
             }
 
             // produce a texture from the byte buffer
@@ -136,7 +138,7 @@ public class TextureLoader {
         //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
         //glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 
-        if (mipmapped) {
+        if (false && mipmapped) {
             gluBuild2DMipmaps(target, 3, texWidth - 1, texHeight - 1, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
         } else {
             glTexImage2D(target, 0, alpha ? GL_RGBA : GL_RGB, texWidth, texHeight, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);

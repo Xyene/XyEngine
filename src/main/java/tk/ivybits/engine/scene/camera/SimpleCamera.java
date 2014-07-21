@@ -3,10 +3,6 @@ package tk.ivybits.engine.scene.camera;
 import javax.vecmath.Vector3f;
 
 import static java.lang.Math.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glLoadIdentity;
-import static org.lwjgl.opengl.GL11.glPopAttrib;
-import static org.lwjgl.util.glu.GLU.gluPerspective;
 
 public class SimpleCamera implements ICamera {
     private float x = 0;
@@ -25,9 +21,9 @@ public class SimpleCamera implements ICamera {
     @Override
     public void move(float dx, float dy, float dz) {
         setPosition(
-                (float) (x - dx * sin(toRadians(this.yaw - 90)) + dz * sin(toRadians(this.yaw))),
-                (float) (y + dy * sin(toRadians(this.pitch - 90)) + dz * sin(toRadians(this.pitch))),
-                (float) (z + dx * cos(toRadians(this.yaw - 90)) + dz * cos(toRadians(this.yaw)))
+                (float) (x - dx * (float) sin(toRadians(yaw - 90)) + dz * sin(toRadians(yaw))),
+                (float) (y + dy * (float) sin(toRadians(this.pitch - 90)) + dz * sin(toRadians(this.pitch))),
+                (float) (z + dx * (float) cos(toRadians(this.yaw - 90)) + dz * cos(toRadians(this.yaw)))
         );
     }
 
@@ -38,7 +34,7 @@ public class SimpleCamera implements ICamera {
         this.roll = roll;
         proj.resetViewMatrix();
         proj.rotateCamera(pitch, yaw, roll);
-        proj.translateCamera(-x, -y, -z);
+        proj.translateCamera(x, y, z);
         return this;
     }
 
@@ -85,7 +81,7 @@ public class SimpleCamera implements ICamera {
         this.z = z;
         proj.resetViewMatrix();
         proj.rotateCamera(pitch, yaw, roll);
-        proj.translateCamera(-x, -y, -z);
+        proj.translateCamera(x, y, z);
         return this;
     }
 
@@ -122,7 +118,7 @@ public class SimpleCamera implements ICamera {
         return (float) sin(toRadians(yaw - 90)) * m();
     }
 
-    private final float m() {
+    private float m() {
         return (float) cos(toRadians(pitch));
     }
 
@@ -164,5 +160,21 @@ public class SimpleCamera implements ICamera {
     @Override
     public boolean isOccluded(Vector3f position) {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleCamera{" +
+                "roll=" + roll +
+                ", x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                ", pitch=" + pitch +
+                ", yaw=" + yaw +
+                ", fieldOfView=" + fieldOfView +
+                ", aspectRatio=" + aspectRatio +
+                ", zNear=" + zNear +
+                ", zFar=" + zFar +
+                '}';
     }
 }

@@ -1,7 +1,7 @@
-package tk.ivybits.engine.gl.shader;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
 import static tk.ivybits.engine.gl.GL.*;
-public abstract class AbstractShader implements IShader {
+public abstract class AbstractShader implements ISceneShader {
     protected boolean isAttached = false;
     @Override
     public void attach() {

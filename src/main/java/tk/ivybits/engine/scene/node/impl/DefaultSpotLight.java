@@ -1,6 +1,5 @@
 package tk.ivybits.engine.scene.node.impl;
 
-import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.scene.node.ISpotLight;
 
 import java.awt.*;
@@ -51,7 +50,7 @@ public class DefaultSpotLight implements ISpotLight {
         return (float) sin(toRadians(yaw - 90)) * m();
     }
 
-    private final float m() {
+    private float m() {
         return (float) cos(toRadians(pitch));
     }
 

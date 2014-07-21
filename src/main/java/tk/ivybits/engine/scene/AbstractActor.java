@@ -1,19 +1,22 @@
 package tk.ivybits.engine.scene;
 
-import tk.ivybits.engine.scene.model.IGeometry;
-import tk.ivybits.engine.gl.shader.IShader;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 
-import javax.vecmath.Vector3f;
+import static java.lang.Math.toRadians;
 
 public abstract class AbstractActor implements IActor {
-    private float x, y, z;
-    private float pitch, yaw, roll;
+    protected float x, y, z;
+    protected float pitch, yaw, roll;
+    protected Matrix4f modelMatrix = new Matrix4f();
+    private boolean needsNewModelMatrix = false;
 
     @Override
     public void position(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        needsNewModelMatrix = true;
     }
 
     @Override
@@ -41,6 +44,7 @@ public abstract class AbstractActor implements IActor {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
+        needsNewModelMatrix = true;
     }
 
     @Override
@@ -56,5 +60,17 @@ public abstract class AbstractActor implements IActor {
     @Override
     public float roll() {
         return roll;
+    }
+
+    @Override
+    public Matrix4f getModelMatrix() {
+        if(needsNewModelMatrix) {
+            modelMatrix = new Matrix4f();
+            Matrix4f.translate(new Vector3f(x, y, z), modelMatrix, modelMatrix);
+            Matrix4f.rotate((float) toRadians(pitch), new Vector3f(0, 0, 1), modelMatrix, modelMatrix);
+            Matrix4f.rotate((float) toRadians(yaw), new Vector3f(0, 1, 0), modelMatrix, modelMatrix);
+            Matrix4f.rotate((float) toRadians(roll), new Vector3f(1, 0, 0), modelMatrix, modelMatrix);
+        }
+        return modelMatrix;
     }
 }

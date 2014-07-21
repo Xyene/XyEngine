@@ -1,4 +1,4 @@
-package ivybits;
+package sandbox;
 
 import tk.ivybits.engine.scene.model.ModelIO;
 

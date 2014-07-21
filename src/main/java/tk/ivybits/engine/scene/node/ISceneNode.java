@@ -1,13 +1,8 @@
 package tk.ivybits.engine.scene.node;
 
 import tk.ivybits.engine.scene.IActor;
-import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.light.PointLight;
-import tk.ivybits.engine.scene.light.SpotLight;
-import tk.ivybits.engine.scene.model.IGeometry;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ISceneNode {
     List<ISceneNode> getChildren();

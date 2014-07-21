@@ -1,6 +1,5 @@
 package tk.ivybits.engine.scene.node.impl;
 
-import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.scene.node.IPointLight;
 
 import java.awt.*;

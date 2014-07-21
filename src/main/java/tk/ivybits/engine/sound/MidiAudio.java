@@ -1,4 +1,4 @@
-package tk.ivybits.engine.al;
+package tk.ivybits.engine.sound;
 
 import javax.sound.midi.*;
 import javax.sound.sampled.AudioFileFormat;
@@ -151,13 +151,13 @@ public class MidiAudio implements IAudio {
     private MidiDevice openMidiDevice(String containsString) {
         MidiDevice device;
         MidiDevice.Info[] midiDevices = MidiSystem.getMidiDeviceInfo();
-        for (int i = 0; i < midiDevices.length; i++) {
+        for (MidiDevice.Info midiDevice : midiDevices) {
             try {
-                device = MidiSystem.getMidiDevice(midiDevices[i]);
+                device = MidiSystem.getMidiDevice(midiDevice);
             } catch (MidiUnavailableException e) {
                 device = null;
             }
-            if (device != null && midiDevices[i].getName().contains(containsString)) {
+            if (device != null && midiDevice.getName().contains(containsString)) {
                 try {
                     device.open();
                 } catch (MidiUnavailableException mue) {

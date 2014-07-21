@@ -1,19 +1,10 @@
 package tk.ivybits.engine.gl.texture;
 
-import org.lwjgl.opengl.GLContext;
-import tk.ivybits.engine.scene.texture.ITexture;
 import tk.ivybits.engine.scene.texture.IWriteableTexture;
 
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.EXTFramebufferObject.*;
-import static org.lwjgl.opengl.EXTFramebufferObject.glBindRenderbufferEXT;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL14.*;
-import static org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER;
-import static org.lwjgl.opengl.GL30.glBindFramebuffer;
+import static tk.ivybits.engine.gl.GL.*;
 
 public class FrameBuffer implements IWriteableTexture {
     private final int target;
@@ -28,8 +19,6 @@ public class FrameBuffer implements IWriteableTexture {
 
     public FrameBuffer(int width, int height, int target, int filter, int wrap) {
         this.target = target;
-        if (!GLContext.getCapabilities().GL_EXT_framebuffer_object)
-            throw new UnsupportedOperationException("FBO extension unsupported");
         this.width = width;
         this.height = height;
         fbo_texture = glGenTextures();
@@ -41,21 +30,21 @@ public class FrameBuffer implements IWriteableTexture {
         glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(target, 0);
 
-        depthBuffer = glGenRenderbuffersEXT();
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, width, height);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+        depthBuffer = glGenRenderbuffers();
+        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-        fbo = glGenFramebuffersEXT();
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, target, fbo_texture, 0);
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, depthBuffer);
+        fbo = glGenFramebuffers();
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, target, fbo_texture, 0);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
         int status;
-        if ((status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)) != GL_FRAMEBUFFER_COMPLETE_EXT) {
+        if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
             throw new IllegalStateException(String.format("failed to create framebuffer: 0x%04X\n", status));
         }
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     @Override
@@ -96,17 +85,21 @@ public class FrameBuffer implements IWriteableTexture {
         glTexImage2D(target, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(target, 0);
 
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depthBuffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, width, height);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
         return this;
     }
 
     public void destroy() {
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-        glDeleteFramebuffersEXT(fbo);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-        glDeleteRenderbuffersEXT(depthBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(fbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glDeleteRenderbuffers(depthBuffer);
         glDeleteTextures(fbo_texture);
+    }
+
+    public int fbo() {
+        return fbo;
     }
 }

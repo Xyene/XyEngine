@@ -14,8 +14,4 @@ public interface IFog {
     float getFogFar();
 
     IFog setFogFar(float fogFar);
-
-    IFog setEnabled(boolean flag);
-
-    boolean isEnabled();
 }

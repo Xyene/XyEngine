@@ -1,4 +1,4 @@
-package tk.ivybits.engine.al;
+package tk.ivybits.engine.sound;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
@@ -13,8 +13,8 @@ import java.util.HashMap;
 
 import static org.lwjgl.openal.AL10.*;
 
-public class AudioIO extends Object {
-    private static final HashMap<String, IAudioCodec> codecs = new HashMap<String, IAudioCodec>();
+public class AudioIO {
+    private static final HashMap<String, IAudioCodec> codecs = new HashMap<>();
     private static boolean openALCapable;
     public static final IAudioCodec CODEC_AIF = new IAudioCodec() {
         public IAudio readAudio(InputStream in) throws Exception {
@@ -136,8 +136,8 @@ public class AudioIO extends Object {
                 format);
         Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
         //check each available mixer to see if it is acceptable
-        for (int i = 0; i < mixerInfos.length; i++) {
-            Mixer mixer = AudioSystem.getMixer(mixerInfos[i]);
+        for (Mixer.Info mixerInfo : mixerInfos) {
+            Mixer mixer = AudioSystem.getMixer(mixerInfo);
             //first check if it supports our line
             if (!mixer.isLineSupported(lineInfo)) {
                 continue; //nope
@@ -151,9 +151,9 @@ public class AudioIO extends Object {
             //otherwise we should count them
             int linesOpen = 0;
             Line[] sourceLines = mixer.getSourceLines();
-            for (int s = 0; s < sourceLines.length; s++) {
+            for (Line sourceLine : sourceLines) {
                 //check if it matches our line
-                if (sourceLines[s].getLineInfo().matches(lineInfo)) {
+                if (sourceLine.getLineInfo().matches(lineInfo)) {
                     linesOpen++; //one line used up
                 }
             }

@@ -1,4 +1,4 @@
-package tk.ivybits.engine.al;
+package tk.ivybits.engine.sound;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL11;

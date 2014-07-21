@@ -5,7 +5,6 @@ import tk.ivybits.engine.scene.texture.ITexture;
 import java.awt.image.BufferedImage;
 
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 
 public class BufferedTexture implements ITexture {

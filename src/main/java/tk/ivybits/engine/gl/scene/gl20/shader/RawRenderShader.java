@@ -1,8 +1,8 @@
-package tk.ivybits.engine.gl.scene.gl20.shadow;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
-import tk.ivybits.engine.gl.shader.AbstractShader;
-import tk.ivybits.engine.gl.shader.ISceneShader;
-import tk.ivybits.engine.gl.shader.Program;
+import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.model.node.Material;
@@ -49,9 +49,9 @@ public class RawRenderShader extends AbstractShader implements ISceneShader {
     }
 
     @Override
-    public int getShaderHandle() {
+    protected int getShaderHandle() {
         try {
-           // glEnable(GL_RASTERIZER_DISCARD);
+            // glEnable(GL_RASTERIZER_DISCARD);
             return (shader == null ? shader = Program.builder()
                     .loadSystemShader(Program.ShaderType.VERTEX, VERTEX_SHADER_LOCATION)
                     .build() : shader).getId();
@@ -75,5 +75,10 @@ public class RawRenderShader extends AbstractShader implements ISceneShader {
         shader.setUniform(MODEL_MATRIX, proj.getModelMatrix());
         shader.setUniform(VIEW_MATRIX, proj.getViewMatrix());
         if (!attached) super.detach();
+    }
+
+    @Override
+    public Program getProgram() {
+        return shader;
     }
 }

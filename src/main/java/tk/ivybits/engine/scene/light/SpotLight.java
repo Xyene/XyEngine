@@ -35,7 +35,7 @@ public class SpotLight extends PointLight {
         return (float) sin(toRadians(yaw - 90)) * m();
     }
 
-    private final float m() {
+    private float m() {
         return (float) cos(toRadians(pitch));
     }
     public float getCutoff() {

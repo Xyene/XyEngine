@@ -1,4 +1,4 @@
-package tk.ivybits.engine.gl.shader;
+package tk.ivybits.engine.gl;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.*;
@@ -25,8 +25,7 @@ public class Program {
     }
 
     public int getUniformLocation(String name) {
-        int id = glGetUniformLocation(handle, name);
-        return id;
+        return glGetUniformLocation(handle, name);
     }
 
     private Class ensureConstantTypes(Object[] objs) {
@@ -91,8 +90,7 @@ public class Program {
     }
 
     public int getAttributeLocation(String name) {
-        int id = glGetAttribLocation(handle, name);
-        return id;
+        return glGetAttribLocation(handle, name);
     }
 
     public int getId() {
@@ -102,7 +100,7 @@ public class Program {
     public static class ProgramBuilder {
         private List<Map.Entry<ShaderType, String>> shaders = new ArrayList<>();
 
-        private static String readSourceFrom(InputStream in) {
+        public static String readSourceFrom(InputStream in) {
             StringBuilder source = new StringBuilder();
             BufferedReader reader = null;
             reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(in)));
@@ -133,7 +131,6 @@ public class Program {
             shaders.add(new AbstractMap.SimpleImmutableEntry<>(type, source));
             return this;
         }
-
 
         public Program build() {
             int handle = glCreateProgram();

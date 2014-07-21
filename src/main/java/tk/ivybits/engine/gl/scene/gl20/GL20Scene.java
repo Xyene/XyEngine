@@ -1,64 +1,49 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.gl.ImmediateProjection;
-import tk.ivybits.engine.gl.scene.gl20.shadow.RawRenderShader;
+import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
+import tk.ivybits.engine.gl.scene.gl20.shader.PhongLightingShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.RawRenderShader;
 import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
-import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapShader;
-import tk.ivybits.engine.gl.shader.ISceneShader;
-import tk.ivybits.engine.gl.shader.IShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.camera.SimpleCamera;
 import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.node.*;
-import tk.ivybits.engine.scene.node.impl.DefaultSceneGraph;
 
 import static tk.ivybits.engine.gl.GL.*;
 
 import java.util.*;
 
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static tk.ivybits.engine.scene.IDrawContext.*;
 
 public class GL20Scene implements IScene {
     GL20DrawContext drawContext = new GL20DrawContext(this);
-    PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, new Comparator<PriorityComparableDrawable>() {
-        @Override
-        public int compare(PriorityComparableDrawable o1, PriorityComparableDrawable o2) {
-            return o1.priority - o2.priority;
-        }
-    });
+    PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
     private Projection proj = new Projection();
     private ICamera camera = new SimpleCamera(proj);
     PhongLightingShader lightingShader;
-    private ISceneShader shadowMapShader;
-    private BloomShader bloomShader;
-    private FrameBuffer postRenderFBO;
     private int viewWidth;
     private int viewHeight;
     private RawRenderShader rawGeometryShader;
+    private BloomShader bloomShader;
     private List<ShadowMapFBO> shadowMapFBOs = new ArrayList<>();
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
      */
-    public ISceneShader currentGeometryShader;
+    ISceneShader currentGeometryShader;
     private ISceneGraph sceneGraph;
+    private MSAAFBO msaaBuffer;
+    private FrameBuffer bloomBuffer;
 
     public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
         this.sceneGraph = sceneGraph;
-        // TODO: only create if bloom is used
-        if (GLContext.getCapabilities().GL_EXT_framebuffer_object) {
-            postRenderFBO = new FrameBuffer(viewWidth, viewHeight, GL_TEXTURE_2D);
-        }
         lightingShader = new PhongLightingShader(this, shadowMapFBOs);
-        shadowMapShader = new ShadowMapShader();
-        rawGeometryShader = new RawRenderShader();
+
         sceneGraph.addSceneChangeListener(new SceneChangeAdapter() {
             @Override
             public void actorAdded(IActor actor) {
@@ -69,9 +54,9 @@ public class GL20Scene implements IScene {
             @Override
             public void actorRemoved(IActor actor) {
                 Iterator<PriorityComparableDrawable> i = tracker.iterator();
-                while(i.hasNext()) {
+                while (i.hasNext()) {
                     PriorityComparableDrawable pcb = i.next();
-                    if(pcb == actor) {
+                    if (pcb == actor) {
                         i.remove();
                         break;
                     }
@@ -98,138 +83,177 @@ public class GL20Scene implements IScene {
 
     @Override
     public void setViewportSize(int width, int height) {
-        if (postRenderFBO != null) postRenderFBO.resize(width, height);
         for (ShadowMapFBO fbo : shadowMapFBOs) fbo.resize(width, height);
+        if (msaaBuffer != null) msaaBuffer.resize(width, height);
+        if (bloomBuffer != null) bloomBuffer.resize(width, height);
         this.viewWidth = width;
         this.viewHeight = height;
     }
 
-    public void drawGeometry() {
-        for (PriorityComparableDrawable entity : tracker) {
-            IActor actor = entity.wrapped;
-            proj.resetModelMatrix();
-            proj.translate(actor.x(), actor.y(), actor.z());
-            proj.rotate(actor.pitch(), actor.yaw(), actor.roll());
-            currentGeometryShader.setProjection(proj);
-            entity.draw.draw(this);
+    void destroyShadowMaps() {
+        for (int n = 0; n < shadowMapFBOs.size(); n++) {
+            shadowMapFBOs.remove(0).destroy();
         }
     }
 
-    protected void _draw() {
-        if (drawContext.isEnabled(DYNAMIC_SHADOWS)) {
-            Projection camera = proj;
+    private void generateShadowMaps() {
+        Projection camera = proj;
 
-            currentGeometryShader = rawGeometryShader;
-            List<ISpotLight> spotLights = sceneGraph.getRoot().getSpotLights();
-            int numLights = spotLights.size();
-            if (shadowMapFBOs.size() < numLights) {
-                for (int n = shadowMapFBOs.size(); n < numLights; n++) {
-                    shadowMapFBOs.add(new ShadowMapFBO(viewWidth, viewHeight));
-                }
-            } else if (shadowMapFBOs.size() > numLights) {
-                for (int n = numLights; n < shadowMapFBOs.size(); n++) {
-                    shadowMapFBOs.remove(0).destroy();
-                }
-            }
-
-            for (int n = 0; n < numLights; n++) {
-                proj = new Projection();
-                ISpotLight light = spotLights.get(n);
-
-                ShadowMapFBO fbo = shadowMapFBOs.get(n);
-                fbo.bindForWriting();
-
-                rawGeometryShader.attach();
-
-                glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
-                glLoadIdentity();
-
-                proj.setProjectionMatrix(camera.getProjectionMatrix());
-                //proj.setProjection(90, this.camera.getAspectRatio(), this.camera.getZFar(), this.camera.getZNear());
-
-                proj.resetViewMatrix();
-                proj.rotateCamera(light.pitch(), light.yaw(), 0);
-                proj.translateCamera(-light.x(), -light.y(), -light.z());
-
-                fbo.projection = proj.getViewMatrix();
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_FRONT); // Don't shadow self
-                drawGeometry();
-                glDisable(GL_CULL_FACE);
-                rawGeometryShader.detach();
-
-                fbo.unbind();
-            }
-            proj = camera;
+        if (rawGeometryShader == null) {
+            rawGeometryShader = new RawRenderShader();
         }
 
+        currentGeometryShader = rawGeometryShader;
+        List<ISpotLight> spotLights = sceneGraph.getRoot().getSpotLights();
+        int numLights = spotLights.size();
+        if (shadowMapFBOs.size() < numLights) {
+            for (int n = shadowMapFBOs.size(); n < numLights; n++) {
+                shadowMapFBOs.add(new ShadowMapFBO(viewWidth, viewHeight));
+            }
+        } else if (shadowMapFBOs.size() > numLights) {
+            for (int n = numLights; n < shadowMapFBOs.size(); n++) {
+                shadowMapFBOs.remove(0).destroy();
+            }
+        }
+
+        for (int n = 0; n < numLights; n++) {
+            proj = new Projection();
+            ISpotLight light = spotLights.get(n);
+
+            ShadowMapFBO fbo = shadowMapFBOs.get(n);
+            fbo.bindForWriting();
+
+            rawGeometryShader.attach();
+
+            glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
+            glLoadIdentity();
+
+            proj.setProjectionMatrix(camera.getProjectionMatrix());
+
+            proj.resetViewMatrix();
+            proj.rotateCamera(light.pitch(), light.yaw(), 0);
+            proj.translateCamera(light.x(), light.y(), light.z());
+
+            fbo.projection = proj.getViewMatrix();
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT); // Avoid self-shadowing
+            for (PriorityComparableDrawable entity : tracker) {
+                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                entity.draw.draw(this);
+            }
+            glDisable(GL_CULL_FACE);
+            rawGeometryShader.detach();
+
+            fbo.unbind();
+        }
+        proj = camera;
+    }
+
+    protected void _draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
-        if (Keyboard.isKeyDown(Keyboard.KEY_I) && shadowMapFBOs.size() > 0) {
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glDisable(GL_LIGHTING);
-            glDisable(GL_DEPTH_TEST);
-            ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
+        currentGeometryShader = lightingShader;
+        if (lightingShader != null) lightingShader.attach();
 
-            glEnable(GL_TEXTURE_2D);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, shadowMapFBOs.get(shadowMapFBOs.size() - 1).id());
-            shadowMapShader.attach();
-
-            glBegin(GL_QUADS);
-            glTexCoord2f(0, 0);
-            glVertex2f(0, 0);
-            glTexCoord2f(0, 1);
-            glVertex2f(0, viewHeight);
-            glTexCoord2f(1, 1);
-            glVertex2f(viewWidth, viewHeight);
-            glTexCoord2f(1, 0);
-            glVertex2f(viewWidth, 0);
-            glEnd();
-
-            shadowMapShader.detach();
-            ImmediateProjection.toFrustrumProjection();
-            glPopAttrib();
+        if (drawContext.isEnabled(ALPHA_TESTING)) {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            for (PriorityComparableDrawable entity : tracker) {
+                if (!entity.draw.isTransparent()) continue;
+                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                entity.draw.draw(this);
+            }
+            glCullFace(GL_BACK);
+            for (PriorityComparableDrawable entity : tracker) {
+                if (!entity.draw.isTransparent()) continue;
+                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                entity.draw.draw(this);
+            }
+            glDisable(GL_CULL_FACE);
+            for (PriorityComparableDrawable entity : tracker) {
+                if (entity.draw.isTransparent()) continue;
+                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                entity.draw.draw(this);
+            }
         } else {
-            currentGeometryShader = lightingShader;
-            if (lightingShader != null) lightingShader.attach();
-
-            if (drawContext.isEnabled(SORTED_ALPHA)) {
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_FRONT);
-                drawGeometry();
-                glCullFace(GL_BACK);
+            for (PriorityComparableDrawable entity : tracker) {
+                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                entity.draw.draw(this);
             }
-            drawGeometry();
-            if (drawContext.isEnabled(SORTED_ALPHA)) {
-                glDisable(GL_CULL_FACE);
-            }
-            if (lightingShader != null) lightingShader.detach();
         }
+
+        if (lightingShader != null) lightingShader.detach();
     }
 
     @Override
     public void draw() {
-        boolean bloom = false && drawContext.isEnabled(BLOOM) && postRenderFBO != null;
-        if (bloom) {
-            postRenderFBO.bind();
+        if (drawContext.isEnabled(OBJECT_SHADOWS)) {
+            generateShadowMaps();
         }
+
+        boolean antialiasing = drawContext.isEnabled(IDrawContext.ANTIALIASING);
+
+        if (antialiasing && msaaBuffer == null) {
+            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
+        } else if (!antialiasing && msaaBuffer != null) {
+            msaaBuffer.destroy();
+            msaaBuffer = null;
+        }
+        if (antialiasing) {
+            glEnable(GL_MULTISAMPLE);
+
+            msaaBuffer.bind();
+        }
+
+        boolean bloom = drawContext.isEnabled(IDrawContext.BLOOM);
+        if (bloom && bloomShader == null) {
+            bloomShader = new BloomShader();
+            bloomShader.setBloomIntensity(0.15f).setSampleCount(4);
+        }
+        if (bloom && bloomBuffer == null) {
+            bloomBuffer = new FrameBuffer(viewWidth, viewHeight, GL_TEXTURE_2D);
+            bloomBuffer.resize(viewWidth, viewHeight);
+        } else if (!bloom && bloomBuffer != null) {
+            bloomBuffer.destroy();
+            bloomBuffer = null;
+        }
+
+        if (bloom && !antialiasing) {
+            bloomBuffer.bindForWriting();
+        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
         _draw();
 
+        if (antialiasing) {
+            msaaBuffer.unbind();
+            if (bloom) {
+                bloomBuffer.bindForWriting();
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                bloomBuffer.unbind();
+
+                msaaBuffer.blit(bloomBuffer.fbo()); // FIXME: this is a nasty, horrid hack
+            } else {
+                msaaBuffer.blit();
+            }
+        }
+
         if (bloom) {
-            postRenderFBO.unbind();
+            if (!antialiasing) {
+                bloomBuffer.unbind();
+            }
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
 
+            glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, postRenderFBO.id());
-          // TODO  bloomShader.attach();
+            glBindTexture(GL_TEXTURE_2D, bloomBuffer.id());
+            bloomShader.attach();
 
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
@@ -242,9 +266,10 @@ public class GL20Scene implements IScene {
             glVertex2f(viewWidth, 0);
             glEnd();
 
-      // TODO      bloomShader.detach();
+            bloomShader.detach();
             ImmediateProjection.toFrustrumProjection();
             glPopAttrib();
         }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }

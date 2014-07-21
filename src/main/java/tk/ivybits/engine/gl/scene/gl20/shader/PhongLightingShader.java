@@ -1,12 +1,13 @@
-package tk.ivybits.engine.gl.scene.gl20;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
-import tk.ivybits.engine.gl.shader.AbstractShader;
-import tk.ivybits.engine.gl.shader.ISceneShader;
-import tk.ivybits.engine.gl.shader.Program;
+import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.scene.IActor;
+import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.IScene;
@@ -14,12 +15,15 @@ import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.node.*;
 
 import java.awt.*;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.shader.Program.ShaderType.FRAGMENT;
-import static tk.ivybits.engine.gl.shader.Program.ShaderType.VERTEX;
+import static tk.ivybits.engine.gl.Program.ShaderType.FRAGMENT;
+import static tk.ivybits.engine.gl.Program.ShaderType.VERTEX;
 
 public class PhongLightingShader extends AbstractShader implements ISceneShader, ISceneChangeListener {
     private final IScene scene;
@@ -27,10 +31,16 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_phong_lighting.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_phong_lighting.v.glsl";
+    private static final String VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE;
+
+    static {
+        VERTEX_SHADER_SOURCE = Program.ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(VERTEX_SHADER_LOCATION));
+        FRAGMENT_SHADER_SOURCE = Program.ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(FRAGMENT_SHADER_LOCATION));
+    }
+
     private boolean uniformsFetched = false;
     private int
             MATERIAL_BASE,
-            HAS_FOG,
             FOG_BASE,
             POINT_LIGHT_COUNT,
             SPOTLIGHT_COUNT,
@@ -39,37 +49,28 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             SHADOW_MAP_BASE,
             LIGHT_MATRIX_COUNT,
             LIGHT_MATRIX_BASE,
-            PROJECTION_MATRIX,
             MODEL_MATRIX,
-            VIEW_MATRIX,
-            NORMAL_MATRIX;
+            NORMAL_MATRIX,
+            MVP_MATRIX;
     private int[] ATTRIBUTES;
+    private HashMap<List<Boolean>, Program> shaders = new HashMap<>();
+
     private Program shader;
-    private Projection proj;
     private Matrix4f bias = new Matrix4f();
 
+    private static final String[] DEFINE_LOOKUP = {
+            "NORMAL_MAPPING",
+            "SPECULAR_MAPPING",
+            "OBJECT_SHADOWS",
+            "FOG"
+    };
+
     {
-//        bias.load(FloatBuffer.wrap(new float[]{
-//                0.5f, 0.0f, 0.0f, 0.0f,
-//                0.0f, 0.5f, 0.0f, 0.0f,
-//                0.0f, 0.0f, 0.5f, 0.0f,
-//                0.5f, 0.5f, 0.5f, 1.0f}));
-        bias.m00 = .5f;
-        bias.m10 = .0f;
-        bias.m20 = .0f;
-        bias.m30 = .0f;
-        bias.m01 = .0f;
-        bias.m11 = .5f;
-        bias.m21 = .0f;
-        bias.m31 = .0f;
-        bias.m02 = .0f;
-        bias.m12 = .0f;
-        bias.m22 = .5f;
-        bias.m32 = .0f;
-        bias.m03 = .5f;
-        bias.m13 = .5f;
-        bias.m23 = .5f;
-        bias.m33 = 1f;
+        bias.load(FloatBuffer.wrap(new float[]{
+                0.5f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.5f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.5f, 0.0f,
+                0.5f, 0.5f, 0.5f, 1.0f}));
     }
 
     private List<ISpotLight> spotLights = new ArrayList<>();
@@ -81,7 +82,6 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         }
         uniformsFetched = true;
         MATERIAL_BASE = 0; // shader.getUniformLocation("u_material"); reports -1
-        HAS_FOG = shader.getUniformLocation("u_hasFog");
         FOG_BASE = shader.getUniformLocation("u_fog.fogColor");
         POINT_LIGHT_COUNT = shader.getUniformLocation("u_pointLightCount");
         SPOTLIGHT_COUNT = shader.getUniformLocation("u_spotLightCount");
@@ -90,10 +90,9 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         SHADOW_MAP_BASE = shader.getUniformLocation("u_shadowMap[0]");
         LIGHT_MATRIX_COUNT = shader.getUniformLocation("u_lightMatrixCount");
         LIGHT_MATRIX_BASE = shader.getUniformLocation("u_lightViewMatrix[0]");
-        PROJECTION_MATRIX = shader.getUniformLocation("u_projectionMatrix");
         MODEL_MATRIX = shader.getUniformLocation("u_modelMatrix");
-        VIEW_MATRIX = shader.getUniformLocation("u_viewMatrix");
         NORMAL_MATRIX = shader.getUniformLocation("u_normalMatrix");
+        MVP_MATRIX = shader.getUniformLocation("u_mvpMatrix");
 
         ATTRIBUTES = new int[]{
                 shader.getAttributeLocation("a_Vertex"),
@@ -101,6 +100,9 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                 shader.getAttributeLocation("a_UV"),
                 shader.getAttributeLocation("a_Tangent")
         };
+        // This is in case we rebuilt the shader
+        updateLights();
+        fogUpdated(scene.getSceneGraph().getAtmosphere().getFog());
     }
 
     public PhongLightingShader(IScene scene, List<ShadowMapFBO> shadowMapFBO) {
@@ -113,20 +115,14 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         super.attach();
         setupHandles();
 
-        shader.setUniform(LIGHT_MATRIX_COUNT, shadowMapFBO.size());
-        for (int n = 0; n < shadowMapFBO.size(); n++) {
-            ShadowMapFBO fbo = shadowMapFBO.get(n);
-
-            Matrix4f depthBiasMVP = new Matrix4f();
-            Matrix4f.mul(proj.getProjectionMatrix(), fbo.projection, depthBiasMVP);
-            Matrix4f.mul(depthBiasMVP, proj.getModelMatrix(), depthBiasMVP);
-            Matrix4f.mul(bias, depthBiasMVP, depthBiasMVP);
-
-            glActiveTexture(GL_TEXTURE3 + n);
-            glEnable(GL_TEXTURE_2D);
-            shader.setUniform(SHADOW_MAP_BASE + n, 3 + n);
-            fbo.bind();
-            shader.setUniform(LIGHT_MATRIX_BASE + n, fbo.projection);
+        if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
+            shader.setUniform(LIGHT_MATRIX_COUNT, shadowMapFBO.size());
+            for (int n = 0; n < shadowMapFBO.size(); n++) {
+                glActiveTexture(GL_TEXTURE3 + n);
+                glEnable(GL_TEXTURE_2D);
+                shader.setUniform(SHADOW_MAP_BASE + n, 3 + n);
+                shadowMapFBO.get(n).bind();
+            }
         }
     }
 
@@ -135,77 +131,107 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         boolean attached = isAttached;
         if (!attached) super.attach();
         setupHandles();
+        int offset = 0;
+        int texture = 0;
         if (material.diffuseTexture != null) {
-            glActiveTexture(GL_TEXTURE0);
+            glActiveTexture(GL_TEXTURE0 + texture);
             glEnable(GL_TEXTURE_2D);
-            glUniform1i(MATERIAL_BASE, 1);
-            glUniform1i(MATERIAL_BASE + 1, 0);
+            glUniform1i(MATERIAL_BASE + (offset++), 1);
+            glUniform1i(MATERIAL_BASE + (offset++), (texture++));
             material.diffuseTexture.bind();
         } else {
-            glUniform1i(MATERIAL_BASE, 0);
+            glUniform1i(MATERIAL_BASE + (offset++), 0);
+            offset++;
         }
+        // TODO if (scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))
         if (material.specularTexture != null) {
-            glActiveTexture(GL_TEXTURE1);
+            glActiveTexture(GL_TEXTURE0 + texture);
             glEnable(GL_TEXTURE_2D);
-            glUniform1i(MATERIAL_BASE + 2, 1);
-            glUniform1i(MATERIAL_BASE + 3, 1);
+            glUniform1i(MATERIAL_BASE + (offset++), 1);
+            glUniform1i(MATERIAL_BASE + (offset++), (texture++));
             material.specularTexture.bind();
         } else {
-            glUniform1i(MATERIAL_BASE + 2, 0);
+            glUniform1i(MATERIAL_BASE + (offset++), 0);
+            offset++;
         }
-        if (material.bumpMap != null) {
-            glActiveTexture(GL_TEXTURE2);
-            glEnable(GL_TEXTURE_2D);
-            glUniform1i(MATERIAL_BASE + 4, 1);
-            glUniform1i(MATERIAL_BASE + 5, 2);
-            material.bumpMap.bind();
-        } else {
-            glUniform1i(MATERIAL_BASE + 4, 0);
-        }
+        if (scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))
+            if (material.bumpMap != null) {
+                glActiveTexture(GL_TEXTURE0 + texture);
+                glEnable(GL_TEXTURE_2D);
+                glUniform1i(MATERIAL_BASE + (offset++), 1);
+                glUniform1i(MATERIAL_BASE + (offset++), (texture++));
+                material.bumpMap.bind();
+            } else {
+                glUniform1i(MATERIAL_BASE + (offset++), 0);
+                offset++;
+            }
 
         Color ambient = material.ambientColor;
-        glUniform3f(MATERIAL_BASE + 6,
+        glUniform3f(MATERIAL_BASE + (offset++),
                 ambient.getRed() / 255F,
                 ambient.getGreen() / 255F,
                 ambient.getBlue() / 255F);
         Color diffuse = material.diffuseColor;
-        glUniform3f(MATERIAL_BASE + 7,
+        glUniform3f(MATERIAL_BASE + (offset++),
                 diffuse.getRed() / 255F,
                 diffuse.getGreen() / 255F,
                 diffuse.getBlue() / 255F);
         Color specular = material.specularColor;
-        glUniform3f(MATERIAL_BASE + 8,
+        glUniform3f(MATERIAL_BASE + (offset++),
                 specular.getRed() / 255F,
                 specular.getGreen() / 255F,
                 specular.getBlue() / 255F);
-        glUniform1f(MATERIAL_BASE + 9, 128 - material.shininess + 1);
-        glUniform1f(MATERIAL_BASE + 10, material.transparency);
+        glUniform1f(MATERIAL_BASE + (offset++), 128 - material.shininess + 1);
+        glUniform1f(MATERIAL_BASE + (offset++), material.transparency);
         if (!attached) super.detach();
     }
 
     @Override
-    public int getShaderHandle() {
-        return (shader == null ? shader = Program.builder()
-                .loadSystemShader(VERTEX, VERTEX_SHADER_LOCATION)
-                .loadSystemShader(FRAGMENT, FRAGMENT_SHADER_LOCATION)
-                .build() : shader).getId();
+    protected int getShaderHandle() {
+        List<Boolean> identifier = Arrays.asList(
+                scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS),
+                scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS),
+                scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS),
+                scene.getDrawContext().isEnabled(IDrawContext.FOG)
+        );
+        shader = shaders.get(identifier);
+        if (shader == null) {
+            System.out.println(identifier + "->" + shaders);
+            String header = "#version 130\n";
+            for (int i = 0; i != identifier.size(); i++) {
+                if (identifier.get(i)) {
+                    header += "#define " + DEFINE_LOOKUP[i] + "\n";
+                }
+            }
+            System.out.println(header + VERTEX_SHADER_SOURCE);
+            shader = Program.builder()
+                    .addShader(VERTEX, header + VERTEX_SHADER_SOURCE)
+                    .addShader(FRAGMENT, header + FRAGMENT_SHADER_SOURCE)
+                    .build();
+            shaders.put(identifier, shader);
+            uniformsFetched = false;
+        }
+        return shader.getId();
     }
 
     @Override
     public int getAttributeLocation(VertexAttribute attribute) {
+        if (!uniformsFetched) {
+            boolean attached = isAttached;
+            if (!attached) super.attach();
+            setupHandles();
+            if (!attached) super.detach();
+        }
         return ATTRIBUTES[attribute.ordinal()];
     }
 
     @Override
     public void setProjection(Projection proj) {
-        this.proj = proj;
         boolean attached = isAttached;
         if (!attached) super.attach();
         setupHandles();
-        shader.setUniform(PROJECTION_MATRIX, proj.getProjectionMatrix());
         Matrix4f model = proj.getModelMatrix();
         shader.setUniform(MODEL_MATRIX, model);
-        shader.setUniform(VIEW_MATRIX, proj.getViewMatrix());
         Matrix3f normals = new Matrix3f();
         normals.m00 = model.m00;
         normals.m01 = model.m01;
@@ -219,7 +245,29 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         Matrix3f.transpose(normals, normals);
         Matrix3f.invert(normals, normals);
         shader.setUniform(NORMAL_MATRIX, normals);
+
+        Matrix4f mvp = new Matrix4f();
+        Matrix4f.mul(proj.getProjectionMatrix(), proj.getViewMatrix(), mvp);
+        Matrix4f.mul(mvp, proj.getModelMatrix(), mvp);
+        shader.setUniform(MVP_MATRIX, mvp);
+
+        if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
+            for (int n = 0; n < shadowMapFBO.size(); n++) {
+                Matrix4f depthBiasMVP = new Matrix4f();
+                Matrix4f.mul(proj.getProjectionMatrix(), shadowMapFBO.get(n).projection, depthBiasMVP);
+                Matrix4f.mul(depthBiasMVP, proj.getModelMatrix(), depthBiasMVP);
+                Matrix4f.mul(bias, depthBiasMVP, depthBiasMVP);
+
+                shader.setUniform(LIGHT_MATRIX_BASE + n, depthBiasMVP);
+            }
+        }
+
         if (!attached) super.detach();
+    }
+
+    @Override
+    public Program getProgram() {
+        return shader;
     }
 
     void updateLights() {
@@ -333,11 +381,12 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     @Override
     public void fogUpdated(IFog fog) {
-        boolean attached = isAttached;
-        if (!attached) super.attach();
-        setupHandles();
-        if (fog.isEnabled()) {
-            glUniform1i(HAS_FOG, 1);
+        // TODO: recompile shader for these settings
+        if (scene.getDrawContext().isEnabled(IDrawContext.FOG)) {
+            boolean attached = isAttached;
+            if (!attached) super.attach();
+            setupHandles();
+            //glUniform1i(HAS_FOG, 1);
             int base = FOG_BASE;
             Color fogColor = fog.getFogColor();
             glUniform3f(base,
@@ -346,10 +395,9 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                     fogColor.getBlue() / 255F);
             glUniform1f(base + 1, fog.getFogNear());
             glUniform1f(base + 2, fog.getFogFar());
-        } else {
-            glUniform1i(HAS_FOG, 0);
+
+            if (!attached) super.detach();
         }
-        if (!attached) super.detach();
     }
 
     @Override

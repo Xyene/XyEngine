@@ -1,43 +1,42 @@
-package tk.ivybits.engine.gl.scene.gl20;
+package tk.ivybits.engine.gl.scene.gl11;
 
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
-public class GL20DrawContext implements IDrawContext {
-    final GL20Scene parent;
+public class GL11DrawContext implements IDrawContext {
+    final GL11Scene parent;
     final Object[] CAPABILITIES = {
-            true,  // Normal mapping
-            true,  // Specular mapping
-            true, // Dynamic shadows
-            true,  // alpha testing
+            false,   // Normal mapping
+            false,   // Specular mapping
+            false,   // Dynamic shadows
+            true,    // Sorted alpha
             true,    // Fog
-            true,    // ANTIALIASING
-            true    // bloom
+            false,    // ANTIALIASING todo: glSmoothHint etc
+            false    // bloom
     };
     final boolean[] ENABLED_CAPABILITIES = {
-            true,  // Normal mapping
-            true,  // Specular mapping
-            true, // Dynamic shadows
-            true,  // alpha testing
+            false,   // Normal mapping
+            false,   // Specular mapping
+            false,   // Dynamic shadows
+            true,    // Sorted alpha
             true,    // Fog
-            true,    // ANTIALIASING
-            true     // bloom
+            false,    // ANTIALIASING
+            false    // bloom
     };
 
-    public GL20DrawContext(GL20Scene parent) {
+    public GL11DrawContext(GL11Scene parent) {
         this.parent = parent;
     }
 
     @Override
     public void useMaterial(Material material) {
-        if (parent.currentGeometryShader != null)
-            parent.currentGeometryShader.useMaterial(material);
+            parent.useMaterial(material);
     }
 
     @Override
-    public ITesselator createTesselator(int flags, int type) {
-        return new GL20Tesselator(this, flags, type);
+    public ITesselator createTesselator(int flags, int indiceCount) {
+        return new GL11Tesselator(this, flags, indiceCount);
     }
 
     @Override
@@ -50,9 +49,6 @@ public class GL20DrawContext implements IDrawContext {
     public void setEnabled(int id, boolean flag) {
         if (id < ENABLED_CAPABILITIES.length) ENABLED_CAPABILITIES[id] = flag;
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
-        if(id == OBJECT_SHADOWS && !flag) {
-            parent.destroyShadowMaps();
-        }
     }
 
     @Override

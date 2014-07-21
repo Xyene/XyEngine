@@ -1,17 +1,11 @@
 package tk.ivybits.engine.scene.light.flare;
 
-import org.lwjgl.BufferUtils;
 import tk.ivybits.engine.gl.texture.TextureLoader;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.ICamera;
-import tk.ivybits.engine.scene.model.IGeometry;
 
-import javax.imageio.ImageIO;
-import javax.vecmath.Point2f;
 import javax.vecmath.Vector3f;
-import java.awt.*;
 import java.io.IOException;
-import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -111,50 +105,55 @@ public class LensFlare extends AbstractActor implements IDrawable {
     }
 
     @Override
+    public boolean isTransparent() {
+        return false; // FIXME
+    }
+
+    @Override
     public void draw(IScene scene) {
-        ICamera camera = scene.getCamera();
-        Vector3f lightPosition = position();
-        Vector3f cameraPosition = camera.position();
-
-        if (camera.isSphereInFrustum(position(), 1.0f)) {
-            Vector3f vLightSourceToCamera = new Vector3f(cameraPosition);
-            vLightSourceToCamera.sub(lightPosition);
-
-            float magnitude = vLightSourceToCamera.length();
-
-            Vector3f ptIntersect = camera.direction();
-
-            ptIntersect.set(ptIntersect.x * magnitude, ptIntersect.y * magnitude, ptIntersect.z * magnitude);
-            ptIntersect.add(cameraPosition);
-
-            Vector3f vLightSourceToIntersect = new Vector3f(ptIntersect);
-            vLightSourceToIntersect.sub(lightPosition);
-
-            magnitude = vLightSourceToIntersect.length();
-            vLightSourceToIntersect.normalize();
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glDisable(GL_DEPTH_TEST);
-            glEnable(GL_TEXTURE_2D);
-
-            if (!camera.isOccluded(lightPosition)) {
-                drawFlare(camera, bigGlowId, 0.60f, 0.60f, 0.8f, 1.0f, lightPosition, 16 * 5);
-                drawFlare(camera, streaksId, 0.60f, 0.60f, 0.8f, 1.0f, lightPosition, 8 * 5);
-                drawFlare(camera, glowId, 0.8f, 0.8f, 1.0f, 0.5f, lightPosition, 3.5f * 5);
-
-                for (Flare flare : flares) {
-                    Vector3f pt = new Vector3f(vLightSourceToIntersect);
-                    float d = magnitude * flare.distance;
-                    pt.set(pt.x * d, pt.y * d, pt.z * d);
-                    pt.add(lightPosition);
-                    drawFlare(camera, flare.texture, flare.r, flare.g, flare.b, flare.a, pt, flare.scale * 15);
-                }
-            }
-            glDisable(GL_BLEND);
-            glEnable(GL_DEPTH_TEST);
-            glDisable(GL_TEXTURE_2D);
-        }
+//        ICamera camera = scene.getCamera();
+//        Vector3f lightPosition = new Vector3f(position().x, position().y(), po);
+//        Vector3f cameraPosition = camera.position();
+//
+//        if (camera.isSphereInFrustum(position(), 1.0f)) {
+//            Vector3f vLightSourceToCamera = new Vector3f(cameraPosition);
+//            vLightSourceToCamera.sub(lightPosition);
+//
+//            float magnitude = vLightSourceToCamera.length();
+//
+//            Vector3f ptIntersect = camera.direction();
+//
+//            ptIntersect.set(ptIntersect.x * magnitude, ptIntersect.y * magnitude, ptIntersect.z * magnitude);
+//            ptIntersect.add(cameraPosition);
+//
+//            Vector3f vLightSourceToIntersect = new Vector3f(ptIntersect);
+//            vLightSourceToIntersect.sub(lightPosition);
+//
+//            magnitude = vLightSourceToIntersect.length();
+//            vLightSourceToIntersect.normalize();
+//
+//            glEnable(GL_BLEND);
+//            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//            glDisable(GL_DEPTH_TEST);
+//            glEnable(GL_TEXTURE_2D);
+//
+//            if (!camera.isOccluded(lightPosition)) {
+//                drawFlare(camera, bigGlowId, 0.60f, 0.60f, 0.8f, 1.0f, lightPosition, 16 * 5);
+//                drawFlare(camera, streaksId, 0.60f, 0.60f, 0.8f, 1.0f, lightPosition, 8 * 5);
+//                drawFlare(camera, glowId, 0.8f, 0.8f, 1.0f, 0.5f, lightPosition, 3.5f * 5);
+//
+//                for (Flare flare : flares) {
+//                    Vector3f pt = new Vector3f(vLightSourceToIntersect);
+//                    float d = magnitude * flare.distance;
+//                    pt.set(pt.x * d, pt.y * d, pt.z * d);
+//                    pt.add(lightPosition);
+//                    drawFlare(camera, flare.texture, flare.r, flare.g, flare.b, flare.a, pt, flare.scale * 15);
+//                }
+//            }
+//            glDisable(GL_BLEND);
+//            glEnable(GL_DEPTH_TEST);
+//            glDisable(GL_TEXTURE_2D);
+//        }
     }
 
     @Override

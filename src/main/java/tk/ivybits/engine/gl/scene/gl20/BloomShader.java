@@ -1,16 +1,19 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
-import tk.ivybits.engine.gl.shader.AbstractShader;
-import tk.ivybits.engine.gl.shader.Program;
+import tk.ivybits.engine.gl.Program;
+import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
+import tk.ivybits.engine.scene.VertexAttribute;
+import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.model.node.Material;
 
-import static tk.ivybits.engine.gl.GL.*;
+import static org.lwjgl.opengl.ARBShaderObjects.*;
 
-public class BloomShader {
-/*    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.f.glsl";
+public class BloomShader extends AbstractShader {
+    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_bloom.v.glsl";
-    private static final int INTENSITY_UNIFORM_LOCATION = 0;
-    private static final int SAMPLE_UNIFORM_LOCATION = 1;
+    private static final int SAMPLER_UNIFORM_LOCATION = 0;
+    private static final int INTENSITY_UNIFORM_LOCATION = 1;
+    private static final int SAMPLE_UNIFORM_LOCATION = 2;
     private Program shader;
     private float intensity;
     private int sampleCount;
@@ -18,6 +21,9 @@ public class BloomShader {
     public BloomShader() {
         setBloomIntensity(0.15f);
         setSampleCount(4);
+        glUseProgramObjectARB(getShaderHandle());
+        glUniform1fARB(SAMPLER_UNIFORM_LOCATION, 0);
+        glUseProgramObjectARB(0);
     }
 
     public BloomShader setBloomIntensity(float intensity) {
@@ -59,5 +65,20 @@ public class BloomShader {
     @Override
     public void useMaterial(Material material) {
         throw new UnsupportedOperationException("cannot apply a post-render material");
-    }*/
+    }
+
+    @Override
+    public int getAttributeLocation(VertexAttribute attribute) {
+        return 0;
+    }
+
+    @Override
+    public void setProjection(Projection proj) {
+
+    }
+
+    @Override
+    public Program getProgram() {
+        return shader;
+    }
 }
