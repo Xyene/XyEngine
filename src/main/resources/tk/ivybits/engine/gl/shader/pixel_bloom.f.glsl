@@ -1,9 +1,9 @@
 varying vec2 v_UV;
 
-uniform sampler2D sampler;
+layout(location = 0) uniform sampler2D sampler;
 
-layout(location = 0) uniform float u_intensity;
-layout(location = 1) uniform int u_samples;
+layout(location = 1) uniform float u_intensity;
+layout(location = 2) uniform int u_samples;
 
 void main() {
     vec4 sum = vec4(0);
