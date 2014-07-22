@@ -72,14 +72,14 @@ float spotlight_shadow_factor()
 {
         float visibility = 1.0;
         float bias = 0.005;
-        for(int idx = 0; idx < u_lightMatrixCount; idx++) {
+        /*for(int idx = 0; idx < u_lightMatrixCount; idx++) {
             vec4 shadowCoord = v_lightSpacePos[idx];
             if(shadowCoord.w > 0) {
                 if (textureProj(u_shadowMap[idx], shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
                     visibility = 0;
                 }
             }
-        }
+        }*/
         return visibility;
 }
 #endif

@@ -86,46 +86,48 @@ public class Sandbox {
             }
         });
 
-        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().<Boolean>getCapability(IDrawContext.ANTIALIASING))));
+        // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
+
+        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING))));
         msaa.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, !scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
             }
         });
-        msaa.setEnabled(scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
-        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().<Boolean>getCapability(IDrawContext.BLOOM))));
+        msaa.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.ANTIALIASING));
+        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(IDrawContext.BLOOM))));
         bloom.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
             }
         });
-        bloom.setEnabled(scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
-        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().<Boolean>getCapability(IDrawContext.NORMAL_MAPS))));
+        bloom.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.BLOOM));
+        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))));
         normals.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scene.getDrawContext().setEnabled(IDrawContext.NORMAL_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
             }
         });
-        normals.setEnabled(scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
-        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().<Boolean>getCapability(IDrawContext.SPECULAR_MAPS))));
+        normals.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.NORMAL_MAPS));
+        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))));
         specular.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scene.getDrawContext().setEnabled(IDrawContext.SPECULAR_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
             }
         });
-        specular.setEnabled(scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
-        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().<Boolean>getCapability(IDrawContext.ALPHA_TESTING))));
+        specular.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.SPECULAR_MAPS));
+        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING))));
         alpha.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 scene.getDrawContext().setEnabled(IDrawContext.ALPHA_TESTING, !scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
             }
         });
-        alpha.setEnabled(scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
+        alpha.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.ALPHA_TESTING));
 
         opts.add(msaa);
         opts.add(bar);

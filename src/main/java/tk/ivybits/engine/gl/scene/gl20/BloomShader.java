@@ -22,14 +22,14 @@ public class BloomShader extends AbstractShader {
         setBloomIntensity(0.15f);
         setSampleCount(4);
         glUseProgramObjectARB(getShaderHandle());
-        glUniform1fARB(SAMPLER_UNIFORM_LOCATION, 0);
+        glUniform1fARB(shader.getUniformLocation("sampler"), 0);
         glUseProgramObjectARB(0);
     }
 
     public BloomShader setBloomIntensity(float intensity) {
         this.intensity = intensity;
         glUseProgramObjectARB(getShaderHandle());
-        glUniform1fARB(INTENSITY_UNIFORM_LOCATION, intensity);
+        glUniform1fARB(shader.getUniformLocation("u_intensity"), intensity);
         glUseProgramObjectARB(0);
         return this;
     }
@@ -37,7 +37,7 @@ public class BloomShader extends AbstractShader {
     public BloomShader setSampleCount(int sampleCount) {
         this.sampleCount = sampleCount;
         glUseProgramObjectARB(getShaderHandle());
-        glUniform1iARB(SAMPLE_UNIFORM_LOCATION, sampleCount);
+        glUniform1iARB(shader.getUniformLocation("u_samples"), sampleCount);
         glUseProgramObjectARB(0);
         return this;
     }
