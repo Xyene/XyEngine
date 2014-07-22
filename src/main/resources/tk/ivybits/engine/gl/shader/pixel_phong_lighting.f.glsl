@@ -52,8 +52,7 @@ in vec4 v_lightSpacePos[MAX_LIGHTS];
 in mat3 v_TBN;
 #endif
 
-// Set location to 0 - glGetUniformLocation reports -1 otherwise
-layout(location = 0) uniform Material u_material;
+uniform Material u_material;
 #ifdef FOG
 uniform Fog u_fog;
 #endif
@@ -88,7 +87,7 @@ float spotlight_shadow_factor()
 void main(void)
 {
     vec3 fragment = vec3(0);
-    vec3 texture = texture2D(u_material.diffuseMap, v_UV).rgb;
+    vec3 texture = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgb : vec3(0);
     #ifdef SPECULAR_MAPPING
     vec3 specularTerm = u_material.hasSpecular ? u_material.specular * texture2D(u_material.specularMap, v_UV).rgb : u_material.specular;
     #else

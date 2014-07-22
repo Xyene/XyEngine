@@ -40,8 +40,6 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     private boolean uniformsFetched = false;
     private int
-            MATERIAL_BASE,
-            FOG_BASE,
             POINT_LIGHT_COUNT,
             SPOTLIGHT_COUNT,
             POINT_LIGHT_BASE,
@@ -81,8 +79,6 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             return;
         }
         uniformsFetched = true;
-        MATERIAL_BASE = 0; // shader.getUniformLocation("u_material"); reports -1
-        FOG_BASE = shader.getUniformLocation("u_fog.fogColor");
         POINT_LIGHT_COUNT = shader.getUniformLocation("u_pointLightCount");
         SPOTLIGHT_COUNT = shader.getUniformLocation("u_spotLightCount");
         POINT_LIGHT_BASE = shader.getUniformLocation("u_pointLights[0].position");
@@ -131,58 +127,54 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         boolean attached = isAttached;
         if (!attached) super.attach();
         setupHandles();
-        int offset = 0;
         int texture = 0;
         if (material.diffuseTexture != null) {
             glActiveTexture(GL_TEXTURE0 + texture);
             glEnable(GL_TEXTURE_2D);
-            glUniform1i(MATERIAL_BASE + (offset++), 1);
-            glUniform1i(MATERIAL_BASE + (offset++), (texture++));
+            glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 1);
+            glUniform1i(shader.getUniformLocation("u_material.diffuseMap"), (texture++));
             material.diffuseTexture.bind();
         } else {
-            glUniform1i(MATERIAL_BASE + (offset++), 0);
-            offset++;
+            glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 0);
         }
         // TODO if (scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))
         if (material.specularTexture != null) {
             glActiveTexture(GL_TEXTURE0 + texture);
             glEnable(GL_TEXTURE_2D);
-            glUniform1i(MATERIAL_BASE + (offset++), 1);
-            glUniform1i(MATERIAL_BASE + (offset++), (texture++));
+            glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 1);
+            glUniform1i(shader.getUniformLocation("u_material.specularMap"), (texture++));
             material.specularTexture.bind();
         } else {
-            glUniform1i(MATERIAL_BASE + (offset++), 0);
-            offset++;
+            glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 0);
         }
         if (scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))
             if (material.bumpMap != null) {
                 glActiveTexture(GL_TEXTURE0 + texture);
                 glEnable(GL_TEXTURE_2D);
-                glUniform1i(MATERIAL_BASE + (offset++), 1);
-                glUniform1i(MATERIAL_BASE + (offset++), (texture++));
+                glUniform1i(shader.getUniformLocation("u_material.hasNormal"), 1);
+                glUniform1i(shader.getUniformLocation("u_material.normalMap"), (texture++));
                 material.bumpMap.bind();
             } else {
-                glUniform1i(MATERIAL_BASE + (offset++), 0);
-                offset++;
+                glUniform1i(shader.getUniformLocation("u_material.hasNormal"), 0);
             }
 
         Color ambient = material.ambientColor;
-        glUniform3f(MATERIAL_BASE + (offset++),
+        glUniform3f(shader.getUniformLocation("u_material.ambient"),
                 ambient.getRed() / 255F,
                 ambient.getGreen() / 255F,
                 ambient.getBlue() / 255F);
         Color diffuse = material.diffuseColor;
-        glUniform3f(MATERIAL_BASE + (offset++),
+        glUniform3f(shader.getUniformLocation("u_material.diffuse"),
                 diffuse.getRed() / 255F,
                 diffuse.getGreen() / 255F,
                 diffuse.getBlue() / 255F);
         Color specular = material.specularColor;
-        glUniform3f(MATERIAL_BASE + (offset++),
+        glUniform3f(shader.getUniformLocation("u_material.specular"),
                 specular.getRed() / 255F,
                 specular.getGreen() / 255F,
                 specular.getBlue() / 255F);
-        glUniform1f(MATERIAL_BASE + (offset++), 128 - material.shininess + 1);
-        glUniform1f(MATERIAL_BASE + (offset++), material.transparency);
+        glUniform1f(shader.getUniformLocation("u_material.shininess"), 128 - material.shininess + 1);
+        glUniform1f(shader.getUniformLocation("u_material.transparency"), material.transparency);
         if (!attached) super.detach();
     }
 
@@ -386,15 +378,13 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             boolean attached = isAttached;
             if (!attached) super.attach();
             setupHandles();
-            //glUniform1i(HAS_FOG, 1);
-            int base = FOG_BASE;
             Color fogColor = fog.getFogColor();
-            glUniform3f(base,
+            glUniform3f(shader.getUniformLocation("u_fog.fogColor"),
                     fogColor.getRed() / 255F,
                     fogColor.getGreen() / 255F,
                     fogColor.getBlue() / 255F);
-            glUniform1f(base + 1, fog.getFogNear());
-            glUniform1f(base + 2, fog.getFogFar());
+            glUniform1f(shader.getUniformLocation("u_fog.fogNear") + 1, fog.getFogNear());
+            glUniform1f(shader.getUniformLocation("u_fog.fogFar") + 2, fog.getFogFar());
 
             if (!attached) super.detach();
         }

@@ -25,6 +25,8 @@ public class Program {
     }
 
     public int getUniformLocation(String name) {
+        if(glGetUniformLocation(handle, name) == -1)
+            System.out.println("!!" + name);
         return glGetUniformLocation(handle, name);
     }
 

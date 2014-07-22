@@ -213,7 +213,7 @@ public class GL20Scene implements IScene {
         }
         if (bloom && bloomBuffer == null) {
             bloomBuffer = new FrameBuffer(viewWidth, viewHeight, GL_TEXTURE_2D);
-            bloomBuffer.resize(viewWidth, viewHeight);
+            //bloomBuffer.resize(viewWidth, viewHeight);
         } else if (!bloom && bloomBuffer != null) {
             bloomBuffer.destroy();
             bloomBuffer = null;

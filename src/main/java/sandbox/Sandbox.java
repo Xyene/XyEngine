@@ -226,7 +226,7 @@ public class Sandbox {
             // fpsLabel.setText(String.format("%s FPS (%d ms)", timer.fps(), timer.getLastDelta()));
             if (frame == 100) {
                 float fps = timer.fps();
-                System.out.printf("%f (%.2fms/frame)\n", fps, 1000 / fps);
+                System.out.printf("%.1f (%.2fms/frame)\n", fps, 1000 / fps);
                 frame = 0;
             }
             glPopAttrib();

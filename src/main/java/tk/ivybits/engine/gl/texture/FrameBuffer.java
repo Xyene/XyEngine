@@ -19,15 +19,13 @@ public class FrameBuffer implements IWriteableTexture {
 
     public FrameBuffer(int width, int height, int target, int filter, int wrap) {
         this.target = target;
-        this.width = width;
-        this.height = height;
         fbo_texture = glGenTextures();
         glBindTexture(target, fbo_texture);
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
         glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
         glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
-        glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        glTexImage2D(target, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (ByteBuffer) null);
         glBindTexture(target, 0);
 
         depthBuffer = glGenRenderbuffers();
