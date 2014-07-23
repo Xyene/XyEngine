@@ -108,16 +108,16 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         } else {
             glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 0);
         }
-        // TODO if (scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))
-        if (material.specularTexture != null) {
-            glActiveTexture(GL_TEXTURE0 + texture);
-            glEnable(GL_TEXTURE_2D);
-            glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 1);
-            glUniform1i(shader.getUniformLocation("u_material.specularMap"), (texture++));
-            material.specularTexture.bind();
-        } else {
-            glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 0);
-        }
+        if (scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))
+            if (material.specularTexture != null) {
+                glActiveTexture(GL_TEXTURE0 + texture);
+                glEnable(GL_TEXTURE_2D);
+                glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 1);
+                glUniform1i(shader.getUniformLocation("u_material.specularMap"), (texture++));
+                material.specularTexture.bind();
+            } else {
+                glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 0);
+            }
         if (scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))
             if (material.bumpMap != null) {
                 glActiveTexture(GL_TEXTURE0 + texture);
