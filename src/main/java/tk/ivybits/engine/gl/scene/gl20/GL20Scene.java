@@ -90,12 +90,6 @@ public class GL20Scene implements IScene {
         this.viewHeight = height;
     }
 
-    void destroyShadowMaps() {
-        for (int n = 0; n < shadowMapFBOs.size(); n++) {
-            shadowMapFBOs.remove(0).destroy();
-        }
-    }
-
     private void generateShadowMaps() {
         Projection camera = proj;
 
@@ -190,9 +184,13 @@ public class GL20Scene implements IScene {
     public void draw() {
         if (drawContext.isEnabled(OBJECT_SHADOWS)) {
             generateShadowMaps();
+        } else if (shadowMapFBOs.size() > 0) {
+            for (int n = 0; n < shadowMapFBOs.size(); n++) {
+                shadowMapFBOs.remove(0).destroy();
+            }
         }
 
-        boolean antialiasing = false && drawContext.isEnabled(IDrawContext.ANTIALIASING);
+        boolean antialiasing = drawContext.isEnabled(IDrawContext.ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
             msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
@@ -202,6 +200,7 @@ public class GL20Scene implements IScene {
         }
         if (antialiasing) {
             glEnable(GL_MULTISAMPLE);
+            glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
             msaaBuffer.bind();
         }

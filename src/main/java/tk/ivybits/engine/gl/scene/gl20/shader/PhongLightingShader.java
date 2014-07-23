@@ -159,14 +159,14 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         );
         shader = shaders.get(identifier);
         if (shader == null) {
-            System.out.println(identifier + "->" + shaders);
+            //System.out.println(identifier + "->" + shaders);
             String header = "#version 130\n";
             for (int i = 0; i != identifier.size(); i++) {
                 if (identifier.get(i)) {
                     header += "#define " + DEFINE_LOOKUP[i] + " 1\n";
                 }
             }
-            System.out.println(header + FRAGMENT_SHADER_SOURCE);
+            //System.out.println(header + FRAGMENT_SHADER_SOURCE);
             shader = Program.builder()
                     .addShader(VERTEX, header + VERTEX_SHADER_SOURCE)
                     .addShader(FRAGMENT, header + FRAGMENT_SHADER_SOURCE)

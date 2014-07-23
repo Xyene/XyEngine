@@ -14,19 +14,18 @@ public class MSAAFBO {
         this.height = height;
         this.samples = samples;
 
-        createAttachments();
-
         fbo = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+        createAttachments();
         bindAttachments();
 
         int status;
         if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-            throw new IllegalStateException(String.format("failed to create framebuffer: 0x%04X\n", status));
+            throw new IllegalStateException(String.format("failed to create framebuffer: 0x%04X", status));
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
 
     public void blit() {
         blit(0);
@@ -53,7 +52,7 @@ public class MSAAFBO {
 
         depthBuffer = glGenRenderbuffers();
         glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT32, width, height);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT16, width, height);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
 

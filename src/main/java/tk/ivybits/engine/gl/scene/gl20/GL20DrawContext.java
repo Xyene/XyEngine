@@ -50,9 +50,6 @@ public class GL20DrawContext implements IDrawContext {
     public void setEnabled(int id, boolean flag) {
         if (id < ENABLED_CAPABILITIES.length) ENABLED_CAPABILITIES[id] = flag;
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
-        if(id == OBJECT_SHADOWS && !flag) {
-            parent.destroyShadowMaps();
-        }
     }
 
     @Override

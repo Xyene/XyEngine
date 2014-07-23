@@ -385,6 +385,8 @@ public class Sandbox {
         System.out.println("CG shaders supported? " + GLContext.getCapabilities().GL_EXT_Cg_shader);
         System.out.println("Assembly shaders supported? " + GLContext.getCapabilities().GL_ARB_shader_objects);
 
+        System.out.println("(3.0) max samples: " + glGetInteger(GL_MAX_SAMPLES));
+
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         // Enable depth testing
