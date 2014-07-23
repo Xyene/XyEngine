@@ -3,8 +3,6 @@ package tk.ivybits.engine.gl.scene.gl20.shader;
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
-import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
-import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IDrawContext;
@@ -39,18 +37,6 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
     }
 
     private boolean uniformsFetched = false;
-    private int
-            POINT_LIGHT_COUNT,
-            SPOTLIGHT_COUNT,
-            POINT_LIGHT_BASE,
-            SPOTLIGHT_BASE,
-            SHADOW_MAP_BASE,
-            LIGHT_MATRIX_COUNT,
-            LIGHT_MATRIX_BASE,
-            MODEL_MATRIX,
-            NORMAL_MATRIX,
-            MVP_MATRIX;
-    private int[] ATTRIBUTES;
     private HashMap<List<Boolean>, Program> shaders = new HashMap<>();
 
     private Program shader;
@@ -73,29 +59,14 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     private List<ISpotLight> spotLights = new ArrayList<>();
     private List<IPointLight> pointLights = new ArrayList<>();
+    private List<IDirectionalLight> dirLights = new ArrayList<>();
 
     private void setupHandles() {
         if (uniformsFetched) {
             return;
         }
         uniformsFetched = true;
-        POINT_LIGHT_COUNT = shader.getUniformLocation("u_pointLightCount");
-        SPOTLIGHT_COUNT = shader.getUniformLocation("u_spotLightCount");
-        POINT_LIGHT_BASE = shader.getUniformLocation("u_pointLights[0].position");
-        SPOTLIGHT_BASE = shader.getUniformLocation("u_spotLights[0].position");
-        SHADOW_MAP_BASE = shader.getUniformLocation("u_shadowMap[0]");
-        LIGHT_MATRIX_COUNT = shader.getUniformLocation("u_lightMatrixCount");
-        LIGHT_MATRIX_BASE = shader.getUniformLocation("u_lightViewMatrix[0]");
-        MODEL_MATRIX = shader.getUniformLocation("u_modelMatrix");
-        NORMAL_MATRIX = shader.getUniformLocation("u_normalMatrix");
-        MVP_MATRIX = shader.getUniformLocation("u_mvpMatrix");
 
-        ATTRIBUTES = new int[]{
-                shader.getAttributeLocation("a_Vertex"),
-                shader.getAttributeLocation("a_Normal"),
-                shader.getAttributeLocation("a_UV"),
-                shader.getAttributeLocation("a_Tangent")
-        };
         // This is in case we rebuilt the shader
         updateLights();
         fogUpdated(scene.getSceneGraph().getAtmosphere().getFog());
@@ -112,11 +83,11 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         setupHandles();
 
         if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
-            shader.setUniform(LIGHT_MATRIX_COUNT, shadowMapFBO.size());
+            shader.setUniform(shader.getUniformLocation("u_lightMatrixCount"), shadowMapFBO.size());
             for (int n = 0; n < shadowMapFBO.size(); n++) {
                 glActiveTexture(GL_TEXTURE3 + n);
                 glEnable(GL_TEXTURE_2D);
-                shader.setUniform(SHADOW_MAP_BASE + n, 3 + n);
+                shader.setUniform(shader.getUniformLocation("u_shadowMap[0]") + n, 3 + n);
                 shadowMapFBO.get(n).bind();
             }
         }
@@ -214,7 +185,12 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             setupHandles();
             if (!attached) super.detach();
         }
-        return ATTRIBUTES[attribute.ordinal()];
+        return new int[]{
+                shader.getAttributeLocation("a_Vertex"),
+                shader.getAttributeLocation("a_Normal"),
+                shader.getAttributeLocation("a_UV"),
+                shader.getAttributeLocation("a_Tangent")
+        }[attribute.ordinal()];
     }
 
     @Override
@@ -223,7 +199,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         if (!attached) super.attach();
         setupHandles();
         Matrix4f model = proj.getModelMatrix();
-        shader.setUniform(MODEL_MATRIX, model);
+        shader.setUniform(shader.getUniformLocation("u_modelMatrix"), model);
         Matrix3f normals = new Matrix3f();
         normals.m00 = model.m00;
         normals.m01 = model.m01;
@@ -236,12 +212,12 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         normals.m22 = model.m22;
         Matrix3f.transpose(normals, normals);
         Matrix3f.invert(normals, normals);
-        shader.setUniform(NORMAL_MATRIX, normals);
+        shader.setUniform(shader.getUniformLocation("u_normalMatrix"), normals);
 
         Matrix4f mvp = new Matrix4f();
         Matrix4f.mul(proj.getProjectionMatrix(), proj.getViewMatrix(), mvp);
         Matrix4f.mul(mvp, proj.getModelMatrix(), mvp);
-        shader.setUniform(MVP_MATRIX, mvp);
+        shader.setUniform(shader.getUniformLocation("u_mvpMatrix"), mvp);
 
         if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
             for (int n = 0; n < shadowMapFBO.size(); n++) {
@@ -250,7 +226,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                 Matrix4f.mul(depthBiasMVP, proj.getModelMatrix(), depthBiasMVP);
                 Matrix4f.mul(bias, depthBiasMVP, depthBiasMVP);
 
-                shader.setUniform(LIGHT_MATRIX_BASE + n, depthBiasMVP);
+                shader.setUniform(shader.getUniformLocation("u_lightViewMatrix[0]") + n, depthBiasMVP);
             }
         }
 
@@ -266,10 +242,36 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         boolean attached = isAttached;
         if (!attached) super.attach();
         setupHandles();
+        // TODO: this may not be safe
+        for (int i = 0; i < dirLights.size(); i++) {
+            IDirectionalLight light = dirLights.get(i);
+
+            int base = (shader.getUniformLocation("u_dirLights[0].direction") + (i * 5));
+
+            glUniform3f(base, light.dx(), light.dy(), light.dz());
+            glUniform1f(base + 1, light.getIntensity());
+            Color ambient = light.getAmbientColor();
+            glUniform3f(base + 2,
+                    ambient.getRed() / 255F,
+                    ambient.getGreen() / 255F,
+                    ambient.getBlue() / 255F);
+            Color diffuse = light.getDiffuseColor();
+            glUniform3f(base + 3,
+                    diffuse.getRed() / 255F,
+                    diffuse.getGreen() / 255F,
+                    diffuse.getBlue() / 255F);
+            Color specular = light.getSpecularColor();
+            glUniform3f(base + 4,
+                    specular.getRed() / 255F,
+                    specular.getGreen() / 255F,
+                    specular.getBlue() / 255F);
+        }
+        glUniform1i(shader.getUniformLocation("u_dirLightCount"), dirLights.size());
+
         for (int i = 0; i < pointLights.size(); i++) {
             IPointLight light = pointLights.get(i);
 
-            int base = (POINT_LIGHT_BASE + (i * 5));
+            int base = (shader.getUniformLocation("u_pointLights[0].position") + (i * 5));
 
             glUniform3f(base, light.x(), light.y(), light.z());
             glUniform1f(base + 1, light.getIntensity());
@@ -289,12 +291,12 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                     specular.getGreen() / 255F,
                     specular.getBlue() / 255F);
         }
-        glUniform1i(POINT_LIGHT_COUNT, pointLights.size());
+        glUniform1i(shader.getUniformLocation("u_pointLightCount"), pointLights.size());
 
         for (int i = 0; i < spotLights.size(); i++) {
             ISpotLight light = spotLights.get(i);
 
-            int base = (SPOTLIGHT_BASE + (i * 7));
+            int base = (shader.getUniformLocation("u_spotLights[0].position") + (i * 7));
 
             glUniform3f(base, light.x(), light.y(), light.z());
 
@@ -317,7 +319,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                     specular.getGreen() / 255F,
                     specular.getBlue() / 255F);
         }
-        glUniform1i(SPOTLIGHT_COUNT, spotLights.size());
+        glUniform1i(shader.getUniformLocation("u_spotLightCount"), spotLights.size());
 
         if (!attached) super.detach();
     }
@@ -336,7 +338,8 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     @Override
     public void directionalLightCreated(IDirectionalLight light) {
-        throw new UnsupportedOperationException();
+        dirLights.add(light);
+        updateLights();
     }
 
     @Override
@@ -351,7 +354,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     @Override
     public void directionalLightUpdated(IDirectionalLight light) {
-        throw new UnsupportedOperationException();
+        updateLights();
     }
 
     @Override
@@ -368,7 +371,8 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
 
     @Override
     public void directionalLightDestroyed(IDirectionalLight light) {
-        throw new UnsupportedOperationException();
+        dirLights.remove(light);
+        updateLights();
     }
 
     @Override

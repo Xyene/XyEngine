@@ -16,6 +16,14 @@ struct PointLight {
     vec3 specular;
 };
 
+struct DirectionalLight {
+    vec3 direction;
+    float intensity;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
 struct Material {
     bool hasDiffuse;
     sampler2D diffuseMap;
@@ -58,9 +66,11 @@ uniform Fog u_fog;
 #endif
 uniform int u_pointLightCount;
 uniform int u_spotLightCount;
+uniform int u_dirLightCount;
 
 uniform PointLight u_pointLights[MAX_LIGHTS];
 uniform SpotLight u_spotLights[MAX_LIGHTS];
+uniform DirectionalLight u_dirLights[MAX_LIGHTS];
 
 #ifdef OBJECT_SHADOWS
 uniform int u_lightMatrixCount;
@@ -99,6 +109,20 @@ void main(void)
     #else
     vec3 normalMap = v_surfaceNormal;
     #endif
+
+    for(int idx = 0; idx < u_dirLightCount; idx++) {
+        DirectionalLight lightSource = u_dirLights[idx];
+
+        vec3 incidentRay = normalize(lightSource.direction);
+        vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
+
+        vec3 ambient = u_material.ambient * lightSource.ambient;
+        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0);
+        vec3 specular = specularTerm * lightSource.specular *
+            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0), u_material.shininess);
+
+        fragment += (ambient + (diffuse * texture) + specular) * lightSource.intensity;
+    }
 
     for(int idx = 0; idx < u_pointLightCount; idx++) {
         PointLight lightSource = u_pointLights[idx];

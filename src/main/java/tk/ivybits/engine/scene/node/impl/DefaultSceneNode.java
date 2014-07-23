@@ -93,7 +93,15 @@ public class DefaultSceneNode implements ISceneNode {
 
     @Override
     public IDirectionalLight createDirectionalLight() {
-        throw new UnsupportedOperationException();
+        DefaultDirectionalLight light = new DefaultDirectionalLight(this.scene);
+        dirLights.add(light);
+
+        DefaultSceneNode self = this;
+        do {
+            self.dirLights.add(light);
+        } while ((self = self.getParent()) != null);
+        scene.fireEvent("directionalLightCreated", light);
+        return light;
     }
 
     @Override

@@ -150,8 +150,8 @@ public class Sandbox {
         crate.position(0, 0, 0);
         System.out.print("Done.\n");
 
-        root.createPointLight()
-                .setPosition(42, 196, 120)
+        root.createDirectionalLight()
+                .setRotation(-80, 0)
                 .setDiffuseColor(WHITE)
                 .setIntensity(3f)
                 .setSpecularColor(Color.BLACK);

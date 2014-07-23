@@ -78,6 +78,8 @@ public final class Natives {
             pathDir.mkdirs();
             File libfile = new File(pathDir, path.substring(path.lastIndexOf("/"), path.length()));
 
+            System.out.println("> " + libfile);
+
             if (!libfile.exists()) {
                 libfile.deleteOnExit();
                 InputStream in = url.openStream();

@@ -27,8 +27,6 @@ public class GeometryDrawable implements IDrawable {
 
     public GeometryDrawable(IDrawContext with, IGeometry model) {
         this.ctx = with;
-        if (!GLContext.getCapabilities().OpenGL15)
-            throw new IllegalArgumentException("OpenGL 1.5+ is needed for VBOs.");
         this.model = model;
     }
 

@@ -5,10 +5,7 @@ import org.lwjgl.util.vector.*;
 
 import java.io.*;
 import java.nio.FloatBuffer;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static tk.ivybits.engine.gl.GL.*;
 
@@ -19,15 +16,29 @@ public class Program {
 
     private static final int[] SHADER_LOOKUP = {GL_FRAGMENT_SHADER, GL_VERTEX_SHADER};
     private final int handle;
+    private final HashMap<String, Integer> uniforms = new HashMap<>();
+    private final HashMap<String, Integer> attributes = new HashMap<>();
 
     public Program(int handle) {
         this.handle = handle;
     }
 
     public int getUniformLocation(String name) {
-        if(glGetUniformLocation(handle, name) == -1)
-            System.out.println("!!" + name);
-        return glGetUniformLocation(handle, name);
+        Integer loc = uniforms.get(name);
+        if (loc == null) {
+            loc = glGetUniformLocation(handle, name);
+            uniforms.put(name, loc);
+        }
+        return loc;
+    }
+
+    public int getAttributeLocation(String name) {
+        Integer loc = attributes.get(name);
+        if (loc == null) {
+            loc = glGetAttribLocation(handle, name);
+            attributes.put(name, loc);
+        }
+        return loc;
     }
 
     private Class ensureConstantTypes(Object[] objs) {
@@ -89,10 +100,6 @@ public class Program {
         } else {
             throw new UnsupportedOperationException("cannot perform automatic type conversion on array of type " + type.getSimpleName());
         }
-    }
-
-    public int getAttributeLocation(String name) {
-        return glGetAttribLocation(handle, name);
     }
 
     public int getId() {

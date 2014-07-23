@@ -192,7 +192,7 @@ public class GL20Scene implements IScene {
             generateShadowMaps();
         }
 
-        boolean antialiasing = drawContext.isEnabled(IDrawContext.ANTIALIASING);
+        boolean antialiasing = false && drawContext.isEnabled(IDrawContext.ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
             msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
