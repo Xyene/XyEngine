@@ -10,6 +10,7 @@ import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
+import tk.ivybits.engine.scene.camera.SimpleCamera;
 import tk.ivybits.engine.scene.model.ModelIO;
 import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.node.ISceneGraph;
@@ -36,7 +37,7 @@ public class Sandbox {
     private static float speed = 0.5f;
     private static FrameTimer timer;
     private static IScene scene;
-    private static ICamera camera;
+    private static SimpleCamera camera;
     private static UITexture screenOverlay;
 
     public static void main(String[] args) throws Exception {
@@ -154,10 +155,10 @@ public class Sandbox {
                 .setSpecularColor(Color.BLACK);
 
         // Fetch the camera and configure it
-        camera = scene.getCamera()
+        camera = (SimpleCamera) scene.getCamera()
                 .setAspectRatio((float) Display.getWidth() / Display.getHeight())
-                .setPosition(5.9f, 3f, 8.2f)
                 .setRotation(24f, 330f, 0)
+                .setPosition(5.9f, 3f, 8.2f)
                 .setFieldOfView(60)
                 .setZNear(0.3f)
                 .setZFar(Float.MAX_VALUE);
@@ -290,43 +291,6 @@ public class Sandbox {
 
             float delta = timer.getDelta() * (16 * speed);
 
-            boolean keyUp = isKeyDown(KEY_UP) || isKeyDown(KEY_W);
-            boolean keyDown = isKeyDown(KEY_DOWN) || isKeyDown(KEY_S);
-            boolean keyLeft = isKeyDown(KEY_LEFT) || isKeyDown(KEY_A);
-            boolean keyRight = isKeyDown(KEY_RIGHT) || isKeyDown(KEY_D);
-            boolean flyUp = isKeyDown(KEY_SPACE);
-            boolean flyDown = isKeyDown(KEY_LSHIFT) || isKeyDown(KEY_RSHIFT);
-
-            if (keyUp && keyRight && !keyLeft && !keyDown) {
-                camera.move(delta * 0.003f, 0, -delta * 0.003f);
-            }
-            if (keyUp && keyLeft && !keyRight && !keyDown) {
-                camera.move(-delta * 0.003f, 0, -delta * 0.003f);
-            }
-            if (keyUp && !keyLeft && !keyRight && !keyDown) {
-                camera.move(0, 0, -delta * 0.003f);
-            }
-            if (keyDown && keyLeft && !keyRight && !keyUp) {
-                camera.move(-delta * 0.003f, 0, delta * 0.003f);
-            }
-            if (keyDown && keyRight && !keyLeft && !keyUp) {
-                camera.move(delta * 0.003f, 0, delta * 0.003f);
-            }
-            if (keyDown && !keyUp && !keyLeft && !keyRight) {
-                camera.move(0, 0, delta * 0.003f);
-            }
-            if (keyLeft && !keyRight && !keyUp && !keyDown) {
-                camera.move(-delta * 0.003f, 0, 0);
-            }
-            if (keyRight && !keyLeft && !keyUp && !keyDown) {
-                camera.move(delta * 0.003f, 0, 0);
-            }
-            if (flyUp && !flyDown) {
-                camera.setPosition(camera.x(), camera.y() + delta * 0.003f, camera.z());
-            }
-            if (flyDown && !flyUp) {
-                camera.setPosition(camera.x(), camera.y() - delta * 0.003f, camera.z());
-            }
             final float MAX_LOOK_UP = 90;
             final float MAX_LOOK_DOWN = -90;
             float mouseDX = Mouse.getDX() * 4 * 0.16f;
@@ -347,6 +311,17 @@ public class Sandbox {
                 pitch = MAX_LOOK_UP;
             }
             camera.setRotation(pitch, yaw, camera.roll());
+
+            if (isKeyDown(KEY_W)) camera.walkForward(delta * 0.003f);
+            if (isKeyDown(KEY_S)) camera.walkBackwards(delta * 0.003f);
+            if (isKeyDown(KEY_D)) camera.strafeRight(delta * 0.003f);
+            if (isKeyDown(KEY_A)) camera.strafeLeft(delta * 0.003f);
+
+            if (isKeyDown(KEY_SPACE))
+                camera.setPosition(camera.x(), camera.y() + delta * 0.003f, camera.z());
+            if (isKeyDown(KEY_LSHIFT) || isKeyDown(KEY_RSHIFT))
+                camera.setPosition(camera.x(), camera.y() - delta * 0.003f, camera.z());
+
         }
     }
 

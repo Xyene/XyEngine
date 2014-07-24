@@ -66,11 +66,12 @@ public class Projection {
         return this;
     }
 
+
     public Projection rotateCamera(float pitch, float yaw, float roll) {
         // roll pitch yaw
-        Matrix4f.rotate((float) toRadians(roll), new Vector3f(0, 0, 1), viewMatrix, viewMatrix);
         Matrix4f.rotate((float) toRadians(pitch), new Vector3f(1, 0, 0), viewMatrix, viewMatrix);
         Matrix4f.rotate((float) toRadians(yaw), new Vector3f(0, 1, 0), viewMatrix, viewMatrix);
+        Matrix4f.rotate((float) toRadians(roll), new Vector3f(0, 0, 1), viewMatrix, viewMatrix);
 //        float a = (float) toRadians(yaw);
 //        float b = (float) toRadians(pitch);
 //        float y = (float) toRadians(roll);

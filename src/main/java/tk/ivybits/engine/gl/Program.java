@@ -156,7 +156,6 @@ public class Program {
                 String source = shader.getValue().trim();
                 if (source.startsWith("#version")) {
                     int idx = source.indexOf('\n');
-                    System.out.println(idx);
                     source = source.substring(0, idx + 1) + header + source.substring(idx + 1);
                 } else {
                     source = header + source;
@@ -192,6 +191,7 @@ public class Program {
 
         public void define(String key, String value) {
             defines.put(key, value);
+            System.out.println("#define " + key);
         }
 
         public void define(String key) {

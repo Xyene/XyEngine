@@ -18,13 +18,39 @@ public class SimpleCamera implements ICamera {
         this.proj = proj;
     }
 
+    public void walkBackwards(float distance) {
+        x -= distance * (float) Math.sin(Math.toRadians(yaw));
+        z += distance * (float) Math.cos(Math.toRadians(yaw));
+        updateView();
+    }
+
+    public void walkForward(float distance) {
+        x += distance * (float) Math.sin(Math.toRadians(yaw));
+        z -= distance * (float) Math.cos(Math.toRadians(yaw));
+        updateView();
+    }
+
+    public void strafeRight(float distance) {
+        x -= distance * (float) Math.sin(Math.toRadians(yaw - 90));
+        z += distance * (float) Math.cos(Math.toRadians(yaw - 90));
+        updateView();
+    }
+
+    public void strafeLeft(float distance) {
+        x -= distance * (float) Math.sin(Math.toRadians(yaw + 90));
+        z += distance * (float) Math.cos(Math.toRadians(yaw + 90));
+        updateView();
+    }
+
     @Override
     public void move(float dx, float dy, float dz) {
-        setPosition(
-                (float) (x - dx * (float) sin(toRadians(yaw - 90)) + dz * sin(toRadians(yaw))),
-                (float) (y + dy * (float) sin(toRadians(this.pitch - 90)) + dz * sin(toRadians(this.pitch))),
-                (float) (z + dx * (float) cos(toRadians(this.yaw - 90)) + dz * cos(toRadians(this.yaw)))
-        );
+        throw new UnsupportedOperationException();
+    }
+
+    void updateView() {
+        proj.resetViewMatrix();
+        proj.rotateCamera(pitch, yaw, roll);
+        proj.translateCamera(x, y, z);
     }
 
     @Override
@@ -34,7 +60,7 @@ public class SimpleCamera implements ICamera {
         this.roll = roll;
         proj.resetViewMatrix();
         proj.rotateCamera(pitch, yaw, roll);
-        proj.translateCamera(x, y, z);
+        updateView();
         return this;
     }
 
@@ -79,9 +105,7 @@ public class SimpleCamera implements ICamera {
         this.x = x;
         this.y = y;
         this.z = z;
-        proj.resetViewMatrix();
-        proj.rotateCamera(pitch, yaw, roll);
-        proj.translateCamera(x, y, z);
+        updateView();
         return this;
     }
 

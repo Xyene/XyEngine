@@ -87,7 +87,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             for (int n = 0; n < shadowMapFBO.size(); n++) {
                 glActiveTexture(GL_TEXTURE3 + n);
                 glEnable(GL_TEXTURE_2D);
-                shader.setUniform(shader.getUniformLocation("u_shadowMap[0]") + n, 3 + n);
+                shader.setUniform(shader.getUniformLocation("u_shadowMap[0].front") + n, 3 + n);
                 shadowMapFBO.get(n).bind();
             }
         }

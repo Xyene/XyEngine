@@ -1,4 +1,9 @@
 #version 130
+
+struct CubeMap {
+    sampler2D front;
+};
+
 struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -75,7 +80,7 @@ uniform DirectionalLight u_dirLights[MAX_LIGHTS];
 
 #ifdef OBJECT_SHADOWS
 uniform int u_lightMatrixCount;
-uniform sampler2D u_shadowMap[MAX_LIGHTS];
+uniform CubeMap u_shadowMap[MAX_LIGHTS];
 #endif
 
 #ifdef OBJECT_SHADOWS
@@ -83,14 +88,14 @@ float spotlight_shadow_factor()
 {
         float visibility = 1.0;
         float bias = 0.005;
-        /*for(int idx = 0; idx < u_lightMatrixCount; idx++) {
+        for(int idx = 0; idx < u_lightMatrixCount; idx++) {
             vec4 shadowCoord = v_lightSpacePos[idx];
             if(shadowCoord.w > 0) {
-                if (textureProj(u_shadowMap[idx], shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
+                if (textureProj(u_shadowMap[idx].front, shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
                     visibility = 0;
                 }
             }
-        }*/
+        }
         return visibility;
 }
 #endif
@@ -175,9 +180,5 @@ void main(void)
     float depth = gl_FragCoord.z / gl_FragCoord.w;
     float fogFactor = smoothstep(u_fog.fogNear, u_fog.fogFar, depth);
     gl_FragColor = mix(gl_FragColor, vec4(u_fog.fogColor, gl_FragColor.w), fogFactor);
-    #endif
-
-    #ifdef NORMAL_MAPPING
-    gl_FragColor = vec4(1, 0, 0, 0);
     #endif
 }
