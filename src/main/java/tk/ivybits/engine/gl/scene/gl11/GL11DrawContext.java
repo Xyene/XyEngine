@@ -6,7 +6,7 @@ import tk.ivybits.engine.scene.model.node.Material;
 
 public class GL11DrawContext implements IDrawContext {
     final GL11Scene parent;
-    final Object[] CAPABILITIES = {
+    final boolean[] CAPABILITIES = {
             false,   // Normal mapping
             false,   // Specular mapping
             false,   // Dynamic shadows
@@ -40,13 +40,15 @@ public class GL11DrawContext implements IDrawContext {
     }
 
     @Override
-    public <T> T getCapability(int id) {
-        if (id < CAPABILITIES.length) return (T) CAPABILITIES[id];
+    public boolean isSupported(int id) {
+        if (id < CAPABILITIES.length) return CAPABILITIES[id];
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
     }
 
     @Override
     public void setEnabled(int id, boolean flag) {
+        if(!isSupported(id))
+            throw new UnsupportedOperationException("capability not supported");
         if (id < ENABLED_CAPABILITIES.length) ENABLED_CAPABILITIES[id] = flag;
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
     }

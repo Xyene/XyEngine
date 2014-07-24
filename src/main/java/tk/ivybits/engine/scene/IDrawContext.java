@@ -17,7 +17,7 @@ public interface IDrawContext {
 
     ITesselator createTesselator(int flags, int type);
 
-    <T> T getCapability(int id);
+    <T> boolean isSupported(int id);
 
     void setEnabled(int id, boolean flag);
 

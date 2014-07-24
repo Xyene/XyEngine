@@ -7,11 +7,9 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.gl.ImmediateProjection;
-import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
-import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.ModelIO;
 import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.node.ISceneGraph;
@@ -33,7 +31,6 @@ import java.io.IOException;
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.scene.geometry.ITesselator.*;
 
 public class Sandbox {
     private static float speed = 0.5f;
@@ -95,7 +92,7 @@ public class Sandbox {
                 scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, !scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
             }
         });
-        msaa.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.ANTIALIASING));
+        msaa.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ANTIALIASING));
         JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(IDrawContext.BLOOM))));
         bloom.addActionListener(new AbstractAction() {
             @Override
@@ -103,7 +100,7 @@ public class Sandbox {
                 scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
             }
         });
-        bloom.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.BLOOM));
+        bloom.setEnabled(scene.getDrawContext().isSupported(IDrawContext.BLOOM));
         JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))));
         normals.addActionListener(new AbstractAction() {
             @Override
@@ -111,7 +108,7 @@ public class Sandbox {
                 scene.getDrawContext().setEnabled(IDrawContext.NORMAL_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
             }
         });
-        normals.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.NORMAL_MAPS));
+        normals.setEnabled(scene.getDrawContext().isSupported(IDrawContext.NORMAL_MAPS));
         JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))));
         specular.addActionListener(new AbstractAction() {
             @Override
@@ -119,7 +116,7 @@ public class Sandbox {
                 scene.getDrawContext().setEnabled(IDrawContext.SPECULAR_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
             }
         });
-        specular.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.SPECULAR_MAPS));
+        specular.setEnabled(scene.getDrawContext().isSupported(IDrawContext.SPECULAR_MAPS));
         JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING))));
         alpha.addActionListener(new AbstractAction() {
             @Override
@@ -127,7 +124,7 @@ public class Sandbox {
                 scene.getDrawContext().setEnabled(IDrawContext.ALPHA_TESTING, !scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
             }
         });
-        alpha.setEnabled(scene.getDrawContext().<Boolean>getCapability(IDrawContext.ALPHA_TESTING));
+        alpha.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ALPHA_TESTING));
 
         opts.add(msaa);
         opts.add(bar);
@@ -234,6 +231,7 @@ public class Sandbox {
             glPopAttrib();
             ImmediateProjection.toFrustrumProjection();
             Display.update();
+            Display.sync(60);
         }
 
         Display.destroy();
@@ -399,9 +397,6 @@ public class Sandbox {
         //glCullFace(GL_BACK);
 
         glShadeModel(GL_SMOOTH);
-
-        glEnable(GL_COLOR_MATERIAL);
-        glColorMaterial(GL_FRONT, GL_DIFFUSE);
     }
 
     private static class HealthBarPanel extends JPanel {
