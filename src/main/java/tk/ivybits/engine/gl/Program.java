@@ -108,6 +108,7 @@ public class Program {
 
     public static class ProgramBuilder {
         private List<Map.Entry<ShaderType, String>> shaders = new ArrayList<>();
+        private HashMap<String, String> defines = new HashMap<>();
 
         public static String readSourceFrom(InputStream in) {
             StringBuilder source = new StringBuilder();
@@ -147,7 +148,21 @@ public class Program {
             for (Map.Entry<ShaderType, String> shader : shaders) {
                 int shaderHandle = glCreateShader(SHADER_LOOKUP[shader.getKey().ordinal()]);
 
-                glShaderSource(shaderHandle, shader.getValue());
+                String header = "";
+                for (Map.Entry<String, String> def : defines.entrySet()) {
+                    header += "#define " + def.getKey() + " " + def.getValue() + "\n";
+                }
+
+                String source = shader.getValue().trim();
+                if (source.startsWith("#version")) {
+                    int idx = source.indexOf('\n');
+                    System.out.println(idx);
+                    source = source.substring(0, idx + 1) + header + source.substring(idx + 1);
+                } else {
+                    source = header + source;
+                }
+
+                glShaderSource(shaderHandle, source);
                 glCompileShader(shaderHandle);
                 final String log = glGetShaderInfoLog(shaderHandle, glGetShaderi(shaderHandle, GL_INFO_LOG_LENGTH));
                 System.err.println(log);
@@ -173,6 +188,14 @@ public class Program {
                 glDetachShader(handle, shader);
             }
             return new Program(handle);
+        }
+
+        public void define(String key, String value) {
+            defines.put(key, value);
+        }
+
+        public void define(String key) {
+            define(key, "");
         }
     }
 

@@ -1,3 +1,4 @@
+#version 130
 struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -174,5 +175,9 @@ void main(void)
     float depth = gl_FragCoord.z / gl_FragCoord.w;
     float fogFactor = smoothstep(u_fog.fogNear, u_fog.fogFar, depth);
     gl_FragColor = mix(gl_FragColor, vec4(u_fog.fogColor, gl_FragColor.w), fogFactor);
+    #endif
+
+    #ifdef NORMAL_MAPPING
+    gl_FragColor = vec4(1, 0, 0, 0);
     #endif
 }

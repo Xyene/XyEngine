@@ -1,3 +1,4 @@
+#version 130
 #define MAX_LIGHTS 8
 
 out vec3 v_surfaceNormal;
