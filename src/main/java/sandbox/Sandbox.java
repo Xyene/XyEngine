@@ -7,7 +7,8 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.gl.ImmediateProjection;
-import tk.ivybits.engine.gl.scene.gl11.GL20Scene;
+import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
+import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.FPSCamera;
@@ -46,7 +47,10 @@ public class Sandbox {
         ISceneGraph graph = new DefaultSceneGraph();
 
         // Create a scene graph
-        scene = new GL20Scene(Display.getWidth(), Display.getHeight(), graph);
+        if (GLContext.getCapabilities().OpenGL20)
+            scene = new GL20Scene(Display.getWidth(), Display.getHeight(), graph);
+        else
+            scene = new GL11Scene(Display.getWidth(), Display.getHeight(), graph);
         ISceneNode root = graph.getRoot();
 
         // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -202,7 +206,7 @@ public class Sandbox {
             glDisable(GL_DEPTH_TEST);
             glColor4f(1, 1, 1, 1);
 
-            screenOverlay.bind();
+            screenOverlay.bindTexture();
 
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
@@ -215,7 +219,7 @@ public class Sandbox {
             glVertex2f(Display.getWidth(), 0);
             glEnd();
 
-            screenOverlay.unbind();
+            screenOverlay.unbindTexture();
             glPopAttrib();
 
             glColor4f(0.4f, 0.5f, 0.4f, 1);

@@ -5,7 +5,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import sun.security.util.SecurityConstants;
-import tk.ivybits.engine.scene.texture.ITexture;
+import tk.ivybits.engine.gl.texture.ITexture;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,6 +14,7 @@ import java.awt.color.ColorSpace;
 import java.awt.event.AWTEventListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.File;
@@ -25,7 +26,7 @@ import java.util.Hashtable;
 
 import static tk.ivybits.engine.gl.GL.*;
 
-public class UITexture implements ITexture {
+public class UITexture implements ITexture  {
     private final Component component;
     private final JFrame frame;
     private BufferedImage screenBuffer;
@@ -118,7 +119,7 @@ public class UITexture implements ITexture {
         }
 
         texture = glGenTextures();
-        bind();
+        bindTexture();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         resize(width, height);
@@ -153,7 +154,7 @@ public class UITexture implements ITexture {
         nativeBuffer.clear();
         nativeBuffer.put(((DataBufferInt) screenBuffer.getData().getDataBuffer()).getData());
         nativeBuffer.flip();
-        bind();
+        bindTexture();
         glTexImage2D(GL_TEXTURE_2D,
                 0,
                 GL_RGBA,
@@ -163,22 +164,29 @@ public class UITexture implements ITexture {
                 GL_BGRA,
                 GL_UNSIGNED_BYTE,
                 nativeBuffer);
-        unbind();
+        unbindTexture();
     }
 
     @Override
-    public void bind() {
+    public void bindTexture() {
         glBindTexture(GL_TEXTURE_2D, texture);
     }
 
     @Override
-    public void unbind() {
+    public void unbindTexture() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     @Override
-    public int id() {
+    public int getTextureId() {
         return texture;
+    }
+
+    @Override
+    public void destroy() {
+        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSED));
+        glDeleteTextures(texture);
     }
 
     @Override

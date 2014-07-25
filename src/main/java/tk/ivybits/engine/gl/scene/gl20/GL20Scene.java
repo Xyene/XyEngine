@@ -3,11 +3,13 @@ package tk.ivybits.engine.gl.scene.gl20;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
-import tk.ivybits.engine.gl.scene.gl20.shader.PhongLightingShader;
-import tk.ivybits.engine.gl.scene.gl20.shader.RawRenderShader;
-import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
+import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
+import tk.ivybits.engine.gl.scene.gl20.bloom.BloomFBO;
+import tk.ivybits.engine.gl.scene.gl20.bloom.BloomShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.RawRenderShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.camera.SimpleCamera;
@@ -20,7 +22,7 @@ import java.util.*;
 import static tk.ivybits.engine.scene.IDrawContext.*;
 
 public class GL20Scene implements IScene {
-    GL20DrawContext drawContext = new GL20DrawContext(this);
+    GL20DrawContext drawContext;
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
     private ICamera camera = new SimpleCamera(this);
     PhongLightingShader lightingShader;
@@ -35,7 +37,7 @@ public class GL20Scene implements IScene {
     ISceneShader currentGeometryShader;
     private ISceneGraph sceneGraph;
     private MSAAFBO msaaBuffer;
-    private FrameBuffer bloomBuffer;
+    private BloomFBO bloomBuffer;
 
     private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
@@ -75,7 +77,7 @@ public class GL20Scene implements IScene {
 
     @Override
     public IDrawContext getDrawContext() {
-        return drawContext;
+        return drawContext != null ? drawContext : (drawContext = new GL20DrawContext(this));
     }
 
     @Override
@@ -110,7 +112,7 @@ public class GL20Scene implements IScene {
             ISpotLight light = spotLights.get(n);
 
             ShadowMapFBO fbo = shadowMapFBOs.get(n);
-            fbo.bindForWriting();
+            fbo.bindFramebuffer();
 
             rawGeometryShader.attach();
 
@@ -129,7 +131,7 @@ public class GL20Scene implements IScene {
             glDisable(GL_CULL_FACE);
             rawGeometryShader.detach();
 
-            fbo.unbind();
+            fbo.unbindFramebuffer();
             camera.popMatrix();
         }
     }
@@ -193,7 +195,7 @@ public class GL20Scene implements IScene {
             glEnable(GL_MULTISAMPLE);
             glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 
-            msaaBuffer.bind();
+            msaaBuffer.bindFramebuffer();
         }
 
         boolean bloom = drawContext.isEnabled(IDrawContext.BLOOM);
@@ -202,7 +204,7 @@ public class GL20Scene implements IScene {
             bloomShader.setBloomIntensity(0.15f).setSampleCount(4);
         }
         if (bloom && bloomBuffer == null) {
-            bloomBuffer = new FrameBuffer(viewWidth, viewHeight, GL_TEXTURE_2D);
+            bloomBuffer = new BloomFBO(viewWidth, viewHeight);
             //bloomBuffer.resize(viewWidth, viewHeight);
         } else if (!bloom && bloomBuffer != null) {
             bloomBuffer.destroy();
@@ -210,7 +212,7 @@ public class GL20Scene implements IScene {
         }
 
         if (bloom && !antialiasing) {
-            bloomBuffer.bindForWriting();
+            bloomBuffer.bindFramebuffer();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -218,13 +220,9 @@ public class GL20Scene implements IScene {
         _draw();
 
         if (antialiasing) {
-            msaaBuffer.unbind();
+            msaaBuffer.unbindFramebuffer();
             if (bloom) {
-                bloomBuffer.bindForWriting();
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                bloomBuffer.unbind();
-
-                msaaBuffer.blit(bloomBuffer.fbo()); // FIXME: this is a nasty, horrid hack
+                msaaBuffer.blit(bloomBuffer);
             } else {
                 msaaBuffer.blit();
             }
@@ -232,7 +230,7 @@ public class GL20Scene implements IScene {
 
         if (bloom) {
             if (!antialiasing) {
-                bloomBuffer.unbind();
+                bloomBuffer.unbindFramebuffer();
             }
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -242,7 +240,7 @@ public class GL20Scene implements IScene {
 
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, bloomBuffer.id());
+            bloomBuffer.bindTexture();
             bloomShader.attach();
 
             glBegin(GL_QUADS);
@@ -257,6 +255,7 @@ public class GL20Scene implements IScene {
             glEnd();
 
             bloomShader.detach();
+            bloomBuffer.unbindTexture();
             ImmediateProjection.toFrustrumProjection();
             glPopAttrib();
         }

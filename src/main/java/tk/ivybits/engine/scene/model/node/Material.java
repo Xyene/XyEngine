@@ -1,6 +1,6 @@
 package tk.ivybits.engine.scene.model.node;
 
-import tk.ivybits.engine.scene.texture.ITexture;
+import tk.ivybits.engine.gl.texture.ITexture;
 
 import java.awt.*;
 
@@ -19,9 +19,6 @@ public class Material {
 
     public Material(String name) {
         this.name = name;
-    }
-
-    public Material() {
     }
 
     @Override

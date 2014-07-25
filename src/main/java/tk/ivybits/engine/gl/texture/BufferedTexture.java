@@ -1,11 +1,10 @@
 package tk.ivybits.engine.gl.texture;
 
-import tk.ivybits.engine.scene.texture.ITexture;
-
 import java.awt.image.BufferedImage;
 
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 
 public class BufferedTexture implements ITexture {
     private final int target;
@@ -21,7 +20,7 @@ public class BufferedTexture implements ITexture {
     }
 
     @Override
-    public void bind() {
+    public void bindTexture() {
         if (id == 0) {
             id = TextureLoader.getTexture(img, target, GL_LINEAR, true);
         }
@@ -29,13 +28,18 @@ public class BufferedTexture implements ITexture {
     }
 
     @Override
-    public void unbind() {
+    public void unbindTexture() {
         glBindTexture(target, 0);
     }
 
     @Override
-    public int id() {
+    public int getTextureId() {
         return id;
+    }
+
+    @Override
+    public void destroy() {
+        glDeleteTextures(id);
     }
 
     @Override

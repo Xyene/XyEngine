@@ -2,7 +2,6 @@ package tk.ivybits.engine.gl.texture;
 
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.camera.ICamera;
-import tk.ivybits.engine.scene.texture.ITexture;
 
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;

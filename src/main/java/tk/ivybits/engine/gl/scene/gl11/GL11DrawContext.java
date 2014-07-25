@@ -5,7 +5,7 @@ import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public class GL11DrawContext implements IDrawContext {
-    final GL20Scene parent;
+    final GL11Scene parent;
     final boolean[] CAPABILITIES = {
             false,   // Normal mapping
             false,   // Specular mapping
@@ -25,7 +25,7 @@ public class GL11DrawContext implements IDrawContext {
             false    // bloom
     };
 
-    public GL11DrawContext(GL20Scene parent) {
+    public GL11DrawContext(GL11Scene parent) {
         this.parent = parent;
     }
 

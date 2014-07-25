@@ -19,7 +19,7 @@ import java.util.PriorityQueue;
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.scene.IDrawContext.ALPHA_TESTING;
 
-public class GL20Scene implements IScene {
+public class GL11Scene implements IScene {
     GL11DrawContext drawContext = new GL11DrawContext(this);
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
 
@@ -29,7 +29,7 @@ public class GL20Scene implements IScene {
     private ISceneGraph sceneGraph;
     private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
-    public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
+    public GL11Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
         this.sceneGraph = sceneGraph;
@@ -156,7 +156,7 @@ public class GL20Scene implements IScene {
 
     public void useMaterial(Material material) {
         glEnable(GL_TEXTURE_2D);
-        if (material.diffuseTexture != null) material.diffuseTexture.bind();
+        if (material.diffuseTexture != null) material.diffuseTexture.bindTexture();
 
         glColor4f(1, 1, 1, material.transparency);
 

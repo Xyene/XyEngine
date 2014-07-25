@@ -1,32 +1,28 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
+import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
-    final boolean[] CAPABILITIES = {
-            true,  // Normal mapping
-            true,  // Specular mapping
-            true, // Dynamic shadows
-            true,  // alpha testing
-            true,    // Fog
-            true,    // ANTIALIASING
-            true    // bloom
-    };
-    final boolean[] ENABLED_CAPABILITIES = {
-            true,  // Normal mapping
-            true,  // Specular mapping
-            true, // Dynamic shadows
-            true,  // alpha testing
-            true,    // Fog
-            true,    // ANTIALIASING
-            true     // bloom
-    };
+    final boolean[] caps;
+    final boolean[] enabled;
 
     public GL20DrawContext(GL20Scene parent) {
         this.parent = parent;
+        caps = new boolean[]{
+                true,  // Normal mapping
+                true,  // Specular mapping
+                GLContext.getCapabilities().OpenGL30, // Dynamic shadows
+                true,  // alpha testing
+                true,    // Fog
+                GLContext.getCapabilities().OpenGL30,    // ANTIALIASING
+                true    // bloom
+        };
+        enabled = new boolean[caps.length];
+        System.arraycopy(caps, 0, enabled, 0, caps.length);
     }
 
     @Override
@@ -42,21 +38,21 @@ public class GL20DrawContext implements IDrawContext {
 
     @Override
     public <T> boolean isSupported(int id) {
-        if (id < CAPABILITIES.length) return CAPABILITIES[id];
+        if (id < caps.length) return caps[id];
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
     }
 
     @Override
     public void setEnabled(int id, boolean flag) {
-        if(!isSupported(id))
+        if (!isSupported(id))
             throw new UnsupportedOperationException("capability not supported");
-        if (id < ENABLED_CAPABILITIES.length) ENABLED_CAPABILITIES[id] = flag;
+        if (id < enabled.length) enabled[id] = flag;
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
     }
 
     @Override
     public boolean isEnabled(int id) {
-        if (id < ENABLED_CAPABILITIES.length) return ENABLED_CAPABILITIES[id];
+        if (id < enabled.length) return enabled[id];
         else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
     }
 }

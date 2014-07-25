@@ -1,9 +1,10 @@
-package tk.ivybits.engine.gl.scene.gl20.shader;
+package tk.ivybits.engine.gl.scene.gl20.lighting.shadow;
 
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.Program;
+import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.scene.VertexAttribute;
-import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public class RawRenderShader extends AbstractShader implements ISceneShader {

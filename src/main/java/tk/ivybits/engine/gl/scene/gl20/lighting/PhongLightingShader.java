@@ -1,13 +1,14 @@
-package tk.ivybits.engine.gl.scene.gl20.shader;
+package tk.ivybits.engine.gl.scene.gl20.lighting;
 
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
-import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
+import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.VertexAttribute;
-import tk.ivybits.engine.scene.camera.Projection;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.node.*;
@@ -90,7 +91,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                 glActiveTexture(GL_TEXTURE3 + n);
                 glEnable(GL_TEXTURE_2D);
                 shader.setUniform(shader.getUniformLocation("u_shadowMap[0].front") + n, 3 + n);
-                shadowMapFBO.get(n).bind();
+                shadowMapFBO.get(n).bindTexture();
             }
         }
     }
@@ -106,7 +107,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             glEnable(GL_TEXTURE_2D);
             glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 1);
             glUniform1i(shader.getUniformLocation("u_material.diffuseMap"), (texture++));
-            material.diffuseTexture.bind();
+            material.diffuseTexture.bindTexture();
         } else {
             glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 0);
         }
@@ -116,7 +117,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                 glEnable(GL_TEXTURE_2D);
                 glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 1);
                 glUniform1i(shader.getUniformLocation("u_material.specularMap"), (texture++));
-                material.specularTexture.bind();
+                material.specularTexture.bindTexture();
             } else {
                 glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 0);
             }
@@ -126,7 +127,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
                 glEnable(GL_TEXTURE_2D);
                 glUniform1i(shader.getUniformLocation("u_material.hasNormal"), 1);
                 glUniform1i(shader.getUniformLocation("u_material.normalMap"), (texture++));
-                material.bumpMap.bind();
+                material.bumpMap.bindTexture();
             } else {
                 glUniform1i(shader.getUniformLocation("u_material.hasNormal"), 0);
             }
