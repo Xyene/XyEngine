@@ -19,6 +19,8 @@ public class BasicCamera implements ICamera {
     protected Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
     protected @Printable float fieldOfView, aspectRatio, zNear, zFar;
 
+    protected float ftl, ftr, fbl, fbr, ntl, ntr, nbl, nbr;
+
     public BasicCamera(IScene scene) {
         this.scene = scene;
         viewMatrixStack.push(viewMatrix);
@@ -181,16 +183,6 @@ public class BasicCamera implements ICamera {
     @Override
     public Vector3f direction() {
         return new Vector3f(dx(), dy(), dz());
-    }
-
-    @Override
-    public boolean isSphereInFrustum(Vector3f position, float v) {
-        return true;
-    }
-
-    @Override
-    public boolean isOccluded(Vector3f position) {
-        return false;
     }
 
     @Override

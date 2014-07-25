@@ -28,17 +28,20 @@ public class ToString {
             clazz = clazz.getSuperclass();
         }
         toString.append("{");
+        boolean first = true;
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
             if (f.getAnnotation(Printable.class) == null) continue;
             f.setAccessible(true);
+            if(!first) {
+                if (i + 1 < fields.size()) {
+                    toString.append(", ");
+                }
+            } else first = false;
             try {
                 toString.append(f.getName()).append("=").append(f.get(obj));
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-            }
-            if (i + 1 < fields.size()) {
-                toString.append(", ");
             }
         }
         toString.append("}");

@@ -69,8 +69,8 @@ public class Sandbox {
 
         System.out.print("Reading models... ");
         IActor ship = root.track(new GeometryActor(ModelIO.read(new File("cylinder.obj"))));
-        ship.position(0, 0, 0);
-        ship.rotate(0, 0, 90);
+        ship.position(0, -2.5f, 10);
+        ship.rotate(0, 0, 0);
         IActor crate = root.track(new GeometryActor(ModelIO.read(new File("ground3.obj"))));
         crate.position(0, 0, 0);
         System.out.print("Done.\n");
@@ -148,14 +148,14 @@ public class Sandbox {
 
             if (frame == 100) {
                 float fps = timer.fps();
-                fpsLabel.setText(String.format("%.1f (%.2fms/frame)\n", fps, 1000 / fps));
+                fpsLabel.setText(String.format("%.1f (%.2fms/frame), %d/%d objects drawn\n", fps, 1000 / fps, ((GL20Scene)scene).drawn, root.getActors().size()));
                 screenOverlay.markDirty();
                 frame = 0;
             }
             glPopAttrib();
             ImmediateProjection.toFrustrumProjection();
             Display.update();
-            Display.sync(60);
+           // Display.sync(60);
         }
 
         screenOverlay.destroy();

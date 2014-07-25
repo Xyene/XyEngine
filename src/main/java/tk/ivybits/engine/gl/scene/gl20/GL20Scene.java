@@ -12,6 +12,7 @@ import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.RawRenderShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.scene.*;
+import tk.ivybits.engine.scene.camera.Frustum;
 import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.camera.BasicCamera;
 import tk.ivybits.engine.scene.node.*;
@@ -40,8 +41,10 @@ public class GL20Scene implements IScene {
     private ISceneGraph sceneGraph;
     private MSAAFBO msaaBuffer;
     private BloomFBO bloomBuffer;
+    private Frustum frustum = new Frustum();
 
     private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
+    public int drawn = 0;
 
     public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
@@ -150,6 +153,8 @@ public class GL20Scene implements IScene {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
+        drawn = 0;
+
         currentGeometryShader = lightingShader;
         if (lightingShader != null) lightingShader.attach();
 
@@ -158,25 +163,40 @@ public class GL20Scene implements IScene {
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
+                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+                    continue;
+                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
+                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+                    continue;
+                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
+                drawn++;
             }
             glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : tracker) {
                 if (entity.draw.isTransparent()) continue;
+                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+                    continue;
+                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
+                drawn++;
             }
         } else {
             for (PriorityComparableDrawable entity : tracker) {
+                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+                    continue;
+                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
+                drawn++;
             }
         }
 
@@ -276,6 +296,7 @@ public class GL20Scene implements IScene {
     public void setViewTransform(Matrix4f viewMatrix) {
         this.viewMatrix = viewMatrix;
         currentGeometryShader.setViewTransform(viewMatrix);
+        frustum.calculateFrustum(projectionMatrix, viewMatrix);
     }
 
     @Override
@@ -287,6 +308,7 @@ public class GL20Scene implements IScene {
     public void setProjectionTransform(Matrix4f projectionMatrix) {
         this.projectionMatrix = projectionMatrix;
         currentGeometryShader.setProjectionTransform(projectionMatrix);
+        frustum.calculateFrustum(projectionMatrix, viewMatrix);
     }
 
     @Override

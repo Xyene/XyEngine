@@ -46,8 +46,4 @@ public interface ICamera {
     Vector3f position();
 
     Vector3f direction();
-
-    boolean isSphereInFrustum(Vector3f position, float v);
-
-    boolean isOccluded(Vector3f position);
 }
