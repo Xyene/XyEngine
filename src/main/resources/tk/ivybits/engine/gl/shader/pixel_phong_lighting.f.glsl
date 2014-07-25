@@ -84,19 +84,17 @@ uniform CubeMap u_shadowMap[MAX_LIGHTS];
 #endif
 
 #ifdef OBJECT_SHADOWS
-float spotlight_shadow_factor()
+float spotlight_shadow_factor(in int idx)
 {
-        float visibility = 1.0;
-        float bias = 0.005;
-        for(int idx = 0; idx < u_lightMatrixCount; idx++) {
-            vec4 shadowCoord = v_lightSpacePos[idx];
-            if(shadowCoord.w > 0) {
-                if (textureProj(u_shadowMap[idx].front, shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
-                    visibility = 0;
-                }
-            }
+    float visibility = 1.0;
+    float bias = 0.005;
+    vec4 shadowCoord = v_lightSpacePos[idx];
+    if(shadowCoord.w > 0) {
+        if (textureProj(u_shadowMap[idx].front, shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
+            visibility = 0;
         }
-        return visibility;
+    }
+    return visibility;
 }
 #endif
 
@@ -168,7 +166,7 @@ void main(void)
             color += (falloff * (ambient + ((diffuse * texture) + specular) * lightSource.intensity));
        }
         #ifdef OBJECT_SHADOWS
-        fragment += color * spotlight_shadow_factor();
+        fragment += color * spotlight_shadow_factor(idx);
         #else
         fragment += color;
         #endif

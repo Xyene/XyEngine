@@ -1,5 +1,6 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
@@ -12,7 +13,7 @@ import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.ICamera;
-import tk.ivybits.engine.scene.camera.SimpleCamera;
+import tk.ivybits.engine.scene.camera.BasicCamera;
 import tk.ivybits.engine.scene.node.*;
 
 import static tk.ivybits.engine.gl.GL.*;
@@ -24,7 +25,7 @@ import static tk.ivybits.engine.scene.IDrawContext.*;
 public class GL20Scene implements IScene {
     GL20DrawContext drawContext;
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
-    private ICamera camera = new SimpleCamera(this);
+    private BasicCamera camera;
     PhongLightingShader lightingShader;
     private int viewWidth;
     private int viewHeight;
@@ -68,6 +69,10 @@ public class GL20Scene implements IScene {
             }
         }, true);
         sceneGraph.addSceneChangeListener(lightingShader, true);
+        camera = new BasicCamera(this)
+                .setAspectRatio(viewWidth / (float) viewHeight)
+                .setFieldOfView(60)
+                .setClip(Float.MAX_VALUE, 0.3f);
     }
 
     @Override
@@ -85,6 +90,7 @@ public class GL20Scene implements IScene {
         for (ShadowMapFBO fbo : shadowMapFBOs) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
         if (bloomBuffer != null) bloomBuffer.resize(width, height);
+        camera.setAspectRatio(width / (float) height);
         this.viewWidth = width;
         this.viewHeight = height;
     }
@@ -114,18 +120,21 @@ public class GL20Scene implements IScene {
             ShadowMapFBO fbo = shadowMapFBOs.get(n);
             fbo.bindFramebuffer();
 
-            rawGeometryShader.attach();
-
             glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
             glLoadIdentity();
+
+            rawGeometryShader.setProjectionTransform(projectionMatrix);
+
+            rawGeometryShader.attach();
 
             camera.setRotation(light.pitch(), light.yaw(), 0);
             camera.setPosition(light.x(), light.y(), light.z());
 
+            fbo.projection = viewMatrix;
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
-                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
+                rawGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glDisable(GL_CULL_FACE);
@@ -205,7 +214,6 @@ public class GL20Scene implements IScene {
         }
         if (bloom && bloomBuffer == null) {
             bloomBuffer = new BloomFBO(viewWidth, viewHeight);
-            //bloomBuffer.resize(viewWidth, viewHeight);
         } else if (!bloom && bloomBuffer != null) {
             bloomBuffer.destroy();
             bloomBuffer = null;
@@ -259,6 +267,7 @@ public class GL20Scene implements IScene {
             ImmediateProjection.toFrustrumProjection();
             glPopAttrib();
         }
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 

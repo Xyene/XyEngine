@@ -9,7 +9,7 @@ import java.util.Stack;
 import static java.lang.Math.*;
 import static java.lang.Math.toRadians;
 
-public class SimpleCamera implements ICamera {
+public class BasicCamera implements ICamera {
     protected float x = 0;
     protected float y = 0;
     protected float z = 0;
@@ -21,7 +21,7 @@ public class SimpleCamera implements ICamera {
     protected Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
     protected float fieldOfView, aspectRatio, zNear, zFar;
 
-    public SimpleCamera(IScene scene) {
+    public BasicCamera(IScene scene) {
         this.scene = scene;
         viewMatrixStack.push(viewMatrix);
     }
@@ -51,7 +51,7 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public SimpleCamera setRotation(float pitch, float yaw, float roll) {
+    public BasicCamera setRotation(float pitch, float yaw, float roll) {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
@@ -90,14 +90,14 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public SimpleCamera setAspectRatio(float aspectRatio) {
+    public BasicCamera setAspectRatio(float aspectRatio) {
         this.aspectRatio = aspectRatio;
         updateProjection();
         return this;
     }
 
     @Override
-    public SimpleCamera setPosition(float x, float y, float z) {
+    public BasicCamera setPosition(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -106,14 +106,14 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public SimpleCamera setFieldOfView(float fov) {
+    public BasicCamera setFieldOfView(float fov) {
         this.fieldOfView = fov;
         updateProjection();
         return this;
     }
 
     @Override
-    public SimpleCamera setClip(float zFar, float zNear) {
+    public BasicCamera setClip(float zFar, float zNear) {
         this.zNear = zNear;
         this.zFar = zFar;
         updateProjection();
@@ -121,7 +121,7 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public SimpleCamera pushMatrix() {
+    public BasicCamera pushMatrix() {
         viewMatrix = new Matrix4f();
         viewMatrixStack.push(viewMatrix);
         scene.setViewTransform(viewMatrix);
@@ -129,7 +129,7 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public SimpleCamera popMatrix() {
+    public BasicCamera popMatrix() {
         viewMatrixStack.pop();
         viewMatrix = viewMatrixStack.peek();
         scene.setViewTransform(viewMatrix);
@@ -197,7 +197,7 @@ public class SimpleCamera implements ICamera {
 
     @Override
     public String toString() {
-        return "SimpleCamera{" +
+        return "BasicCamera{" +
                 "roll=" + roll +
                 ", x=" + x +
                 ", y=" + y +

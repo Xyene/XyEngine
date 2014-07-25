@@ -4,7 +4,7 @@ import tk.ivybits.engine.scene.IScene;
 
 import static java.lang.Math.*;
 
-public class FPSCamera extends SimpleCamera {
+public class FPSCamera extends BasicCamera {
 
     public FPSCamera(IScene scene) {
         super(scene);
