@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.scene.IDrawContext.ALPHA_TESTING;
+import static tk.ivybits.engine.scene.IDrawContext.Capability.ALPHA_TESTING;
 
 public class GL11Scene implements IScene {
     GL11DrawContext drawContext = new GL11DrawContext(this);

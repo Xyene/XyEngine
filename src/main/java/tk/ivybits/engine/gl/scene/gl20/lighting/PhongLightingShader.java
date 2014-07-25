@@ -23,6 +23,8 @@ import java.util.List;
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.Program.ShaderType.FRAGMENT;
 import static tk.ivybits.engine.gl.Program.ShaderType.VERTEX;
+import static tk.ivybits.engine.scene.IDrawContext.*;
+import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 
 public class PhongLightingShader extends AbstractShader implements ISceneShader, ISceneChangeListener {
     private final IScene scene;
@@ -85,7 +87,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         super.attach();
         setupHandles();
 
-        if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
+        if (scene.getDrawContext().isEnabled(OBJECT_SHADOWS)) {
             shader.setUniform(shader.getUniformLocation("u_lightMatrixCount"), shadowMapFBO.size());
             for (int n = 0; n < shadowMapFBO.size(); n++) {
                 glActiveTexture(GL_TEXTURE3 + n);
@@ -111,7 +113,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         } else {
             glUniform1i(shader.getUniformLocation("u_material.hasDiffuse"), 0);
         }
-        if (scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))
+        if (scene.getDrawContext().isEnabled(SPECULAR_MAPS))
             if (material.specularTexture != null) {
                 glActiveTexture(GL_TEXTURE0 + texture);
                 glEnable(GL_TEXTURE_2D);
@@ -121,7 +123,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
             } else {
                 glUniform1i(shader.getUniformLocation("u_material.hasSpecular"), 0);
             }
-        if (scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))
+        if (scene.getDrawContext().isEnabled(NORMAL_MAPS))
             if (material.bumpMap != null) {
                 glActiveTexture(GL_TEXTURE0 + texture);
                 glEnable(GL_TEXTURE_2D);
@@ -155,10 +157,10 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
     @Override
     protected int getShaderHandle() {
         List<Boolean> identifier = Arrays.asList(
-                scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS),
-                scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS),
-                scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS),
-                scene.getDrawContext().isEnabled(IDrawContext.FOG)
+                scene.getDrawContext().isEnabled(NORMAL_MAPS),
+                scene.getDrawContext().isEnabled(SPECULAR_MAPS),
+                scene.getDrawContext().isEnabled(OBJECT_SHADOWS),
+                scene.getDrawContext().isEnabled(FOG)
         );
         shader = shaders.get(identifier);
         if (shader == null) {
@@ -216,7 +218,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         Matrix4f.mul(mvp, modelMatrix, mvp);
         shader.setUniform(shader.getUniformLocation("u_mvpMatrix"), mvp);
 
-        if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
+        if (scene.getDrawContext().isEnabled(OBJECT_SHADOWS)) {
             for (int n = 0; n < shadowMapFBO.size(); n++) {
                 Matrix4f depthBiasMVP = new Matrix4f();
                 Matrix4f.mul(projectionMatrix, shadowMapFBO.get(n).projection, depthBiasMVP);
@@ -393,7 +395,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
     @Override
     public void fogUpdated(IFog fog) {
         // TODO: recompile shader for these settings
-        if (scene.getDrawContext().isEnabled(IDrawContext.FOG)) {
+        if (scene.getDrawContext().isEnabled(FOG)) {
             boolean attached = isAttached;
             if (!attached) super.attach();
             setupHandles();

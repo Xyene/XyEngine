@@ -33,6 +33,8 @@ import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
 import static tk.ivybits.engine.gl.GL.*;
 
+import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
+
 public class Sandbox {
     private static float speed = 0.5f;
     private static FrameTimer timer;
@@ -301,7 +303,15 @@ public class Sandbox {
         onScreenUI.setBackground(new Color(0, 0, 0, 0));
         onScreenUI.setLayout(new BorderLayout());
 
-        JPanel opts = new JPanel();
+        JPanel opts = new JPanel() {
+            @Override
+            public Component add(Component box) {
+                super.add(box);
+                if(box instanceof JCheckBox) box.setForeground(Color.GREEN);
+                box.setBackground(new Color(0, 0, 0, 0.25f));
+                return box;
+            }
+        };
         opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
         opts.setBackground(new Color(0, 0, 0, 0));
 
@@ -321,51 +331,63 @@ public class Sandbox {
 
         // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
 
-        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING))));
+        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(ANTIALIASING))));
         msaa.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, !scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
+                scene.getDrawContext().setEnabled(ANTIALIASING, !scene.getDrawContext().isEnabled(ANTIALIASING));
             }
         });
-        msaa.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ANTIALIASING));
-        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(IDrawContext.BLOOM))));
+        msaa.setEnabled(scene.getDrawContext().isSupported(ANTIALIASING));
+        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(BLOOM))));
         bloom.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
+                scene.getDrawContext().setEnabled(BLOOM, !scene.getDrawContext().isEnabled(BLOOM));
             }
         });
-        bloom.setEnabled(scene.getDrawContext().isSupported(IDrawContext.BLOOM));
-        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))));
+        bloom.setEnabled(scene.getDrawContext().isSupported(BLOOM));
+        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(NORMAL_MAPS))));
         normals.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.NORMAL_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
+                scene.getDrawContext().setEnabled(NORMAL_MAPS, !scene.getDrawContext().isEnabled(NORMAL_MAPS));
             }
         });
-        normals.setEnabled(scene.getDrawContext().isSupported(IDrawContext.NORMAL_MAPS));
-        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))));
+        normals.setEnabled(scene.getDrawContext().isSupported(NORMAL_MAPS));
+        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(SPECULAR_MAPS))));
         specular.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.SPECULAR_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
+                scene.getDrawContext().setEnabled(SPECULAR_MAPS, !scene.getDrawContext().isEnabled(SPECULAR_MAPS));
             }
         });
-        specular.setEnabled(scene.getDrawContext().isSupported(IDrawContext.SPECULAR_MAPS));
-        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING))));
+        specular.setEnabled(scene.getDrawContext().isSupported(SPECULAR_MAPS));
+        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(ALPHA_TESTING))));
         alpha.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.ALPHA_TESTING, !scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
+                scene.getDrawContext().setEnabled(ALPHA_TESTING, !scene.getDrawContext().isEnabled(ALPHA_TESTING));
             }
         });
-        alpha.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ALPHA_TESTING));
+        alpha.setEnabled(scene.getDrawContext().isSupported(ALPHA_TESTING));
+
+        final JCheckBox wireframe = ((JCheckBox) opts.add(new JCheckBox("Wireframe", false)));
+        wireframe.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("Wireframe " + wireframe.isSelected());
+                if (wireframe.isSelected()) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
+        });
 
         opts.add(msaa);
         opts.add(bar);
 
         fpsLabel = new JLabel("...");
+        fpsLabel.setOpaque(true);
+        fpsLabel.setBackground(new Color(0, 0, 0, 0.5f));
         fpsLabel.setForeground(Color.GREEN);
         onScreenUI.add(fpsLabel, BorderLayout.SOUTH);
 

@@ -202,4 +202,8 @@ public class UITexture implements ITexture  {
     public Color getColor(int x, int y) {
         return new Color(screenBuffer.getRGB(x, y), true);
     }
+
+    public void markDirty() {
+        needsBufferUpdate = true;
+    }
 }

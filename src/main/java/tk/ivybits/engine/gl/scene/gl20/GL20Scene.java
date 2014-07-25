@@ -20,6 +20,7 @@ import static tk.ivybits.engine.gl.GL.*;
 
 import java.util.*;
 
+import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 import static tk.ivybits.engine.scene.IDrawContext.*;
 
 public class GL20Scene implements IScene {
@@ -192,7 +193,7 @@ public class GL20Scene implements IScene {
             }
         }
 
-        boolean antialiasing = drawContext.isEnabled(IDrawContext.ANTIALIASING);
+        boolean antialiasing = drawContext.isEnabled(ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
             msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
@@ -207,7 +208,7 @@ public class GL20Scene implements IScene {
             msaaBuffer.bindFramebuffer();
         }
 
-        boolean bloom = drawContext.isEnabled(IDrawContext.BLOOM);
+        boolean bloom = drawContext.isEnabled(BLOOM);
         if (bloom && bloomShader == null) {
             bloomShader = new BloomShader();
             bloomShader.setBloomIntensity(0.15f).setSampleCount(4);

@@ -37,22 +37,19 @@ public class GL20DrawContext implements IDrawContext {
     }
 
     @Override
-    public <T> boolean isSupported(int id) {
-        if (id < caps.length) return caps[id];
-        else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
+    public <T> boolean isSupported(Capability id) {
+        return caps[id.ordinal()];
     }
 
     @Override
-    public void setEnabled(int id, boolean flag) {
+    public void setEnabled(Capability id, boolean flag) {
         if (!isSupported(id))
             throw new UnsupportedOperationException("capability not supported");
-        if (id < enabled.length) enabled[id] = flag;
-        else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
+        enabled[id.ordinal()] = flag;
     }
 
     @Override
-    public boolean isEnabled(int id) {
-        if (id < enabled.length) return enabled[id];
-        else throw new IllegalArgumentException("no such capability"); // Maybe return null instead?
+    public boolean isEnabled(Capability id) {
+       return enabled[id.ordinal()];
     }
 }

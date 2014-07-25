@@ -4,22 +4,17 @@ import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public interface IDrawContext {
-    // Maybe make these instance of BoolProperty, IntProperty so generic abuse isn't needed
-    int NORMAL_MAPS = 0,
-            SPECULAR_MAPS = 1,
-            OBJECT_SHADOWS = 2,
-            ALPHA_TESTING = 3,
-            FOG = 4,
-            ANTIALIASING = 5,
-            BLOOM = 6;
+    public static enum Capability {
+        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM;
+    }
 
     void useMaterial(Material material);
 
     ITesselator createTesselator(int flags, int type);
 
-    <T> boolean isSupported(int id);
+    <T> boolean isSupported(Capability cap);
 
-    void setEnabled(int id, boolean flag);
+    void setEnabled(Capability cap, boolean flag);
 
-    boolean isEnabled(int property);
+    boolean isEnabled(Capability cap);
 }
