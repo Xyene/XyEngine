@@ -41,6 +41,14 @@ public class Sandbox {
     private static UITexture screenOverlay;
 
     public static void main(String[] args) throws Exception {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                Mouse.setGrabbed(false);
+                Display.destroy();
+                throwable.printStackTrace();
+            }
+        });
         setup();
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 
@@ -279,7 +287,7 @@ public class Sandbox {
                                     .setPosition(camera.x(), camera.y(), camera.z())
                                     .setRotation(camera.pitch(), camera.yaw())
                                     .setDiffuseColor(Color.GREEN)
-                                    .setIntensity(2)
+                                    .setIntensity(3.5f)
                                     .setCutoff(10);
                             break;
                         case Keyboard.KEY_C:
