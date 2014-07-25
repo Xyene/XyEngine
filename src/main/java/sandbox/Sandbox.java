@@ -295,7 +295,7 @@ public class Sandbox {
 
     private static void setupUI() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         for (UIManager.LookAndFeelInfo lfi : UIManager.getInstalledLookAndFeels()) {
-            if (lfi.getName().contains("CDE"))
+            if (lfi.getName().contains("Nimbus"))
                 UIManager.setLookAndFeel(lfi.getClassName());
         }
 
@@ -307,7 +307,10 @@ public class Sandbox {
             @Override
             public Component add(Component box) {
                 super.add(box);
-                if(box instanceof JCheckBox) box.setForeground(Color.GREEN);
+                if (box instanceof JCheckBox) {
+                    box.setForeground(Color.GREEN);
+                    ((JCheckBox) box).setOpaque(true);
+                }
                 box.setBackground(new Color(0, 0, 0, 0.25f));
                 return box;
             }
@@ -331,63 +334,57 @@ public class Sandbox {
 
         // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
 
-        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(ANTIALIASING))));
-        msaa.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(ANTIALIASING, !scene.getDrawContext().isEnabled(ANTIALIASING));
-            }
-        });
-        msaa.setEnabled(scene.getDrawContext().isSupported(ANTIALIASING));
-        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(BLOOM))));
-        bloom.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(BLOOM, !scene.getDrawContext().isEnabled(BLOOM));
-            }
-        });
-        bloom.setEnabled(scene.getDrawContext().isSupported(BLOOM));
-        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(NORMAL_MAPS))));
-        normals.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(NORMAL_MAPS, !scene.getDrawContext().isEnabled(NORMAL_MAPS));
-            }
-        });
-        normals.setEnabled(scene.getDrawContext().isSupported(NORMAL_MAPS));
-        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(SPECULAR_MAPS))));
-        specular.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(SPECULAR_MAPS, !scene.getDrawContext().isEnabled(SPECULAR_MAPS));
-            }
-        });
-        specular.setEnabled(scene.getDrawContext().isSupported(SPECULAR_MAPS));
-        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(ALPHA_TESTING))));
-        alpha.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(ALPHA_TESTING, !scene.getDrawContext().isEnabled(ALPHA_TESTING));
-            }
-        });
-        alpha.setEnabled(scene.getDrawContext().isSupported(ALPHA_TESTING));
+        if (scene.getDrawContext().isSupported(ANTIALIASING)) {
+            JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
+            msaa.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(ANTIALIASING, !scene.getDrawContext().isEnabled(ANTIALIASING));
+                }
+            });
+        }
+        if (scene.getDrawContext().isSupported(BLOOM)) {
+            JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom ", scene.getDrawContext().isEnabled(BLOOM))));
+            bloom.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(BLOOM, !scene.getDrawContext().isEnabled(BLOOM));
+                }
+            });
+        }
+        if (scene.getDrawContext().isSupported(NORMAL_MAPS)) {
+            JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping ", scene.getDrawContext().isEnabled(NORMAL_MAPS))));
+            normals.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(NORMAL_MAPS, !scene.getDrawContext().isEnabled(NORMAL_MAPS));
+                }
+            });
+        }
+        if (scene.getDrawContext().isSupported(SPECULAR_MAPS)) {
+            JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping ", scene.getDrawContext().isEnabled(SPECULAR_MAPS))));
+            specular.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(SPECULAR_MAPS, !scene.getDrawContext().isEnabled(SPECULAR_MAPS));
+                }
+            });
+        }
+        if (scene.getDrawContext().isSupported(ALPHA_TESTING)) {
+            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing ", scene.getDrawContext().isEnabled(ALPHA_TESTING))));
+            alpha.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(ALPHA_TESTING, !scene.getDrawContext().isEnabled(ALPHA_TESTING));
+                }
+            });
+        }
 
-        final JCheckBox wireframe = ((JCheckBox) opts.add(new JCheckBox("Wireframe", false)));
-        wireframe.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("Wireframe " + wireframe.isSelected());
-                if (wireframe.isSelected()) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            }
-        });
-
-        opts.add(msaa);
         opts.add(bar);
 
         fpsLabel = new JLabel("...");
         fpsLabel.setOpaque(true);
-        fpsLabel.setBackground(new Color(0, 0, 0, 0.5f));
+        fpsLabel.setBackground(new Color(0, 0, 0, 0.25f));
         fpsLabel.setForeground(Color.GREEN);
         onScreenUI.add(fpsLabel, BorderLayout.SOUTH);
 
