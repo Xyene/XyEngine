@@ -1,60 +1,57 @@
 package tk.ivybits.engine.scene.camera;
 
-import javax.vecmath.Vector3f;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
+import tk.ivybits.engine.scene.IScene;
+
+import java.util.Stack;
 
 import static java.lang.Math.*;
+import static java.lang.Math.toRadians;
 
 public class SimpleCamera implements ICamera {
-    private float x = 0;
-    private float y = 0;
-    private float z = 0;
-    private float pitch = 0;
-    private float yaw = 0;
-    private float roll = 0;
-    private Projection proj;
-    private float fieldOfView, aspectRatio, zNear, zFar;
+    protected float x = 0;
+    protected float y = 0;
+    protected float z = 0;
+    protected float pitch = 0;
+    protected float yaw = 0;
+    protected float roll = 0;
+    protected IScene scene;
+    protected Stack<Matrix4f> viewMatrixStack = new Stack<>();
+    protected Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
+    protected float fieldOfView, aspectRatio, zNear, zFar;
 
-    public SimpleCamera(Projection proj) {
-        this.proj = proj;
+    public SimpleCamera(IScene scene) {
+        this.scene = scene;
+        viewMatrixStack.push(viewMatrix);
     }
 
-    public void walkBackwards(float distance) {
-        x -= distance * (float) Math.sin(Math.toRadians(yaw));
-        z += distance * (float) Math.cos(Math.toRadians(yaw));
-        updateView();
+    protected void updateView() {
+        viewMatrix = new Matrix4f();
+        Matrix4f.rotate((float) toRadians(pitch), new Vector3f(1, 0, 0), viewMatrix, viewMatrix);
+        Matrix4f.rotate((float) toRadians(yaw), new Vector3f(0, 1, 0), viewMatrix, viewMatrix);
+        Matrix4f.rotate((float) toRadians(roll), new Vector3f(0, 0, 1), viewMatrix, viewMatrix);
+        Matrix4f.translate(new Vector3f(-x, -y, -z), viewMatrix, viewMatrix);
+        scene.setViewTransform(viewMatrix);
     }
 
-    public void walkForward(float distance) {
-        x += distance * (float) Math.sin(Math.toRadians(yaw));
-        z -= distance * (float) Math.cos(Math.toRadians(yaw));
-        updateView();
-    }
+    protected void updateProjection() {
+        projectionMatrix = new Matrix4f();
+        float scaleY = (float) (1 / tan(toRadians(fieldOfView / 2f)));
+        float scaleX = scaleY / aspectRatio;
+        float frustrumLength = zFar - zNear;
 
-    public void strafeRight(float distance) {
-        x -= distance * (float) Math.sin(Math.toRadians(yaw - 90));
-        z += distance * (float) Math.cos(Math.toRadians(yaw - 90));
-        updateView();
-    }
-
-    public void strafeLeft(float distance) {
-        x -= distance * (float) Math.sin(Math.toRadians(yaw + 90));
-        z += distance * (float) Math.cos(Math.toRadians(yaw + 90));
-        updateView();
-    }
-
-    @Override
-    public void move(float dx, float dy, float dz) {
-        throw new UnsupportedOperationException();
-    }
-
-    void updateView() {
-        proj.resetViewMatrix();
-        proj.rotateCamera(pitch, yaw, roll);
-        proj.translateCamera(x, y, z);
+        projectionMatrix.m00 = scaleX;
+        projectionMatrix.m11 = scaleY;
+        projectionMatrix.m22 = -((zFar + zNear) / frustrumLength);
+        projectionMatrix.m23 = -1;
+        projectionMatrix.m32 = -((2 * zNear * zFar) / frustrumLength);
+        projectionMatrix.m33 = 0;
+        scene.setProjectionTransform(projectionMatrix);
     }
 
     @Override
-    public ICamera setRotation(float pitch, float yaw, float roll) {
+    public SimpleCamera setRotation(float pitch, float yaw, float roll) {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
@@ -93,13 +90,14 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public ICamera setAspectRatio(float aspectRatio) {
-        proj.setProjection(fieldOfView, this.aspectRatio = aspectRatio, zNear, zFar);
+    public SimpleCamera setAspectRatio(float aspectRatio) {
+        this.aspectRatio = aspectRatio;
+        updateProjection();
         return this;
     }
 
     @Override
-    public ICamera setPosition(float x, float y, float z) {
+    public SimpleCamera setPosition(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -108,20 +106,33 @@ public class SimpleCamera implements ICamera {
     }
 
     @Override
-    public ICamera setFieldOfView(float fov) {
-        proj.setProjection(this.fieldOfView = fov, aspectRatio, zNear, zFar);
+    public SimpleCamera setFieldOfView(float fov) {
+        this.fieldOfView = fov;
+        updateProjection();
         return this;
     }
 
     @Override
-    public ICamera setZFar(float zFar) {
-        proj.setProjection(fieldOfView, aspectRatio, zNear, this.zFar = zFar);
+    public SimpleCamera setClip(float zFar, float zNear) {
+        this.zNear = zNear;
+        this.zFar = zFar;
+        updateProjection();
         return this;
     }
 
     @Override
-    public ICamera setZNear(float zNear) {
-        proj.setProjection(fieldOfView, aspectRatio, this.zNear = zNear, zFar);
+    public SimpleCamera pushMatrix() {
+        viewMatrix = new Matrix4f();
+        viewMatrixStack.push(viewMatrix);
+        scene.setViewTransform(viewMatrix);
+        return this;
+    }
+
+    @Override
+    public SimpleCamera popMatrix() {
+        viewMatrixStack.pop();
+        viewMatrix = viewMatrixStack.peek();
+        scene.setViewTransform(viewMatrix);
         return this;
     }
 

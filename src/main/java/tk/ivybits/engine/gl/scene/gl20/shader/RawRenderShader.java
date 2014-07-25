@@ -1,7 +1,6 @@
 package tk.ivybits.engine.gl.scene.gl20.shader;
 
-import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
-import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.camera.Projection;
@@ -10,37 +9,11 @@ import tk.ivybits.engine.scene.model.node.Material;
 public class RawRenderShader extends AbstractShader implements ISceneShader {
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/raw_render.v.glsl";
     private Program shader;
-    private boolean uniformsFetched = false;
-    private int
-            PROJECTION_MATRIX,
-            MODEL_MATRIX,
-            VIEW_MATRIX;
-    private int[] ATTRIBUTES;
-
-    private void setupHandles() {
-        if (uniformsFetched) {
-            return;
-        }
-        boolean attached = isAttached;
-        if (!attached) super.attach();
-        uniformsFetched = true;
-        PROJECTION_MATRIX = shader.getUniformLocation("u_projectionMatrix");
-        MODEL_MATRIX = shader.getUniformLocation("u_modelMatrix");
-        VIEW_MATRIX = shader.getUniformLocation("u_viewMatrix");
-
-        ATTRIBUTES = new int[]{
-                shader.getAttributeLocation("a_Vertex"),
-                -1, // No normals
-                -1, // No UV
-                -1 // No tangents
-        };
-        if (!attached) super.detach();
-    }
+    private Matrix4f modelMatrix = new Matrix4f(), viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
     @Override
     public void attach() {
         super.attach();
-        setupHandles();
     }
 
     @Override
@@ -62,23 +35,42 @@ public class RawRenderShader extends AbstractShader implements ISceneShader {
 
     @Override
     public int getAttributeLocation(VertexAttribute attribute) {
-        return ATTRIBUTES[attribute.ordinal()];
-    }
-
-
-    @Override
-    public void setProjection(Projection proj) {
-        boolean attached = isAttached;
-        if (!attached) super.attach();
-        setupHandles();
-        shader.setUniform(PROJECTION_MATRIX, proj.getProjectionMatrix());
-        shader.setUniform(MODEL_MATRIX, proj.getModelMatrix());
-        shader.setUniform(VIEW_MATRIX, proj.getViewMatrix());
-        if (!attached) super.detach();
+        return new int[]{
+                shader.getAttributeLocation("a_Vertex"),
+                -1, // No normals
+                -1, // No UV
+                -1 // No tangents
+        }[attribute.ordinal()];
     }
 
     @Override
     public Program getProgram() {
         return shader;
+    }
+
+    private void setProjection() {
+        boolean attached = isAttached;
+        if (!attached) super.attach();
+        shader.setUniform(shader.getUniformLocation("u_projectionMatrix"), projectionMatrix);
+        shader.setUniform(shader.getUniformLocation("u_modelMatrix"), modelMatrix);
+        shader.setUniform(shader.getUniformLocation("u_viewMatrix"), viewMatrix);
+        if (!attached) super.detach();
+    }
+
+    public void setModelTransform(Matrix4f modelMatrix) {
+        this.modelMatrix = modelMatrix;
+        setProjection();
+    }
+
+    @Override
+    public void setViewTransform(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+        setProjection();
+    }
+
+    @Override
+    public void setProjectionTransform(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+        setProjection();
     }
 }

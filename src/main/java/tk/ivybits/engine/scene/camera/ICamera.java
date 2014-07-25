@@ -1,10 +1,8 @@
 package tk.ivybits.engine.scene.camera;
 
-import javax.vecmath.Vector3f;
+import org.lwjgl.util.vector.Vector3f;
 
 public interface ICamera {
-    void move(float dx, float dy, float dz);
-
     ICamera setRotation(float pitch, float yaw, float roll);
 
     float x();
@@ -25,9 +23,11 @@ public interface ICamera {
 
     ICamera setFieldOfView(float fov);
 
-    ICamera setZFar(float v);
+    ICamera setClip(float zFar, float zNear);
 
-    ICamera setZNear(float v);
+    ICamera pushMatrix();
+
+    ICamera popMatrix();
 
     float dx();
 

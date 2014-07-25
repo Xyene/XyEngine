@@ -7,9 +7,6 @@ import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.camera.ICamera;
-import tk.ivybits.engine.scene.camera.Projection;
-import tk.ivybits.engine.scene.camera.SimpleCamera;
 import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.node.ISceneGraph;
 import tk.ivybits.engine.scene.node.SceneChangeAdapter;
@@ -22,18 +19,17 @@ import java.util.PriorityQueue;
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.scene.IDrawContext.ALPHA_TESTING;
 
-public class GL11Scene implements IScene {
+public class GL20Scene implements IScene {
     GL11DrawContext drawContext = new GL11DrawContext(this);
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
-    private Projection proj = new Projection();
-    private ICamera camera = new SimpleCamera(proj);
 
     private int viewWidth;
     private int viewHeight;
 
     private ISceneGraph sceneGraph;
+    private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
-    public GL11Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
+    public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
         this.sceneGraph = sceneGraph;
@@ -70,11 +66,6 @@ public class GL11Scene implements IScene {
     }
 
     @Override
-    public ICamera getCamera() {
-        return camera;
-    }
-
-    @Override
     public void setViewportSize(int width, int height) {
         this.viewWidth = width;
         this.viewHeight = height;
@@ -107,27 +98,52 @@ public class GL11Scene implements IScene {
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
-                setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                setModelView(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
-                setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                setModelView(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : tracker) {
                 if (entity.draw.isTransparent()) continue;
-                setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                setModelView(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
         } else {
             for (PriorityComparableDrawable entity : tracker) {
-                setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                setModelView(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
         }
+    }
+
+    @Override
+    public void setViewTransform(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+    }
+
+    @Override
+    public Matrix4f getViewMatrix() {
+        return viewMatrix;
+    }
+
+    @Override
+    public void setProjectionTransform(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+        glMatrixMode(GL_PROJECTION);
+        buffer.clear();
+        projectionMatrix.store(buffer);
+        buffer.flip();
+        glLoadMatrix(buffer);
+    }
+
+    @Override
+    public Matrix4f getProjectionTransform() {
+        return projectionMatrix;
     }
 
     private FloatBuffer buffer = BufferUtils.createFloatBuffer(16);
@@ -158,20 +174,11 @@ public class GL11Scene implements IScene {
         glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
     }
 
-    public void setProjection(Projection proj) {
-        Matrix4f model = proj.getModelMatrix();
-        Matrix4f view = proj.getViewMatrix();
-        Matrix4f projection = proj.getProjectionMatrix();
-
-        glMatrixMode(GL_PROJECTION);
-        buffer.clear();
-        projection.store(buffer);
-        buffer.flip();
-        glLoadMatrix(buffer);
-
+    private void setModelView(Matrix4f modelMatrix) {
+        setProjectionTransform(projectionMatrix);
         glMatrixMode(GL_MODELVIEW);
         buffer.clear();
-        Matrix4f modelview = Matrix4f.mul(view, model, null);
+        Matrix4f modelview = Matrix4f.mul(viewMatrix, modelMatrix, null);
         modelview.store(buffer);
         buffer.flip();
         glLoadMatrix(buffer);

@@ -1,5 +1,6 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
+import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.gl.scene.gl20.shader.PhongLightingShader;
@@ -8,9 +9,8 @@ import tk.ivybits.engine.gl.scene.gl20.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.scene.*;
-import tk.ivybits.engine.scene.camera.Projection;
-import tk.ivybits.engine.scene.camera.SimpleCamera;
 import tk.ivybits.engine.scene.camera.ICamera;
+import tk.ivybits.engine.scene.camera.SimpleCamera;
 import tk.ivybits.engine.scene.node.*;
 
 import static tk.ivybits.engine.gl.GL.*;
@@ -22,8 +22,7 @@ import static tk.ivybits.engine.scene.IDrawContext.*;
 public class GL20Scene implements IScene {
     GL20DrawContext drawContext = new GL20DrawContext(this);
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
-    private Projection proj = new Projection();
-    private ICamera camera = new SimpleCamera(proj);
+    private ICamera camera = new SimpleCamera(this);
     PhongLightingShader lightingShader;
     private int viewWidth;
     private int viewHeight;
@@ -38,11 +37,14 @@ public class GL20Scene implements IScene {
     private MSAAFBO msaaBuffer;
     private FrameBuffer bloomBuffer;
 
+    private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
+
     public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
         this.sceneGraph = sceneGraph;
         lightingShader = new PhongLightingShader(this, shadowMapFBOs);
+        currentGeometryShader = lightingShader;
 
         sceneGraph.addSceneChangeListener(new SceneChangeAdapter() {
             @Override
@@ -77,11 +79,6 @@ public class GL20Scene implements IScene {
     }
 
     @Override
-    public ICamera getCamera() {
-        return camera;
-    }
-
-    @Override
     public void setViewportSize(int width, int height) {
         for (ShadowMapFBO fbo : shadowMapFBOs) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
@@ -91,8 +88,6 @@ public class GL20Scene implements IScene {
     }
 
     private void generateShadowMaps() {
-        Projection camera = proj;
-
         if (rawGeometryShader == null) {
             rawGeometryShader = new RawRenderShader();
         }
@@ -111,7 +106,7 @@ public class GL20Scene implements IScene {
         }
 
         for (int n = 0; n < numLights; n++) {
-            proj = new Projection();
+            camera.pushMatrix();
             ISpotLight light = spotLights.get(n);
 
             ShadowMapFBO fbo = shadowMapFBOs.get(n);
@@ -122,25 +117,21 @@ public class GL20Scene implements IScene {
             glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
             glLoadIdentity();
 
-            proj.setProjectionMatrix(camera.getProjectionMatrix());
+            camera.setRotation(light.pitch(), light.yaw(), 0);
+            camera.setPosition(light.x(), light.y(), light.z());
 
-            proj.resetViewMatrix();
-            proj.rotateCamera(light.pitch(), light.yaw(), 0);
-            proj.translateCamera(light.x(), light.y(), light.z());
-
-            fbo.projection = proj.getViewMatrix();
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
-                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glDisable(GL_CULL_FACE);
             rawGeometryShader.detach();
 
             fbo.unbind();
+            camera.popMatrix();
         }
-        proj = camera;
     }
 
     protected void _draw() {
@@ -155,24 +146,24 @@ public class GL20Scene implements IScene {
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
-                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : tracker) {
                 if (!entity.draw.isTransparent()) continue;
-                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : tracker) {
                 if (entity.draw.isTransparent()) continue;
-                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
         } else {
             for (PriorityComparableDrawable entity : tracker) {
-                currentGeometryShader.setProjection(proj.setModelMatrix(entity.wrapped.getModelMatrix()));
+                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
         }
@@ -270,5 +261,27 @@ public class GL20Scene implements IScene {
             glPopAttrib();
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    @Override
+    public void setViewTransform(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+        currentGeometryShader.setViewTransform(viewMatrix);
+    }
+
+    @Override
+    public Matrix4f getViewMatrix() {
+        return viewMatrix;
+    }
+
+    @Override
+    public void setProjectionTransform(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+        currentGeometryShader.setProjectionTransform(projectionMatrix);
+    }
+
+    @Override
+    public Matrix4f getProjectionTransform() {
+        return projectionMatrix;
     }
 }

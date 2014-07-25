@@ -21,7 +21,7 @@ public interface IActor  {
 
     float roll();
 
-    Matrix4f getModelMatrix();
+    Matrix4f getTransform();
 
     IDrawable createDrawable(IDrawContext context);
 

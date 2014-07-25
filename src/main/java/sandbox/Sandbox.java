@@ -7,12 +7,11 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.gl.ImmediateProjection;
-import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
+import tk.ivybits.engine.gl.scene.gl11.GL20Scene;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
-import tk.ivybits.engine.scene.camera.SimpleCamera;
+import tk.ivybits.engine.scene.camera.FPSCamera;
 import tk.ivybits.engine.scene.model.ModelIO;
-import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.node.ISceneGraph;
 import tk.ivybits.engine.scene.node.ISceneNode;
 import tk.ivybits.engine.scene.node.impl.DefaultSceneGraph;
@@ -37,7 +36,7 @@ public class Sandbox {
     private static float speed = 0.5f;
     private static FrameTimer timer;
     private static IScene scene;
-    private static SimpleCamera camera;
+    private static FPSCamera camera;
     private static UITexture screenOverlay;
 
     public static void main(String[] args) throws Exception {
@@ -135,7 +134,6 @@ public class Sandbox {
         opts.setBackground(new Color(0, 0, 0, 0));
         opts.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 0));
 
-
         onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         screenOverlay = new UITexture(Display.getWidth(), Display.getHeight(), onScreenUI);
@@ -155,13 +153,12 @@ public class Sandbox {
                 .setSpecularColor(Color.BLACK);
 
         // Fetch the camera and configure it
-        camera = (SimpleCamera) scene.getCamera()
+        camera = new FPSCamera(scene)
                 .setAspectRatio((float) Display.getWidth() / Display.getHeight())
                 .setRotation(24f, 330f, 0)
                 .setPosition(5.9f, 3f, 8.2f)
                 .setFieldOfView(60)
-                .setZNear(0.3f)
-                .setZFar(Float.MAX_VALUE);
+                .setClip(Float.MAX_VALUE, 0.3f);
 
         glViewport(0, 0, Display.getWidth(), Display.getHeight());
         scene.setViewportSize(Display.getWidth(), Display.getHeight());

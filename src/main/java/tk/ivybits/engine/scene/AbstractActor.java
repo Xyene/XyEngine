@@ -63,7 +63,7 @@ public abstract class AbstractActor implements IActor {
     }
 
     @Override
-    public Matrix4f getModelMatrix() {
+    public Matrix4f getTransform() {
         if(needsNewModelMatrix) {
             modelMatrix = new Matrix4f();
             Matrix4f.translate(new Vector3f(x, y, z), modelMatrix, modelMatrix);

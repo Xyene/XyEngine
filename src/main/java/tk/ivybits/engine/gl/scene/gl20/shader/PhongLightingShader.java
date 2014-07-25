@@ -30,6 +30,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
     private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_phong_lighting.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/pixel_phong_lighting.v.glsl";
     private static final String VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE;
+    private Matrix4f modelMatrix = new Matrix4f(), viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
     static {
         VERTEX_SHADER_SOURCE = Program.ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(VERTEX_SHADER_LOCATION));
@@ -70,6 +71,7 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         // This is in case we rebuilt the shader
         updateLights();
         fogUpdated(scene.getSceneGraph().getAtmosphere().getFog());
+        setProjection();
     }
 
     public PhongLightingShader(IScene scene, List<ShadowMapFBO> shadowMapFBO) {
@@ -190,37 +192,34 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
         }[attribute.ordinal()];
     }
 
-    @Override
-    public void setProjection(Projection proj) {
+    private void setProjection() {
         boolean attached = isAttached;
         if (!attached) super.attach();
-        setupHandles();
-        Matrix4f model = proj.getModelMatrix();
-        shader.setUniform(shader.getUniformLocation("u_modelMatrix"), model);
+        shader.setUniform(shader.getUniformLocation("u_modelMatrix"), modelMatrix);
         Matrix3f normals = new Matrix3f();
-        normals.m00 = model.m00;
-        normals.m01 = model.m01;
-        normals.m02 = model.m02;
-        normals.m10 = model.m10;
-        normals.m11 = model.m11;
-        normals.m12 = model.m12;
-        normals.m20 = model.m20;
-        normals.m21 = model.m21;
-        normals.m22 = model.m22;
+        normals.m00 = modelMatrix.m00;
+        normals.m01 = modelMatrix.m01;
+        normals.m02 = modelMatrix.m02;
+        normals.m10 = modelMatrix.m10;
+        normals.m11 = modelMatrix.m11;
+        normals.m12 = modelMatrix.m12;
+        normals.m20 = modelMatrix.m20;
+        normals.m21 = modelMatrix.m21;
+        normals.m22 = modelMatrix.m22;
         Matrix3f.transpose(normals, normals);
         Matrix3f.invert(normals, normals);
         shader.setUniform(shader.getUniformLocation("u_normalMatrix"), normals);
 
         Matrix4f mvp = new Matrix4f();
-        Matrix4f.mul(proj.getProjectionMatrix(), proj.getViewMatrix(), mvp);
-        Matrix4f.mul(mvp, proj.getModelMatrix(), mvp);
+        Matrix4f.mul(projectionMatrix, viewMatrix, mvp);
+        Matrix4f.mul(mvp, modelMatrix, mvp);
         shader.setUniform(shader.getUniformLocation("u_mvpMatrix"), mvp);
 
         if (scene.getDrawContext().isEnabled(IDrawContext.OBJECT_SHADOWS)) {
             for (int n = 0; n < shadowMapFBO.size(); n++) {
                 Matrix4f depthBiasMVP = new Matrix4f();
-                Matrix4f.mul(proj.getProjectionMatrix(), shadowMapFBO.get(n).projection, depthBiasMVP);
-                Matrix4f.mul(depthBiasMVP, proj.getModelMatrix(), depthBiasMVP);
+                Matrix4f.mul(projectionMatrix, shadowMapFBO.get(n).projection, depthBiasMVP);
+                Matrix4f.mul(depthBiasMVP, modelMatrix, depthBiasMVP);
                 Matrix4f.mul(bias, depthBiasMVP, depthBiasMVP);
 
                 shader.setUniform(shader.getUniformLocation("u_lightViewMatrix[0]") + n, depthBiasMVP);
@@ -233,6 +232,24 @@ public class PhongLightingShader extends AbstractShader implements ISceneShader,
     @Override
     public Program getProgram() {
         return shader;
+    }
+
+    @Override
+    public void setModelTransform(Matrix4f modelMatrix) {
+        this.modelMatrix = modelMatrix;
+        setProjection();
+    }
+
+    @Override
+    public void setViewTransform(Matrix4f viewMatrix) {
+        this.viewMatrix = viewMatrix;
+        setProjection();
+    }
+
+    @Override
+    public void setProjectionTransform(Matrix4f projectionMatrix) {
+        this.projectionMatrix = projectionMatrix;
+        setProjection();
     }
 
     void updateLights() {

@@ -1,5 +1,6 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
+import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.scene.gl20.shader.AbstractShader;
 import tk.ivybits.engine.scene.VertexAttribute;
@@ -73,12 +74,22 @@ public class BloomShader extends AbstractShader {
     }
 
     @Override
-    public void setProjection(Projection proj) {
+    public Program getProgram() {
+        return shader;
+    }
+
+    @Override
+    public void setModelTransform(Matrix4f modelMatrix) {
 
     }
 
     @Override
-    public Program getProgram() {
-        return shader;
+    public void setViewTransform(Matrix4f viewMatrix) {
+
+    }
+
+    @Override
+    public void setProjectionTransform(Matrix4f projectionMatrix) {
+
     }
 }
