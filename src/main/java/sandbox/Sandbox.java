@@ -39,6 +39,8 @@ public class Sandbox {
     private static IScene scene;
     private static FPSCamera camera;
     private static UITexture screenOverlay;
+    private static JLabel fpsLabel;
+
 
     public static void main(String[] args) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -61,94 +63,7 @@ public class Sandbox {
             scene = new GL11Scene(Display.getWidth(), Display.getHeight(), graph);
         ISceneNode root = graph.getRoot();
 
-        // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        for (UIManager.LookAndFeelInfo lfi : UIManager.getInstalledLookAndFeels()) {
-            if (lfi.getName().contains("CDE"))
-                UIManager.setLookAndFeel(lfi.getClassName());
-        }
-//        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-//            if ("Nimbus".equals(info.getName())) {
-//                UIManager.setLookAndFeel(info.getClassName());
-//                break;
-//            }
-//        }
-
-        final JPanel onScreenUI = new JPanel();
-        onScreenUI.setBackground(new Color(0, 0, 0, 0));
-        onScreenUI.setLayout(new BorderLayout());
-
-        JPanel opts = new JPanel();
-        opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
-        opts.setBackground(new Color(0, 0, 0, 0));
-
-        final HealthBarPanel healthBar = new HealthBarPanel();
-
-        onScreenUI.add(healthBar, BorderLayout.NORTH);
-
-        final JSlider bar = new JSlider();
-        bar.setMaximum(100);
-        bar.setValue(100);
-        bar.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                healthBar.setHealth(bar.getValue());
-            }
-        });
-
-        // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
-
-        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING))));
-        msaa.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, !scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
-            }
-        });
-        msaa.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ANTIALIASING));
-        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(IDrawContext.BLOOM))));
-        bloom.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
-            }
-        });
-        bloom.setEnabled(scene.getDrawContext().isSupported(IDrawContext.BLOOM));
-        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))));
-        normals.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.NORMAL_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
-            }
-        });
-        normals.setEnabled(scene.getDrawContext().isSupported(IDrawContext.NORMAL_MAPS));
-        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))));
-        specular.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.SPECULAR_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
-            }
-        });
-        specular.setEnabled(scene.getDrawContext().isSupported(IDrawContext.SPECULAR_MAPS));
-        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING))));
-        alpha.addActionListener(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                scene.getDrawContext().setEnabled(IDrawContext.ALPHA_TESTING, !scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
-            }
-        });
-        alpha.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ALPHA_TESTING));
-
-        opts.add(msaa);
-        opts.add(bar);
-
-        onScreenUI.add(opts, BorderLayout.EAST);
-
-        opts.setBackground(new Color(0, 0, 0, 0));
-        opts.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 0));
-
-        onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        screenOverlay = new UITexture(Display.getWidth(), Display.getHeight(), onScreenUI);
+        setupUI();
 
         System.out.print("Reading models... ");
         IActor ship = root.track(new GeometryActor(ModelIO.read(new File("cylinder.obj"))));
@@ -194,14 +109,11 @@ public class Sandbox {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glLoadIdentity();
-            //ship.rotate(ship.pitch(), ship.yaw() + 0.5f, ship.roll());
-
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             scene.draw();
             glPopAttrib();
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glActiveTexture(GL_TEXTURE0); // Who knows what texture was used in what shader?
             glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
             glDisable(GL_CULL_FACE);
@@ -232,10 +144,10 @@ public class Sandbox {
 
             glColor4f(0.4f, 0.5f, 0.4f, 1);
 
-            // fpsLabel.setText(String.format("%s FPS (%d ms)", timer.fps(), timer.getLastDelta()));
             if (frame == 100) {
                 float fps = timer.fps();
-                System.out.printf("%.1f (%.2fms/frame)\n", fps, 1000 / fps);
+                fpsLabel.setText(String.format("%.1f (%.2fms/frame)\n", fps, 1000 / fps));
+                screenOverlay.markDirty();
                 frame = 0;
             }
             glPopAttrib();
@@ -371,16 +283,100 @@ public class Sandbox {
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        // Enable depth testing
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_DEPTH_TEST);
 
         glMatrixMode(GL_MODELVIEW);
 
-        //glEnable(GL_CULL_FACE);
-        //glCullFace(GL_BACK);
-
         glShadeModel(GL_SMOOTH);
+    }
+
+    private static void setupUI() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
+        for (UIManager.LookAndFeelInfo lfi : UIManager.getInstalledLookAndFeels()) {
+            if (lfi.getName().contains("CDE"))
+                UIManager.setLookAndFeel(lfi.getClassName());
+        }
+
+        final JPanel onScreenUI = new JPanel();
+        onScreenUI.setBackground(new Color(0, 0, 0, 0));
+        onScreenUI.setLayout(new BorderLayout());
+
+        JPanel opts = new JPanel();
+        opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
+        opts.setBackground(new Color(0, 0, 0, 0));
+
+        final HealthBarPanel healthBar = new HealthBarPanel();
+
+        onScreenUI.add(healthBar, BorderLayout.NORTH);
+
+        final JSlider bar = new JSlider();
+        bar.setMaximum(100);
+        bar.setValue(100);
+        bar.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                healthBar.setHealth(bar.getValue());
+            }
+        });
+
+        // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
+
+        JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA", scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING))));
+        msaa.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, !scene.getDrawContext().isEnabled(IDrawContext.ANTIALIASING));
+            }
+        });
+        msaa.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ANTIALIASING));
+        JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom", scene.getDrawContext().isEnabled(IDrawContext.BLOOM))));
+        bloom.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                scene.getDrawContext().setEnabled(IDrawContext.BLOOM, !scene.getDrawContext().isEnabled(IDrawContext.BLOOM));
+            }
+        });
+        bloom.setEnabled(scene.getDrawContext().isSupported(IDrawContext.BLOOM));
+        JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping", scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS))));
+        normals.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                scene.getDrawContext().setEnabled(IDrawContext.NORMAL_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.NORMAL_MAPS));
+            }
+        });
+        normals.setEnabled(scene.getDrawContext().isSupported(IDrawContext.NORMAL_MAPS));
+        JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping", scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS))));
+        specular.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                scene.getDrawContext().setEnabled(IDrawContext.SPECULAR_MAPS, !scene.getDrawContext().isEnabled(IDrawContext.SPECULAR_MAPS));
+            }
+        });
+        specular.setEnabled(scene.getDrawContext().isSupported(IDrawContext.SPECULAR_MAPS));
+        JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Alpha testing", scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING))));
+        alpha.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                scene.getDrawContext().setEnabled(IDrawContext.ALPHA_TESTING, !scene.getDrawContext().isEnabled(IDrawContext.ALPHA_TESTING));
+            }
+        });
+        alpha.setEnabled(scene.getDrawContext().isSupported(IDrawContext.ALPHA_TESTING));
+
+        opts.add(msaa);
+        opts.add(bar);
+
+        fpsLabel = new JLabel("...");
+        fpsLabel.setForeground(Color.GREEN);
+        onScreenUI.add(fpsLabel, BorderLayout.SOUTH);
+
+        onScreenUI.add(opts, BorderLayout.EAST);
+
+        opts.setBackground(new Color(0, 0, 0, 0));
+        opts.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 0));
+
+        onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        screenOverlay = new UITexture(Display.getWidth(), Display.getHeight(), onScreenUI);
     }
 
     private static class HealthBarPanel extends JPanel {
