@@ -3,14 +3,17 @@ package tk.ivybits.engine.scene;
 import tk.ivybits.engine.scene.model.IGeometry;
 import tk.ivybits.engine.scene.model.node.Face;
 import tk.ivybits.engine.scene.model.node.Vertex;
+import tk.ivybits.engine.util.ToString;
 
 import javax.vecmath.Vector3f;
 import java.util.List;
 
+import static tk.ivybits.engine.util.ToString.Printable;
+
 public class BoundingBox {
-    private final float length;
-    private final float width;
-    private final float height;
+    private final @Printable float length;
+    private final @Printable float width;
+    private final @Printable float height;
 
     public BoundingBox(float length, float width, float height) {
         this.length = length;
@@ -49,10 +52,6 @@ public class BoundingBox {
 
     @Override
     public String toString() {
-        return "BoundingBox{" +
-                "length=" + length +
-                ", width=" + width +
-                ", height=" + height +
-                '}';
+        return ToString.toString(this);
     }
 }
