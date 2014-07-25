@@ -1,8 +1,7 @@
 package tk.ivybits.engine.scene;
 
 import org.lwjgl.util.vector.Matrix4f;
-
-import javax.vecmath.Vector3f;
+import org.lwjgl.util.vector.Vector3f;
 
 public interface IActor  {
     void update(float delta);
@@ -25,7 +24,7 @@ public interface IActor  {
 
     IDrawable createDrawable(IDrawContext context);
 
-    org.lwjgl.util.vector.Vector3f position();
+    Vector3f position();
 
     void rotate(float pitch, float yaw, float roll);
 }

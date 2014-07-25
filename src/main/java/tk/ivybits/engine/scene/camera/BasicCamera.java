@@ -3,23 +3,21 @@ package tk.ivybits.engine.scene.camera;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.scene.IScene;
+import tk.ivybits.engine.util.ToString;
 
 import java.util.Stack;
 
 import static java.lang.Math.*;
 import static java.lang.Math.toRadians;
+import static tk.ivybits.engine.util.ToString.*;
 
 public class BasicCamera implements ICamera {
-    protected float x = 0;
-    protected float y = 0;
-    protected float z = 0;
-    protected float pitch = 0;
-    protected float yaw = 0;
-    protected float roll = 0;
+    protected @Printable float x, y, z;
+    protected @Printable float pitch, yaw, roll;
     protected IScene scene;
     protected Stack<Matrix4f> viewMatrixStack = new Stack<>();
     protected Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
-    protected float fieldOfView, aspectRatio, zNear, zFar;
+    protected @Printable float fieldOfView, aspectRatio, zNear, zFar;
 
     public BasicCamera(IScene scene) {
         this.scene = scene;
@@ -197,17 +195,6 @@ public class BasicCamera implements ICamera {
 
     @Override
     public String toString() {
-        return "BasicCamera{" +
-                "roll=" + roll +
-                ", x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                ", pitch=" + pitch +
-                ", yaw=" + yaw +
-                ", fieldOfView=" + fieldOfView +
-                ", aspectRatio=" + aspectRatio +
-                ", zNear=" + zNear +
-                ", zFar=" + zFar +
-                '}';
+        return ToString.toString(this);
     }
 }

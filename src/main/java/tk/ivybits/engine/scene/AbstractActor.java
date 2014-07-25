@@ -2,12 +2,14 @@ package tk.ivybits.engine.scene;
 
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
+import tk.ivybits.engine.util.ToString;
 
 import static java.lang.Math.toRadians;
+import static tk.ivybits.engine.util.ToString.*;
 
 public abstract class AbstractActor implements IActor {
-    protected float x, y, z;
-    protected float pitch, yaw, roll;
+    protected @Printable float x, y, z;
+    protected @Printable float pitch, yaw, roll;
     protected Matrix4f modelMatrix = new Matrix4f();
     private boolean needsNewModelMatrix = false;
 
@@ -64,7 +66,7 @@ public abstract class AbstractActor implements IActor {
 
     @Override
     public Matrix4f getTransform() {
-        if(needsNewModelMatrix) {
+        if (needsNewModelMatrix) {
             modelMatrix = new Matrix4f();
             Matrix4f.translate(new Vector3f(x, y, z), modelMatrix, modelMatrix);
             Matrix4f.rotate((float) toRadians(pitch), new Vector3f(0, 0, 1), modelMatrix, modelMatrix);
@@ -72,5 +74,10 @@ public abstract class AbstractActor implements IActor {
             Matrix4f.rotate((float) toRadians(roll), new Vector3f(1, 0, 0), modelMatrix, modelMatrix);
         }
         return modelMatrix;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.toString(this);
     }
 }

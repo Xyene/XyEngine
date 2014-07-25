@@ -6,7 +6,7 @@ import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public class GL20DrawContext implements IDrawContext {
-    private final GL20Scene parent;
+    final GL20Scene parent;
     private final boolean[] caps;
     private final boolean[] enabled;
 
