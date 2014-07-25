@@ -5,6 +5,7 @@ import tk.ivybits.engine.scene.model.IGeometry;
 
 public class GeometryActor extends AbstractActor {
     private IGeometry model;
+    private BoundingBox boundingBox;
 
     public GeometryActor(IGeometry model) {
         this.model = model;
@@ -13,6 +14,11 @@ public class GeometryActor extends AbstractActor {
     @Override
     public void update(float delta) {
 
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return boundingBox != null ? boundingBox : (boundingBox = BoundingBox.getBoundingBox(model));
     }
 
     @Override

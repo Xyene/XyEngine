@@ -20,6 +20,8 @@ public interface IActor  {
 
     float roll();
 
+    BoundingBox getBoundingBox();
+
     Matrix4f getTransform();
 
     IDrawable createDrawable(IDrawContext context);
