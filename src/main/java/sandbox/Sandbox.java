@@ -158,6 +158,7 @@ public class Sandbox {
             Display.sync(60);
         }
 
+        screenOverlay.destroy();
         Display.destroy();
         System.out.println(camera);
     }
