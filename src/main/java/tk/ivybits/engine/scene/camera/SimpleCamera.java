@@ -58,8 +58,6 @@ public class SimpleCamera implements ICamera {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
-        proj.resetViewMatrix();
-        proj.rotateCamera(pitch, yaw, roll);
         updateView();
         return this;
     }
