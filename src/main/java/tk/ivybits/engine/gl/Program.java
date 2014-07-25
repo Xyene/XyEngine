@@ -11,10 +11,16 @@ import static tk.ivybits.engine.gl.GL.*;
 
 public class Program {
     public enum ShaderType {
-        FRAGMENT, VERTEX // TODO: geometry & tesselation
+        FRAGMENT, VERTEX, GEOMETRY, TESSELATION_EVAL, TESSELATION_CTRL // TODO: geometry & tesselation
     }
 
-    private static final int[] SHADER_LOOKUP = {GL_FRAGMENT_SHADER, GL_VERTEX_SHADER};
+    private static final int[] SHADER_LOOKUP = {
+            GL_FRAGMENT_SHADER,
+            GL_VERTEX_SHADER,
+            GL_GEOMETRY_SHADER,
+            GL_TESS_EVALUATION_SHADER,
+            GL_TESS_CONTROL_SHADER
+    };
     private final int handle;
     private final HashMap<String, Integer> uniforms = new HashMap<>();
     private final HashMap<String, Integer> attributes = new HashMap<>();
