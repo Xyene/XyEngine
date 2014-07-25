@@ -153,52 +153,45 @@ public class GL20Scene implements IScene {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
-        drawn = 0;
-
         currentGeometryShader = lightingShader;
         if (lightingShader != null) lightingShader.attach();
+
+        List<PriorityComparableDrawable> visible = new ArrayList<>();
+        for (PriorityComparableDrawable entity : tracker) {
+            if (frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+                visible.add(entity);
+            }
+        }
 
         if (drawContext.isEnabled(ALPHA_TESTING)) {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
-            for (PriorityComparableDrawable entity : tracker) {
+            for (PriorityComparableDrawable entity : visible) {
                 if (!entity.draw.isTransparent()) continue;
-                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
-                    continue;
-                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
             }
             glCullFace(GL_BACK);
-            for (PriorityComparableDrawable entity : tracker) {
+            for (PriorityComparableDrawable entity : visible) {
                 if (!entity.draw.isTransparent()) continue;
-                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
-                    continue;
-                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
                 drawn++;
             }
             glDisable(GL_CULL_FACE);
-            for (PriorityComparableDrawable entity : tracker) {
+            for (PriorityComparableDrawable entity : visible) {
                 if (entity.draw.isTransparent()) continue;
-                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
-                    continue;
-                }
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
-                drawn++;
             }
         } else {
-            for (PriorityComparableDrawable entity : tracker) {
-                if (!frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
-                    continue;
-                }
+            for (PriorityComparableDrawable entity : visible) {
                 currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
                 entity.draw.draw(this);
-                drawn++;
             }
         }
+
+        drawn = visible.size();
 
         if (lightingShader != null) lightingShader.detach();
     }

@@ -1,31 +1,12 @@
 package tk.ivybits.engine.scene.camera;
-import java.nio.FloatBuffer;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.scene.BoundingBox;
 
 //https://www.youtube.com/watch?v=MIOr8PFuGYo
 public class Frustum {
     public float[][] m_Frustum = new float[6][4];
-    public static final int RIGHT = 0;
-    public static final int LEFT = 1;
-    public static final int BOTTOM = 2;
-    public static final int TOP = 3;
-    public static final int BACK = 4;
-    public static final int FRONT = 5;
-    public static final int A = 0;
-    public static final int B = 1;
-    public static final int C = 2;
-    public static final int D = 3;
-
-    private FloatBuffer _proj = BufferUtils.createFloatBuffer(16);
-    private FloatBuffer _modl = BufferUtils.createFloatBuffer(16);
-    private FloatBuffer _clip = BufferUtils.createFloatBuffer(16);
-    float[] proj = new float[16];
-    float[] modl = new float[16];
-    float[] clip = new float[16];
+    private final float[] clip = new float[16];
 
     private void normalizePlane(float[][] frustum, int side) {
         float magnitude = (float) Math.sqrt(frustum[side][0] * frustum[side][0] + frustum[side][1] * frustum[side][1] + frustum[side][2] * frustum[side][2]);
@@ -37,38 +18,25 @@ public class Frustum {
     }
 
     public void calculateFrustum(Matrix4f projection, Matrix4f view) {
-        this._proj.clear();
-        this._modl.clear();
-        this._clip.clear();
+        this.clip[0] = (view.m00 * projection.m00 + view.m01 * projection.m10 + view.m02 * projection.m20 + view.m03 * projection.m30);
+        this.clip[1] = (view.m00 * projection.m01 + view.m01 * projection.m11 + view.m02 * projection.m21 + view.m03 * projection.m31);
+        this.clip[2] = (view.m00 * projection.m02 + view.m01 * projection.m12 + view.m02 * projection.m22 + view.m03 * projection.m32);
+        this.clip[3] = (view.m00 * projection.m03 + view.m01 * projection.m13 + view.m02 * projection.m23 + view.m03 * projection.m33);
 
-        projection.store(_proj);
-        view.store(_modl);
+        this.clip[4] = (view.m10 * projection.m00 + view.m11 * projection.m10 + view.m12 * projection.m20 + view.m13 * projection.m30);
+        this.clip[5] = (view.m10 * projection.m01 + view.m11 * projection.m11 + view.m12 * projection.m21 + view.m13 * projection.m31);
+        this.clip[6] = (view.m10 * projection.m02 + view.m11 * projection.m12 + view.m12 * projection.m22 + view.m13 * projection.m32);
+        this.clip[7] = (view.m10 * projection.m03 + view.m11 * projection.m13 + view.m12 * projection.m23 + view.m13 * projection.m33);
 
-        _proj.flip();
-        _modl.flip();
+        this.clip[8] = (view.m20 * projection.m00 + view.m21 * projection.m10 + view.m22 * projection.m20 + view.m23 * projection.m30);
+        this.clip[9] = (view.m20 * projection.m01 + view.m21 * projection.m11 + view.m22 * projection.m21 + view.m23 * projection.m31);
+        this.clip[10] = (view.m20 * projection.m02 + view.m21 * projection.m12 + view.m22 * projection.m22 + view.m23 * projection.m32);
+        this.clip[11] = (view.m20 * projection.m03 + view.m21 * projection.m13 + view.m22 * projection.m23 + view.m23 * projection.m33);
 
-        this._proj.get(this.proj);
-        this._modl.get(this.modl);
-
-        this.clip[0] = (this.modl[0] * this.proj[0] + this.modl[1] * this.proj[4] + this.modl[2] * this.proj[8] + this.modl[3] * this.proj[12]);
-        this.clip[1] = (this.modl[0] * this.proj[1] + this.modl[1] * this.proj[5] + this.modl[2] * this.proj[9] + this.modl[3] * this.proj[13]);
-        this.clip[2] = (this.modl[0] * this.proj[2] + this.modl[1] * this.proj[6] + this.modl[2] * this.proj[10] + this.modl[3] * this.proj[14]);
-        this.clip[3] = (this.modl[0] * this.proj[3] + this.modl[1] * this.proj[7] + this.modl[2] * this.proj[11] + this.modl[3] * this.proj[15]);
-
-        this.clip[4] = (this.modl[4] * this.proj[0] + this.modl[5] * this.proj[4] + this.modl[6] * this.proj[8] + this.modl[7] * this.proj[12]);
-        this.clip[5] = (this.modl[4] * this.proj[1] + this.modl[5] * this.proj[5] + this.modl[6] * this.proj[9] + this.modl[7] * this.proj[13]);
-        this.clip[6] = (this.modl[4] * this.proj[2] + this.modl[5] * this.proj[6] + this.modl[6] * this.proj[10] + this.modl[7] * this.proj[14]);
-        this.clip[7] = (this.modl[4] * this.proj[3] + this.modl[5] * this.proj[7] + this.modl[6] * this.proj[11] + this.modl[7] * this.proj[15]);
-
-        this.clip[8] = (this.modl[8] * this.proj[0] + this.modl[9] * this.proj[4] + this.modl[10] * this.proj[8] + this.modl[11] * this.proj[12]);
-        this.clip[9] = (this.modl[8] * this.proj[1] + this.modl[9] * this.proj[5] + this.modl[10] * this.proj[9] + this.modl[11] * this.proj[13]);
-        this.clip[10] = (this.modl[8] * this.proj[2] + this.modl[9] * this.proj[6] + this.modl[10] * this.proj[10] + this.modl[11] * this.proj[14]);
-        this.clip[11] = (this.modl[8] * this.proj[3] + this.modl[9] * this.proj[7] + this.modl[10] * this.proj[11] + this.modl[11] * this.proj[15]);
-
-        this.clip[12] = (this.modl[12] * this.proj[0] + this.modl[13] * this.proj[4] + this.modl[14] * this.proj[8] + this.modl[15] * this.proj[12]);
-        this.clip[13] = (this.modl[12] * this.proj[1] + this.modl[13] * this.proj[5] + this.modl[14] * this.proj[9] + this.modl[15] * this.proj[13]);
-        this.clip[14] = (this.modl[12] * this.proj[2] + this.modl[13] * this.proj[6] + this.modl[14] * this.proj[10] + this.modl[15] * this.proj[14]);
-        this.clip[15] = (this.modl[12] * this.proj[3] + this.modl[13] * this.proj[7] + this.modl[14] * this.proj[11] + this.modl[15] * this.proj[15]);
+        this.clip[12] = (view.m30 * projection.m00 + view.m31 * projection.m10 + view.m32 * projection.m20 + view.m33 * projection.m30);
+        this.clip[13] = (view.m30 * projection.m01 + view.m31 * projection.m11 + view.m32 * projection.m21 + view.m33 * projection.m31);
+        this.clip[14] = (view.m30 * projection.m02 + view.m31 * projection.m12 + view.m32 * projection.m22 + view.m33 * projection.m32);
+        this.clip[15] = (view.m30 * projection.m03 + view.m31 * projection.m13 + view.m32 * projection.m23 + view.m33 * projection.m33);
 
         this.m_Frustum[0][0] = (this.clip[3] - this.clip[0]);
         this.m_Frustum[0][1] = (this.clip[7] - this.clip[4]);
