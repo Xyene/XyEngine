@@ -24,7 +24,7 @@ public interface IModelReader {
         }
     };
 
-    public static final ResourceFinder RESOURCE_FINDER_SYSTEM_RESOURCE = new ResourceFinder() {
+    public static final ResourceFinder RESOURCE_FINDER_PACKAGED_RESOURCE = new ResourceFinder() {
         @Override
         public InputStream open(String name) throws IOException {
             return getClass().getResourceAsStream("/" + name);
@@ -32,7 +32,10 @@ public interface IModelReader {
 
         @Override
         public String parent(String name) {
-            return name + "/../";
+            if(name.endsWith("/"))
+                name = name.substring(0, name.lastIndexOf("/"));
+            name = name.substring(0, name.lastIndexOf("/"));
+            return name + "/";
         }
     };
 
