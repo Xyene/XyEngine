@@ -26,4 +26,13 @@ public class ModelIO {
                 return decoder.load(in);
         throw new IllegalArgumentException("unsupported format: " + suffix);
     }
+
+    public static IGeometry readSystem(String in) throws IOException {
+        String suffix = in;
+        suffix = suffix.substring(suffix.lastIndexOf(".") + 1).toUpperCase();
+        for (IModelReader decoder : sReaders)
+            if (decoder.getFileType().equals(suffix))
+                return decoder.loadSystem(in);
+        throw new IllegalArgumentException("unsupported format: " + suffix);
+    }
 }

@@ -10,6 +10,18 @@ import java.util.*;
 import static tk.ivybits.engine.gl.GL.*;
 
 public class Program {
+    public void destroy() {
+        glDeleteProgram(handle);
+    }
+
+    public void attach() {
+        glUseProgram(handle);
+    }
+
+    public void detach() {
+        glUseProgram(0);
+    }
+
     public enum ShaderType {
         FRAGMENT, VERTEX, GEOMETRY, TESSELATION_EVAL, TESSELATION_CTRL // TODO: geometry & tesselation
     }
@@ -56,6 +68,10 @@ public class Program {
     }
 
     private FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+
+    public void setUniform(String handle, Object... objs) {
+        setUniform(getUniformLocation(handle), objs);
+    }
 
     public void setUniform(int handle, Object... objs) {
         if (objs.length == 1) {

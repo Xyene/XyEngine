@@ -47,14 +47,19 @@ public class OBJReader implements IModelReader {
             TEXTURE_BUMP_MAP = "map_bump";
 
     public Mesh load(File in) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(in)));
+        return load(in.getAbsolutePath(), RESOURCE_FINDER_FILE);
+    }
 
-        // ~A fifth of a file is occupied by vertex/normal/uv declarations
-        // Attempt to presize arrays
-        int estimatedVertices = (int) (in.length() * 0.20);
-        ArrayList<Vector3f> V = new ArrayList<>(estimatedVertices);
-        ArrayList<Vector3f> VN = new ArrayList<>(estimatedVertices);
-        ArrayList<Vector2f> VT = new ArrayList<>(estimatedVertices);
+    public Mesh loadSystem(String in) throws IOException {
+        return load(in, RESOURCE_FINDER_SYSTEM_RESOURCE);
+    }
+
+    public Mesh load(String in, ResourceFinder finder) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.open(in)));
+
+        ArrayList<Vector3f> V = new ArrayList<>();
+        ArrayList<Vector3f> VN = new ArrayList<>();
+        ArrayList<Vector2f> VT = new ArrayList<>();
         Mesh mesh = new Mesh();
         List<Face> faces = mesh.getFaces();
         Material currentMaterial = null;
@@ -101,7 +106,7 @@ public class OBJReader implements IModelReader {
                         vertices[i] = v;
                     }
                     faces.add(face);
-                    if(tangent) {
+                    if (tangent) {
                         TangentSpace.calculateTangents(face);
                     }
                     break;
@@ -113,7 +118,7 @@ public class OBJReader implements IModelReader {
                     tangent = currentMaterial.bumpMap != null;
                     break;
                 case MATERIAL_FILE:
-                    materials = loadMaterials(new File(in.getParentFile(), concatTokens(tokens)));
+                    materials = loadMaterials(finder.parent(in) + concatTokens(tokens), finder);
                     break;
             }
         }
@@ -131,8 +136,8 @@ public class OBJReader implements IModelReader {
         return "OBJ";
     }
 
-    private static HashMap<String, Material> loadMaterials(File from) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(from)));
+    private static HashMap<String, Material> loadMaterials(String in, ResourceFinder finder) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.open(in)));
         HashMap<String, Material> materials = new HashMap<>();
         Material currentMaterial = null;
 
@@ -171,7 +176,7 @@ public class OBJReader implements IModelReader {
                     String spath = concatTokens(tokens);
                     if (spath.trim().isEmpty())
                         continue;
-                    File imgFile = new File(from.getParentFile(), spath);
+                    InputStream imgFile = finder.open(finder.parent(in) + spath);
                     BufferedTexture img;
                     try {
                         img = new BufferedTexture(GL_TEXTURE_2D, ImageIO.read(imgFile));

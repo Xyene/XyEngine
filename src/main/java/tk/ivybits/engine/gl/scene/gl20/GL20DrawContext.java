@@ -5,6 +5,9 @@ import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
     private final boolean[] caps;
@@ -50,6 +53,6 @@ public class GL20DrawContext implements IDrawContext {
 
     @Override
     public boolean isEnabled(Capability id) {
-       return enabled[id.ordinal()];
+        return enabled[id.ordinal()];
     }
 }

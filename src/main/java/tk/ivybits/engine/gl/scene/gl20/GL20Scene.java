@@ -1,19 +1,17 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
-import org.lwjgl.opengl.Display;
+import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
-import tk.ivybits.engine.gl.scene.gl20.bloom.BloomFBO;
-import tk.ivybits.engine.gl.scene.gl20.bloom.BloomShader;
+import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
 import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.RawRenderShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.Frustum;
-import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.camera.BasicCamera;
 import tk.ivybits.engine.scene.node.*;
 
@@ -22,9 +20,9 @@ import static tk.ivybits.engine.gl.GL.*;
 import java.util.*;
 
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
-import static tk.ivybits.engine.scene.IDrawContext.*;
 
 public class GL20Scene implements IScene {
+    private BloomEffect bloomEffect;
     GL20DrawContext drawContext;
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
     private BasicCamera camera;
@@ -32,7 +30,6 @@ public class GL20Scene implements IScene {
     private int viewWidth;
     private int viewHeight;
     private RawRenderShader rawGeometryShader;
-    private BloomShader bloomShader;
     private List<ShadowMapFBO> shadowMapFBOs = new ArrayList<>();
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
@@ -40,7 +37,6 @@ public class GL20Scene implements IScene {
     ISceneShader currentGeometryShader;
     private ISceneGraph sceneGraph;
     private MSAAFBO msaaBuffer;
-    private BloomFBO bloomBuffer;
     private Frustum frustum = new Frustum();
 
     private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
@@ -93,7 +89,7 @@ public class GL20Scene implements IScene {
     public void setViewportSize(int width, int height) {
         for (ShadowMapFBO fbo : shadowMapFBOs) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
-        if (bloomBuffer != null) bloomBuffer.resize(width, height);
+        if (bloomEffect != null) bloomEffect.resize(width, height);
         camera.setAspectRatio(width / (float) height);
         this.viewWidth = width;
         this.viewHeight = height;
@@ -222,19 +218,16 @@ public class GL20Scene implements IScene {
         }
 
         boolean bloom = drawContext.isEnabled(BLOOM);
-        if (bloom && bloomShader == null) {
-            bloomShader = new BloomShader();
-            bloomShader.setBloomIntensity(0.15f).setSampleCount(4);
+        if (bloom && bloomEffect == null) {
+            bloomEffect = new BloomEffect(viewWidth, viewHeight);
         }
-        if (bloom && bloomBuffer == null) {
-            bloomBuffer = new BloomFBO(viewWidth, viewHeight);
-        } else if (!bloom && bloomBuffer != null) {
-            bloomBuffer.destroy();
-            bloomBuffer = null;
+        if (!bloom && bloomEffect != null) {
+            bloomEffect.destroy();
+            bloomEffect = null;
         }
 
         if (bloom && !antialiasing) {
-            bloomBuffer.bindFramebuffer();
+            bloomEffect.getInputBuffer().bindFramebuffer();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -244,7 +237,7 @@ public class GL20Scene implements IScene {
         if (antialiasing) {
             msaaBuffer.unbindFramebuffer();
             if (bloom) {
-                msaaBuffer.blit(bloomBuffer);
+                msaaBuffer.blit(bloomEffect.getInputBuffer());
             } else {
                 msaaBuffer.blit();
             }
@@ -252,33 +245,32 @@ public class GL20Scene implements IScene {
 
         if (bloom) {
             if (!antialiasing) {
-                bloomBuffer.unbindFramebuffer();
+                bloomEffect.getInputBuffer().unbindFramebuffer();
             }
 
+            bloomEffect.process();
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
-            ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
 
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            bloomBuffer.bindTexture();
-            bloomShader.attach();
+            bloomEffect.getOutputBuffer().bindTexture();
 
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
-            glVertex2f(0, 0);
-            glTexCoord2f(0, 1);
-            glVertex2f(0, viewHeight);
-            glTexCoord2f(1, 1);
-            glVertex2f(viewWidth, viewHeight);
+            glVertex2f(-1, -1);
             glTexCoord2f(1, 0);
-            glVertex2f(viewWidth, 0);
+            glVertex2f(1, -1);
+            glTexCoord2f(1, 1);
+            glVertex2i(1, 1);
+            glTexCoord2f(0, 1);
+            glVertex2f(-1, 1);
             glEnd();
 
-            bloomShader.detach();
-            bloomBuffer.unbindTexture();
-            ImmediateProjection.toFrustrumProjection();
+            bloomEffect.getOutputBuffer().unbindTexture();
             glPopAttrib();
         }
 
@@ -289,7 +281,7 @@ public class GL20Scene implements IScene {
     public void setViewTransform(Matrix4f viewMatrix) {
         this.viewMatrix = viewMatrix;
         currentGeometryShader.setViewTransform(viewMatrix);
-        frustum.calculateFrustum(projectionMatrix, viewMatrix);
+        frustum.setTransform(projectionMatrix, viewMatrix);
     }
 
     @Override
@@ -301,7 +293,7 @@ public class GL20Scene implements IScene {
     public void setProjectionTransform(Matrix4f projectionMatrix) {
         this.projectionMatrix = projectionMatrix;
         currentGeometryShader.setProjectionTransform(projectionMatrix);
-        frustum.calculateFrustum(projectionMatrix, viewMatrix);
+        frustum.setTransform(projectionMatrix, viewMatrix);
     }
 
     @Override

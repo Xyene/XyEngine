@@ -68,10 +68,10 @@ public class Sandbox {
         setupUI();
 
         System.out.print("Reading models... ");
-        IActor ship = root.track(new GeometryActor(ModelIO.read(new File("cylinder.obj"))));
+        IActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder.obj")));
         ship.position(0, -2.5f, 10);
         ship.rotate(0, 0, 0);
-        IActor crate = root.track(new GeometryActor(ModelIO.read(new File("ground3.obj"))));
+        IActor crate = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
         crate.position(0, 0, 0);
         System.out.print("Done.\n");
 

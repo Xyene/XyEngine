@@ -102,10 +102,11 @@ void main(void)
 {
     vec3 fragment = vec3(0);
     vec3 texture = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgb : vec3(0);
-    #ifdef SPECULAR_MAPPING
-    vec3 specularTerm = u_material.hasSpecular ? u_material.specular * texture2D(u_material.specularMap, v_UV).rgb : u_material.specular;
-    #else
+
     vec3 specularTerm = u_material.specular;
+
+    #ifdef SPECULAR_MAPPING
+    specularTerm *= texture2D(u_material.specularMap, v_UV).rgb;
     #endif
 
     #ifdef NORMAL_MAPPING
