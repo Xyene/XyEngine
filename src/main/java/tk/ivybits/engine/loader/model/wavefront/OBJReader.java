@@ -51,7 +51,7 @@ public class OBJReader implements IModelReader {
     }
 
     public Mesh loadSystem(String in) throws IOException {
-        return load(in, RESOURCE_FINDER_SYSTEM_RESOURCE);
+        return load(in, RESOURCE_FINDER_PACKAGED_RESOURCE);
     }
 
     public Mesh load(String in, ResourceFinder finder) throws IOException {
@@ -153,20 +153,24 @@ public class OBJReader implements IModelReader {
                     materials.put(materialName, currentMaterial = new Material(materialName));
                     break;
                 case COLOR_AMBIENT:
-                    currentMaterial.ambientColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
+                    if (currentMaterial != null)
+                        currentMaterial.ambientColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
                     break;
                 case COLOR_DIFFUSE:
-                    currentMaterial.diffuseColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
+                    if (currentMaterial != null)
+                        currentMaterial.diffuseColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
                     break;
                 case COLOR_SPECULAR:
-                    currentMaterial.specularColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
+                    if (currentMaterial != null)
+                        currentMaterial.specularColor = new Color(parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()), parseFloat(tokens.nextToken()));
                     break;
                 case COLOR_SHININESS:
-                    currentMaterial.shininess = 128 * (parseFloat(tokens.nextToken()) / 1000);
+                    if (currentMaterial != null)
+                        currentMaterial.shininess = 128 * (parseFloat(tokens.nextToken()) / 1000);
                     break;
                 case COLOR_TRANSPARENCY_1:
                 case COLOR_TRANSPARENCY_2:
-                    currentMaterial.transparency = parseFloat(tokens.nextToken());
+                    if (currentMaterial != null) currentMaterial.transparency = parseFloat(tokens.nextToken());
                     break;
                 case TEXTURE_AMBIENT:
                 case TEXTURE_DIFFUSE:
@@ -185,19 +189,19 @@ public class OBJReader implements IModelReader {
                     }
                     switch (type) {
                         case TEXTURE_AMBIENT:
-                            currentMaterial.ambientTexture = img;
+                            if (currentMaterial != null) currentMaterial.ambientTexture = img;
                             break;
                         case TEXTURE_DIFFUSE:
-                            currentMaterial.diffuseTexture = img;
+                            if (currentMaterial != null) currentMaterial.diffuseTexture = img;
                             break;
                         case TEXTURE_SPECULAR:
-                            currentMaterial.specularTexture = img;
+                            if (currentMaterial != null) currentMaterial.specularTexture = img;
                             break;
                         case TEXTURE_TRANSPARENCY:
-                            currentMaterial.alphaTexture = img;
+                            if (currentMaterial != null) currentMaterial.alphaTexture = img;
                             break;
                         case TEXTURE_BUMP_MAP:
-                            currentMaterial.bumpMap = img;
+                            if (currentMaterial != null) currentMaterial.bumpMap = img;
                             break;
                     }
                     break;
