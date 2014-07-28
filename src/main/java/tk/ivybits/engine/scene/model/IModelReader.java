@@ -27,7 +27,7 @@ public interface IModelReader {
     public static final ResourceFinder RESOURCE_FINDER_SYSTEM_RESOURCE = new ResourceFinder() {
         @Override
         public InputStream open(String name) throws IOException {
-            return ClassLoader.getSystemResourceAsStream(name);
+            return getClass().getResourceAsStream("/" + name);
         }
 
         @Override
