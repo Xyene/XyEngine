@@ -1,15 +1,14 @@
 package tk.ivybits.engine.scene.model.node;
 
-import tk.ivybits.engine.gl.texture.ITexture;
-
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class Material {
-    public ITexture ambientTexture;
-    public ITexture diffuseTexture;
-    public ITexture specularTexture;
-    public ITexture alphaTexture;
-    public ITexture bumpMap;
+    public BufferedImage ambientTexture;
+    public BufferedImage diffuseTexture;
+    public BufferedImage specularTexture;
+    public BufferedImage alphaTexture;
+    public BufferedImage bumpMap;
     public Color ambientColor = Color.BLACK;
     public Color diffuseColor = Color.WHITE;
     public Color specularColor = Color.WHITE;

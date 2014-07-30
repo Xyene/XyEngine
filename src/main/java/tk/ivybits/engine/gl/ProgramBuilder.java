@@ -35,7 +35,7 @@ public class ProgramBuilder {
         return loadShader(type, new FileInputStream(new File(path)));
     }
 
-    public ProgramBuilder loadSystemShader(ProgramType type, String path) {
+    public ProgramBuilder loadPackagedShader(ProgramType type, String path) {
         return loadShader(type, ClassLoader.getSystemResourceAsStream(path));
     }
 

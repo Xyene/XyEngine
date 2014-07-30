@@ -1,6 +1,5 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
-import org.lwjgl.Sys;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
@@ -8,8 +7,10 @@ import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
 import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
 import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.RawRenderShader;
-import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.RenderBuffer;
+import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.Frustum;
 import tk.ivybits.engine.scene.camera.BasicCamera;
@@ -30,7 +31,7 @@ public class GL20Scene implements IScene {
     private int viewWidth;
     private int viewHeight;
     private RawRenderShader rawGeometryShader;
-    private List<ShadowMapFBO> shadowMapFBOs = new ArrayList<>();
+    private HashMap<FrameBuffer, Matrix4f> shadowMapFBOs = new HashMap<>();
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
      */
@@ -87,7 +88,7 @@ public class GL20Scene implements IScene {
 
     @Override
     public void setViewportSize(int width, int height) {
-        for (ShadowMapFBO fbo : shadowMapFBOs) fbo.resize(width, height);
+        for (FrameBuffer fbo : shadowMapFBOs.keySet()) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
         if (bloomEffect != null) bloomEffect.resize(width, height);
         camera.setAspectRatio(width / (float) height);
@@ -105,20 +106,26 @@ public class GL20Scene implements IScene {
         int numLights = spotLights.size();
         if (shadowMapFBOs.size() < numLights) {
             for (int n = shadowMapFBOs.size(); n < numLights; n++) {
-                shadowMapFBOs.add(new ShadowMapFBO(viewWidth, viewHeight));
+                shadowMapFBOs.put(
+                        new FrameBuffer(viewWidth, viewHeight)
+                                .attach(RenderBuffer.newDepthBuffer(viewWidth, viewHeight))
+                                .attach(new Texture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT, viewWidth, viewHeight)),
+                        new Matrix4f()
+                );
             }
         } else if (shadowMapFBOs.size() > numLights) {
             for (int n = numLights; n < shadowMapFBOs.size(); n++) {
-                shadowMapFBOs.remove(0).destroy();
+                // shadowMapFBOs.remove(0).destroy(); TODO
             }
         }
 
+        Iterator<FrameBuffer> maps = shadowMapFBOs.keySet().iterator();
         for (int n = 0; n < numLights; n++) {
             camera.pushMatrix();
             ISpotLight light = spotLights.get(n);
 
-            ShadowMapFBO fbo = shadowMapFBOs.get(n);
-            fbo.bindFramebuffer();
+            FrameBuffer fbo = maps.next();
+            fbo.bind();
 
             glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
             glLoadIdentity();
@@ -130,7 +137,7 @@ public class GL20Scene implements IScene {
             camera.setRotation(light.pitch(), light.yaw(), 0);
             camera.setPosition(light.x(), light.y(), light.z());
 
-            fbo.projection = viewMatrix;
+            shadowMapFBOs.put(fbo, viewMatrix);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
@@ -140,7 +147,7 @@ public class GL20Scene implements IScene {
             glDisable(GL_CULL_FACE);
             rawGeometryShader.getProgram().detach();
 
-            fbo.unbindFramebuffer();
+            fbo.unbind();
             camera.popMatrix();
         }
     }
@@ -201,7 +208,7 @@ public class GL20Scene implements IScene {
             glPopAttrib();
         } else if (shadowMapFBOs.size() > 0) {
             for (int n = 0; n < shadowMapFBOs.size(); n++) {
-                shadowMapFBOs.remove(0).destroy();
+                // shadowMapFBOs.remove(0).destroy(); TODO
             }
         }
 
@@ -230,7 +237,7 @@ public class GL20Scene implements IScene {
         }
 
         if (bloom && !antialiasing) {
-            bloomEffect.getInputBuffer().bindFramebuffer();
+            bloomEffect.getInputBuffer().bind();
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -242,7 +249,7 @@ public class GL20Scene implements IScene {
         if (antialiasing) {
             msaaBuffer.unbindFramebuffer();
             if (bloom) {
-                msaaBuffer.blit(bloomEffect.getInputBuffer());
+                msaaBuffer.blit(bloomEffect.getInputBuffer().id());
             } else {
                 msaaBuffer.blit();
             }
@@ -250,7 +257,7 @@ public class GL20Scene implements IScene {
 
         if (bloom) {
             if (!antialiasing) {
-                bloomEffect.getInputBuffer().unbindFramebuffer();
+                bloomEffect.getInputBuffer().bind();
             }
 
             bloomEffect.process();
@@ -262,7 +269,7 @@ public class GL20Scene implements IScene {
 
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            bloomEffect.getOutputBuffer().bindTexture();
+            bloomEffect.getOutputBuffer().bind();
 
             ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
 
@@ -278,7 +285,7 @@ public class GL20Scene implements IScene {
             glEnd();
             ImmediateProjection.toFrustrumProjection();
 
-            bloomEffect.getOutputBuffer().unbindTexture();
+            bloomEffect.getOutputBuffer().unbind();
             glPopAttrib();
         }
 

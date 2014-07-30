@@ -156,7 +156,7 @@ public class GL11Scene implements IScene {
 
     public void useMaterial(Material material) {
         glEnable(GL_TEXTURE_2D);
-        if (material.diffuseTexture != null) material.diffuseTexture.bindTexture();
+        // TODO FIXME if (material.diffuseTexture != null) material.diffuseTexture.bind();
 
         glColor4f(1, 1, 1, material.transparency);
 

@@ -4,8 +4,9 @@ import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
-import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.ShadowMapFBO;
 import tk.ivybits.engine.gl.Program;
+import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.IScene;
@@ -13,20 +14,19 @@ import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.node.*;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.ProgramType.FRAGMENT;
-import static tk.ivybits.engine.gl.ProgramType.VERTEX;
+import static tk.ivybits.engine.gl.ProgramType.FRAGMENT_SHADER;
+import static tk.ivybits.engine.gl.ProgramType.VERTEX_SHADER;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 
 public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
     private final IScene scene;
-    private List<ShadowMapFBO> shadowMapFBO;
+    private HashMap<FrameBuffer, Matrix4f> shadowMapFBO;
 
     private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.v.glsl";
@@ -62,6 +62,21 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
     private List<ISpotLight> spotLights = new ArrayList<>();
     private List<IPointLight> pointLights = new ArrayList<>();
     private List<IDirectionalLight> dirLights = new ArrayList<>();
+    private HashMap<BufferedImage, Texture> textureCache = new HashMap<>();
+
+    private Texture asGLTexture(BufferedImage image) {
+        Texture tex = textureCache.get(image);
+        if(tex == null) {
+            tex = new Texture(image)
+                    .bind()
+                    .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                    .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                    .setParameter(GL_GENERATE_MIPMAP, GL_TRUE)
+                    .unbind();
+            textureCache.put(image, tex);
+        }
+        return tex;
+    }
 
     private void setupHandles() {
         if (!needsScenePush) {
@@ -75,7 +90,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
         setProjection();
     }
 
-    public PhongLightingShader(IScene scene, List<ShadowMapFBO> shadowMapFBO) {
+    public PhongLightingShader(IScene scene, HashMap<FrameBuffer, Matrix4f> shadowMapFBO) {
         this.scene = scene;
         this.shadowMapFBO = shadowMapFBO;
     }
@@ -91,7 +106,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
             glEnable(GL_TEXTURE_2D);
             shader.setUniform("u_material.hasDiffuse", 1);
             shader.setUniform("u_material.diffuseMap", (texture++));
-            material.diffuseTexture.bindTexture();
+            asGLTexture(material.diffuseTexture).bind();
         } else {
             shader.setUniform("u_material.hasDiffuse", 0);
         }
@@ -101,7 +116,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
                 glEnable(GL_TEXTURE_2D);
                 shader.setUniform("u_material.hasSpecular", 1);
                 shader.setUniform("u_material.specularMap", (texture++));
-                material.specularTexture.bindTexture();
+                asGLTexture(material.specularTexture).bind();
             } else {
                 shader.setUniform("u_material.hasSpecular", 0);
             }
@@ -111,7 +126,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
                 glEnable(GL_TEXTURE_2D);
                 shader.setUniform("u_material.hasNormal", 1);
                 shader.setUniform("u_material.normalMap", texture);
-                material.bumpMap.bindTexture();
+                asGLTexture(material.bumpMap).bind();
             } else {
                 shader.setUniform("u_material.hasNormal", 0);
             }
@@ -176,23 +191,27 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
         shader.setUniform("u_mvpMatrix", mvp);
 
         if (scene.getDrawContext().isEnabled(OBJECT_SHADOWS)) {
-            for (int n = 0; n < shadowMapFBO.size(); n++) {
+            int n = 0;
+            for (Matrix4f proj : shadowMapFBO.values()) {
                 Matrix4f depthBiasMVP = new Matrix4f();
-                Matrix4f.mul(projectionMatrix, shadowMapFBO.get(n).projection, depthBiasMVP);
+                Matrix4f.mul(projectionMatrix, proj, depthBiasMVP);
                 Matrix4f.mul(depthBiasMVP, modelMatrix, depthBiasMVP);
                 Matrix4f.mul(bias, depthBiasMVP, depthBiasMVP);
 
                 shader.setUniform("u_lightViewMatrix[" + n + "]", depthBiasMVP);
+                n++;
             }
         }
 
         if (scene.getDrawContext().isEnabled(OBJECT_SHADOWS)) {
             shader.setUniform("u_lightMatrixCount", shadowMapFBO.size());
-            for (int n = 0; n < shadowMapFBO.size(); n++) {
+            int n = 0;
+            for (FrameBuffer map : shadowMapFBO.keySet()) {
                 glActiveTexture(GL_TEXTURE3 + n);
                 glEnable(GL_TEXTURE_2D);
                 shader.setUniform("u_shadowMap[" + n + "]", 3 + n);
-                shadowMapFBO.get(n).bindTexture();
+                map.bind();
+                n++;
             }
         }
 
@@ -210,8 +229,8 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
         shader = shaders.get(identifier);
         if (shader == null) {
             ProgramBuilder builder = Program.builder()
-                    .addShader(VERTEX, VERTEX_SHADER_SOURCE)
-                    .addShader(FRAGMENT, FRAGMENT_SHADER_SOURCE);
+                    .addShader(VERTEX_SHADER, VERTEX_SHADER_SOURCE)
+                    .addShader(FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
             for (int i = 0; i != identifier.size(); i++) {
                 if (identifier.get(i)) {
                     builder.define(DEFINE_LOOKUP[i]);

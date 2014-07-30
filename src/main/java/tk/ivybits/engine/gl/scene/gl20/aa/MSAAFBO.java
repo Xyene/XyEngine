@@ -1,10 +1,10 @@
 package tk.ivybits.engine.gl.scene.gl20.aa;
 
-import tk.ivybits.engine.gl.texture.IFramebuffer;
+import tk.ivybits.engine.gl.texture.FrameBuffer;
 
 import static tk.ivybits.engine.gl.GL.*;
 
-public class MSAAFBO implements IFramebuffer {
+public class MSAAFBO {
     private int samples;
     private int fbo;
     private int colorBuffer;
@@ -29,7 +29,7 @@ public class MSAAFBO implements IFramebuffer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    private void blit(int id) {
+    public void blit(int id) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id);
 
@@ -38,14 +38,12 @@ public class MSAAFBO implements IFramebuffer {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
 
-    @Override
     public void blit() {
         blit(0);
     }
 
-    @Override
-    public void blit(IFramebuffer where) {
-        blit(where.getFramebufferId());
+    public void blit(FrameBuffer where) {
+        blit(where.id());
     }
 
     private void bindAttachments() {
@@ -73,7 +71,6 @@ public class MSAAFBO implements IFramebuffer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    @Override
     public void destroy() {
         glDeleteTextures(colorBuffer);
         glDeleteRenderbuffers(depthBuffer);
@@ -89,34 +86,28 @@ public class MSAAFBO implements IFramebuffer {
         updateAttachments();
     }
 
-    @Override
     public void resize(int width, int height) {
         this.width = width;
         this.height = height;
         updateAttachments();
     }
 
-    @Override
     public void bindFramebuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     }
 
-    @Override
     public void unbindFramebuffer() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    @Override
     public int getFramebufferId() {
         return colorBuffer;
     }
 
-    @Override
     public int width() {
         return width;
     }
 
-    @Override
     public int height() {
         return height;
     }

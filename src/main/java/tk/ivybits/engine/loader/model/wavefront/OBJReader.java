@@ -1,6 +1,6 @@
 package tk.ivybits.engine.loader.model.wavefront;
 
-import tk.ivybits.engine.gl.texture.BufferedTexture;
+import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.model.IModelReader;
 import tk.ivybits.engine.scene.model.TangentSpace;
 import tk.ivybits.engine.scene.model.node.Face;
@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,12 +182,8 @@ public class OBJReader implements IModelReader {
                     if (spath.trim().isEmpty())
                         continue;
                     InputStream imgFile = finder.open(finder.parent(in) + spath);
-                    BufferedTexture img;
-                    try {
-                        img = new BufferedTexture(GL_TEXTURE_2D, ImageIO.read(imgFile));
-                    } catch (IIOException e) {
-                        throw new IOException("failed to read material image " + imgFile.toString());
-                    }
+                    BufferedImage img = ImageIO.read(imgFile);
+
                     switch (type) {
                         case TEXTURE_AMBIENT:
                             if (currentMaterial != null) currentMaterial.ambientTexture = img;

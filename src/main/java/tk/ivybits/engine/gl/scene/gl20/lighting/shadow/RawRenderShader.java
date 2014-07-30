@@ -30,7 +30,7 @@ public class RawRenderShader implements ISceneShader {
     @Override
     public Program getProgram() {
         return shader == null ? shader = Program.builder()
-                .loadSystemShader(ProgramType.VERTEX, VERTEX_SHADER_LOCATION)
+                .loadPackagedShader(ProgramType.VERTEX_SHADER, VERTEX_SHADER_LOCATION)
                 .build() : shader;
     }
 

@@ -26,7 +26,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 import static java.awt.Color.*;
@@ -128,7 +127,7 @@ public class Sandbox {
             glDisable(GL_DEPTH_TEST);
             glColor4f(1, 1, 1, 1);
 
-            screenOverlay.bindTexture();
+            screenOverlay.bind();
 
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
@@ -141,7 +140,7 @@ public class Sandbox {
             glVertex2f(Display.getWidth(), 0);
             glEnd();
 
-            screenOverlay.unbindTexture();
+            screenOverlay.unbind();
             glPopAttrib();
 
             glColor4f(0.4f, 0.5f, 0.4f, 1);
