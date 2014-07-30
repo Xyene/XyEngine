@@ -1,5 +1,6 @@
 package tk.ivybits.engine.scene.camera;
 
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
 public interface ICamera {
@@ -28,6 +29,10 @@ public interface ICamera {
     ICamera pushMatrix();
 
     ICamera popMatrix();
+
+    Matrix4f getViewTransform();
+
+    Matrix4f getProjectionTransform();
 
     float dx();
 

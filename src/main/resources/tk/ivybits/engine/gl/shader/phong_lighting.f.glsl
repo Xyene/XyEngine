@@ -1,8 +1,11 @@
-#version 130
+#version 110
 
-struct CubeMap {
-    sampler2D front;
-};
+#if  __VERSION__ < 130
+#define out varying
+#define in varying
+#define texture texture2D
+#define textureProj texture2DProj
+#endif
 
 struct SpotLight {
     vec3 position;
@@ -80,17 +83,17 @@ uniform DirectionalLight u_dirLights[MAX_LIGHTS];
 
 #ifdef OBJECT_SHADOWS
 uniform int u_lightMatrixCount;
-uniform CubeMap u_shadowMap[MAX_LIGHTS];
+uniform sampler2D u_shadowMap[MAX_LIGHTS];
 #endif
 
 #ifdef OBJECT_SHADOWS
-float spotlight_shadow_factor(in int idx)
+float spotlight_shadow_factor(int idx)
 {
     float visibility = 1.0;
     float bias = 0.005;
     vec4 shadowCoord = v_lightSpacePos[idx];
     if(shadowCoord.w > 0) {
-        if (textureProj(u_shadowMap[idx].front, shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
+        if (textureProj(u_shadowMap[idx], shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
             visibility = 0;
         }
     }

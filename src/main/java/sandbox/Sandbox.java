@@ -145,6 +145,7 @@ public class Sandbox {
             glPopAttrib();
 
             glColor4f(0.4f, 0.5f, 0.4f, 1);
+           // glColor4f(1, 1, 1, 1);
 
             if (frame == 100) {
                 float fps = timer.fps();
@@ -186,10 +187,10 @@ public class Sandbox {
                         case Keyboard.KEY_ESCAPE:
                             System.exit(0);
                         case Keyboard.KEY_ADD:
-                            speed += 2f;
+                            speed *= 2f;
                             break;
                         case Keyboard.KEY_SUBTRACT:
-                            speed -= 2f;
+                            speed /= 2f;
                             break;
                         case Keyboard.KEY_L:
                             scene.getSceneGraph().getRoot().createPointLight()
@@ -270,7 +271,8 @@ public class Sandbox {
             System.exit(0);
         }
 
-        glClearColor(0.4f, 0.6f, 0.9f, 0f);
+        // glClearColor(0.4f, 0.6f, 0.9f, 0f);
+        glClearColor(1, 1, 1, 0f);
         glClearDepth(1.0);
 
         System.out.printf("OpenGL %s\n\t%s\n", glGetString(GL_VERSION), glGetString(GL_VENDOR));
@@ -333,6 +335,8 @@ public class Sandbox {
             }
         });
 
+        scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
+
         // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
 
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
@@ -377,6 +381,16 @@ public class Sandbox {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     scene.getDrawContext().setEnabled(ALPHA_TESTING, !scene.getDrawContext().isEnabled(ALPHA_TESTING));
+                }
+            });
+        }
+
+        if (scene.getDrawContext().isSupported(OBJECT_SHADOWS)) {
+            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Shadows ", scene.getDrawContext().isEnabled(OBJECT_SHADOWS))));
+            alpha.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(OBJECT_SHADOWS, !scene.getDrawContext().isEnabled(OBJECT_SHADOWS));
                 }
             });
         }

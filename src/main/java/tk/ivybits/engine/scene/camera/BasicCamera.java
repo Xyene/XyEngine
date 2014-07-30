@@ -16,18 +16,17 @@ public class BasicCamera implements ICamera {
     protected @Printable float pitch, yaw, roll;
     protected IScene scene;
     protected Stack<Matrix4f> viewMatrixStack = new Stack<>();
-    protected Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
+    protected Matrix4f projectionMatrix = new Matrix4f();
     protected @Printable float fieldOfView, aspectRatio, zNear, zFar;
-
-    protected float ftl, ftr, fbl, fbr, ntl, ntr, nbl, nbr;
 
     public BasicCamera(IScene scene) {
         this.scene = scene;
-        viewMatrixStack.push(viewMatrix);
+        viewMatrixStack.push(new Matrix4f());
     }
 
     protected void updateView() {
-        viewMatrix = new Matrix4f();
+        Matrix4f viewMatrix = viewMatrixStack.peek();
+        viewMatrix.setIdentity();
         Matrix4f.rotate((float) toRadians(pitch), new Vector3f(1, 0, 0), viewMatrix, viewMatrix);
         Matrix4f.rotate((float) toRadians(yaw), new Vector3f(0, 1, 0), viewMatrix, viewMatrix);
         Matrix4f.rotate((float) toRadians(roll), new Vector3f(0, 0, 1), viewMatrix, viewMatrix);
@@ -36,7 +35,7 @@ public class BasicCamera implements ICamera {
     }
 
     protected void updateProjection() {
-        projectionMatrix = new Matrix4f();
+        projectionMatrix.setIdentity();
         float scaleY = (float) (1 / tan(toRadians(fieldOfView / 2f)));
         float scaleX = scaleY / aspectRatio;
         float frustrumLength = zFar - zNear;
@@ -122,18 +121,26 @@ public class BasicCamera implements ICamera {
 
     @Override
     public BasicCamera pushMatrix() {
-        viewMatrix = new Matrix4f();
-        viewMatrixStack.push(viewMatrix);
-        scene.setViewTransform(viewMatrix);
+        viewMatrixStack.push(new Matrix4f());
+        scene.setViewTransform(viewMatrixStack.peek());
         return this;
     }
 
     @Override
     public BasicCamera popMatrix() {
         viewMatrixStack.pop();
-        viewMatrix = viewMatrixStack.peek();
-        scene.setViewTransform(viewMatrix);
+        scene.setViewTransform(viewMatrixStack.peek());
         return this;
+    }
+
+    @Override
+    public Matrix4f getViewTransform() {
+        return viewMatrixStack.peek();
+    }
+
+    @Override
+    public Matrix4f getProjectionTransform() {
+        return projectionMatrix;
     }
 
     @Override

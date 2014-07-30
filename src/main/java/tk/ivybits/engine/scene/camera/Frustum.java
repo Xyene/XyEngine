@@ -7,7 +7,7 @@ public class Frustum {
     public float[][] frustum = new float[6][4];
 
     public void setTransform(Matrix4f projection, Matrix4f view) {
-
+        if (true) return; // FIXME
         float v0 = (view.m00 * projection.m00 + view.m01 * projection.m10 + view.m02 * projection.m20 + view.m03 * projection.m30);
         float v1 = (view.m00 * projection.m01 + view.m01 * projection.m11 + view.m02 * projection.m21 + view.m03 * projection.m31);
         float v2 = (view.m00 * projection.m02 + view.m01 * projection.m12 + view.m02 * projection.m22 + view.m03 * projection.m32);
@@ -113,6 +113,7 @@ public class Frustum {
 
     // Assumes a model transformation of 0,0,0 and no rotation
     public boolean bbInFrustum(float x, float y, float z, BoundingBox bb) {
+        if(true) return true; // FIXME
         float length = bb.getLength() / 2;
         float width = bb.getWidth() / 2;
         float height = bb.getHeight();

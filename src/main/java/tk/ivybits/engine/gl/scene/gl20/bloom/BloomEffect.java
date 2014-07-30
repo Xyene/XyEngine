@@ -1,59 +1,71 @@
 package tk.ivybits.engine.gl.scene.gl20.bloom;
 
+import org.lwjgl.input.Keyboard;
+import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.Program;
+import tk.ivybits.engine.gl.ProgramType;
 
 import static tk.ivybits.engine.gl.GL.*;
 
 public class BloomEffect {
-    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl";
-    private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.v.glsl";
-    private BloomFBO input, output;
-    public Program thresholdShader;
+    private static final int LOD = 3;
+    private static final float REDUCTION_FACTOR = 0.6f;
 
-    private BloomFBO[] pass0 = new BloomFBO[4];
-    private BloomFBO[] pass1 = new BloomFBO[4];
+    private BloomFBO input, output;
+    public Program thresholdShader, vblur, hblur;
+
+    private BloomFBO[] swap = new BloomFBO[LOD];
+    private BloomFBO[] blur = new BloomFBO[LOD];
 
     public BloomEffect(int width, int height) {
         output = new BloomFBO(width, height, GL_NEAREST, false);
         input = new BloomFBO(width, height, GL_NEAREST, true);
 
-        output.resize(width, height);
-        input.resize(width, height);
-        for (int i = 0; i < 4; i++) {
-            pass0[i] = new BloomFBO(width, height, GL_LINEAR, false);
-            width >>= 1;
-            height >>= 1;
-            pass1[i] = new BloomFBO(width, height, GL_LINEAR, false);
+        int cwidth = width, cheight = height;
+        for (int i = 0; i < LOD; i++) {
+            cwidth *= REDUCTION_FACTOR;
+            cheight *= REDUCTION_FACTOR;
+            blur[i] = new BloomFBO(cwidth, cheight, GL_LINEAR, false);
+            swap[i] = new BloomFBO(cwidth, cheight, GL_LINEAR, false);
         }
 
         thresholdShader = Program.builder()
-                .loadSystemShader(Program.ShaderType.FRAGMENT, FRAGMENT_SHADER_LOCATION)
-                .loadSystemShader(Program.ShaderType.VERTEX, VERTEX_SHADER_LOCATION)
+                .loadSystemShader(ProgramType.FRAGMENT, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl")
+                .loadSystemShader(ProgramType.VERTEX, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.v.glsl")
                 .build();
-        thresholdShader.setUniform("u_sampler", 0);
-        thresholdShader.setUniform("u_threshold", 0.5f);
+
+        vblur = Program.builder()
+                .loadSystemShader(ProgramType.FRAGMENT, "tk/ivybits/engine/gl/shader/bloom/blur.f.glsl")
+                .loadSystemShader(ProgramType.VERTEX, "tk/ivybits/engine/gl/shader/bloom/blur.v.glsl")
+                .define("VERTICAL")
+                .build();
+        hblur = Program.builder()
+                .loadSystemShader(ProgramType.FRAGMENT, "tk/ivybits/engine/gl/shader/bloom/blur.f.glsl")
+                .loadSystemShader(ProgramType.VERTEX, "tk/ivybits/engine/gl/shader/bloom/blur.v.glsl")
+                .define("HORIZONTAL")
+                .build();
     }
 
     public void resize(int width, int height) {
-        System.out.println("Resize");
         output.resize(width, height);
         input.resize(width, height);
-        for (int i = 0; i < 4; i++) {
-            pass0[i].resize(width, height);
-            width >>= 1;
-            height >>= 1;
-            pass1[i].resize(width, height);
+        int cwidth = width, cheight = height;
+        for (int i = 0; i < LOD; i++) {
+            cwidth *= REDUCTION_FACTOR;
+            cheight *= REDUCTION_FACTOR;
+            blur[i].resize(cwidth, cheight);
+            swap[i].resize(cwidth, cheight);
         }
     }
 
     public void destroy() {
         output.destroy();
         input.destroy();
-        thresholdShader.destroy();
-        for (int i = 0; i < 4; i++) {
-            pass0[i].destroy();
-            pass1[i].destroy();
+        for (int i = 0; i < LOD; i++) {
+            blur[i].destroy();
+            swap[i].destroy();
         }
+        thresholdShader.destroy();
     }
 
     public BloomFBO getInputBuffer() {
@@ -64,16 +76,27 @@ public class BloomEffect {
         return output;
     }
 
-    private void drawDeviceQuad() {
+    private void drawDeviceQuad(BloomFBO fbo) {
+        int viewWidth = fbo.width();
+        int viewHeight = fbo.height();
+        glLoadIdentity();
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glViewport(0, 0, viewWidth, viewHeight);
+        glOrtho(0, viewWidth, 0, viewHeight, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0);
-        glVertex2f(-1, -1);
-        glTexCoord2f(1, 0);
-        glVertex2f(1, -1);
-        glTexCoord2f(1, 1);
-        glVertex2i(1, 1);
+        glVertex2f(0, 0);
         glTexCoord2f(0, 1);
-        glVertex2f(-1, 1);
+        glVertex2f(0, viewHeight);
+        glTexCoord2f(1, 1);
+        glVertex2f(viewWidth, viewHeight);
+        glTexCoord2f(1, 0);
+        glVertex2f(viewWidth, 0);
         glEnd();
     }
 
@@ -81,87 +104,80 @@ public class BloomEffect {
         glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 
-        pass0[0].bindFramebuffer();
+        blur[0].bindFramebuffer();
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
         thresholdShader.attach();
         input.bindTexture();
-        drawDeviceQuad();
+        drawDeviceQuad(blur[0]);
         input.unbindTexture();
         thresholdShader.detach();
-        
-        pass0[0].unbindFramebuffer();
+        blur[0].unbindFramebuffer();
 
-       // input.blit(output);
+        blur[0].bindTexture();
+        for (int i = 1; i < LOD; i++) {
+            blur[i].bindFramebuffer();
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            drawDeviceQuad(blur[i]);
+            blur[i].unbindFramebuffer();
+        }
+        blur[0].unbindTexture();
 
+        for (int i = 0; i < LOD; i++) {
+            swap[i].bindFramebuffer();
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            vblur.attach();
+
+            glActiveTexture(GL_TEXTURE0);
+            glEnable(GL_TEXTURE_2D);
+            blur[i].bindTexture();
+            drawDeviceQuad(swap[i]);
+            blur[i].unbindTexture();
+            swap[i].unbindFramebuffer();
+
+            vblur.detach();
+
+            blur[i].bindFramebuffer();
+            glClearColor(0, 0, 0, 0);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            hblur.attach();
+
+            glActiveTexture(GL_TEXTURE0);
+            glEnable(GL_TEXTURE_2D);
+            swap[i].bindTexture();
+            drawDeviceQuad(blur[i]);
+            swap[i].unbindTexture();
+            blur[i].unbindFramebuffer();
+
+            hblur.detach();
+        }
 
         output.bindFramebuffer();
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        input.bindTexture();
-        drawDeviceQuad();
-        input.unbindTexture();
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        input.bindTexture();
+        drawDeviceQuad(output);
+        input.bindTexture();
 
+        for (int i = 0; i < LOD; i++) {
+            blur[i].bindTexture();
+            drawDeviceQuad(output);
+            blur[i].bindTexture();
+        }
 
-        pass0[0].bindTexture();
-        drawDeviceQuad();
-        pass0[0].unbindTexture();
-
+        glDisable(GL_BLEND);
         output.unbindFramebuffer();
 
-
-
         glPopAttrib();
-
-//        output.unbindFramebuffer();
-
-//        pass0[0].unbindFramebuffer();
-//
-//        pass0[0].bindTexture();
-//
-//        for (int p = 1; p < 4; p++) {
-//            pass0[p].bindFramebuffer();
-//            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            glLoadIdentity();
-//
-//            glBegin(GL_QUADS);
-//            glTexCoord2f(0, 0);
-//            glVertex2f(-1, -1);
-//            glTexCoord2f(1, 0);
-//            glVertex2f(1, -1);
-//            glTexCoord2f(1, 1);
-//            glVertex2i(1, 1);
-//            glTexCoord2f(0, 1);
-//            glVertex2f(-1, 1);
-//            glEnd();
-//            pass0[p].unbindFramebuffer();
-//        }
-//
-//        pass0[0].unbindTexture();
-//
-//        output.bindFramebuffer();
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        glLoadIdentity();
-//
-//        for (int p = 0; p < 1; p++) {
-//            input.bindTexture();
-//            glBegin(GL_QUADS);
-//            glTexCoord2f(0, 0);
-//            glVertex2f(-1, -1);
-//            glTexCoord2f(1, 0);
-//            glVertex2f(1, -1);
-//            glTexCoord2f(1, 1);
-//            glVertex2i(1, 1);
-//            glTexCoord2f(0, 1);
-//            glVertex2f(-1, 1);
-//            input.unbindTexture();
-//        }
-//
-//        output.unbindFramebuffer();
     }
 }

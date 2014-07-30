@@ -3,39 +3,16 @@ package tk.ivybits.engine.gl;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.*;
 
-import java.io.*;
 import java.nio.FloatBuffer;
 import java.util.*;
 
 import static tk.ivybits.engine.gl.GL.*;
 
 public class Program {
-    public void destroy() {
-        glDeleteProgram(handle);
-    }
-
-    public void attach() {
-        glUseProgram(handle);
-    }
-
-    public void detach() {
-        glUseProgram(0);
-    }
-
-    public enum ShaderType {
-        FRAGMENT, VERTEX, GEOMETRY, TESSELATION_EVAL, TESSELATION_CTRL // TODO: geometry & tesselation
-    }
-
-    private static final int[] SHADER_LOOKUP = {
-            GL_FRAGMENT_SHADER,
-            GL_VERTEX_SHADER,
-            GL_GEOMETRY_SHADER,
-            GL_TESS_EVALUATION_SHADER,
-            GL_TESS_CONTROL_SHADER
-    };
     private final int handle;
     private final HashMap<String, Integer> uniforms = new HashMap<>();
     private final HashMap<String, Integer> attributes = new HashMap<>();
+    private boolean isAttached;
 
     public Program(int handle) {
         this.handle = handle;
@@ -128,100 +105,26 @@ public class Program {
         return handle;
     }
 
-    public static class ProgramBuilder {
-        private List<Map.Entry<ShaderType, String>> shaders = new ArrayList<>();
-        private HashMap<String, String> defines = new HashMap<>();
-
-        public static String readSourceFrom(InputStream in) {
-            StringBuilder source = new StringBuilder();
-            BufferedReader reader = null;
-            reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(in)));
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    source.append(line).append('\n');
-                }
-            } catch (IOException e) {
-                throw new IllegalStateException(e); // TODO: better?
-            }
-            return source.toString();
-        }
-
-        public ProgramBuilder loadShader(ShaderType type, String path) throws FileNotFoundException {
-            return loadShader(type, new FileInputStream(new File(path)));
-        }
-
-        public ProgramBuilder loadSystemShader(ShaderType type, String path) {
-            return loadShader(type, ClassLoader.getSystemResourceAsStream(path));
-        }
-
-        public ProgramBuilder loadShader(ShaderType type, InputStream in) {
-            return addShader(type, readSourceFrom(in));
-        }
-
-        public ProgramBuilder addShader(ShaderType type, String source) {
-            shaders.add(new AbstractMap.SimpleImmutableEntry<>(type, source));
-            return this;
-        }
-
-        public Program build() {
-            int handle = glCreateProgram();
-            List<Integer> toUnbind = new ArrayList<>(shaders.size());
-            for (Map.Entry<ShaderType, String> shader : shaders) {
-                int shaderHandle = glCreateShader(SHADER_LOOKUP[shader.getKey().ordinal()]);
-
-                String header = "";
-                for (Map.Entry<String, String> def : defines.entrySet()) {
-                    header += "#define " + def.getKey() + " " + def.getValue() + "\n";
-                }
-
-                String source = shader.getValue().trim();
-                if (source.startsWith("#version")) {
-                    int idx = source.indexOf('\n');
-                    source = source.substring(0, idx + 1) + header + source.substring(idx + 1);
-                } else {
-                    source = header + source;
-                }
-
-                glShaderSource(shaderHandle, source);
-                glCompileShader(shaderHandle);
-                final String log = glGetShaderInfoLog(shaderHandle, glGetShaderi(shaderHandle, GL_INFO_LOG_LENGTH));
-                System.err.println(log);
-                if (glGetShaderi(shaderHandle, GL_COMPILE_STATUS) == GL_FALSE) {
-                    glDeleteShader(shaderHandle);
-                }
-                toUnbind.add(shaderHandle);
-            }
-            for (int shader : toUnbind) {
-                glAttachShader(handle, shader);
-            }
-            glLinkProgram(handle);
-            if (glGetProgrami(handle, GL_LINK_STATUS) == GL_FALSE) {
-                final String log = glGetProgramInfoLog(handle, glGetProgrami(handle, GL_INFO_LOG_LENGTH));
-
-                System.err.println(log);
-
-                glDeleteProgram(handle);
-                handle = -1;
-            }
-
-            for (int shader : toUnbind) {
-                glDetachShader(handle, shader);
-            }
-            return new Program(handle);
-        }
-
-        public void define(String key, String value) {
-            defines.put(key, value);
-            System.out.println("#define " + key);
-        }
-
-        public void define(String key) {
-            define(key, "");
-        }
-    }
-
     public static ProgramBuilder builder() {
         return new ProgramBuilder();
+    }
+
+    public void destroy() {
+        glDeleteProgram(handle);
+        isAttached = false;
+    }
+
+    public void attach() {
+        glUseProgram(handle);
+        isAttached = true;
+    }
+
+    public void detach() {
+        glUseProgram(0);
+        isAttached = false;
+    }
+
+    public boolean isAttached() {
+        return isAttached;
     }
 }

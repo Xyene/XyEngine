@@ -1,4 +1,10 @@
-#version 130
+#version 110
+
+#if  __VERSION__ < 130
+#define out varying
+#define in attribute
+#endif
+
 #define MAX_LIGHTS 8
 
 out vec3 v_surfaceNormal;

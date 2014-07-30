@@ -125,7 +125,7 @@ public class GL20Scene implements IScene {
 
             rawGeometryShader.setProjectionTransform(projectionMatrix);
 
-            rawGeometryShader.attach();
+            rawGeometryShader.getProgram().attach();
 
             camera.setRotation(light.pitch(), light.yaw(), 0);
             camera.setPosition(light.x(), light.y(), light.z());
@@ -138,7 +138,7 @@ public class GL20Scene implements IScene {
                 entity.draw.draw(this);
             }
             glDisable(GL_CULL_FACE);
-            rawGeometryShader.detach();
+            rawGeometryShader.getProgram().detach();
 
             fbo.unbindFramebuffer();
             camera.popMatrix();
@@ -150,7 +150,7 @@ public class GL20Scene implements IScene {
         glLoadIdentity();
 
         currentGeometryShader = lightingShader;
-        if (lightingShader != null) lightingShader.attach();
+        if (lightingShader != null) lightingShader.getProgram().attach();
 
         List<PriorityComparableDrawable> visible = new ArrayList<>();
         for (PriorityComparableDrawable entity : tracker) {
@@ -189,13 +189,16 @@ public class GL20Scene implements IScene {
 
         drawn = visible.size();
 
-        if (lightingShader != null) lightingShader.detach();
+        if (lightingShader != null) lightingShader.getProgram().detach();
     }
 
     @Override
     public void draw() {
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
         if (drawContext.isEnabled(OBJECT_SHADOWS)) {
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
             generateShadowMaps();
+            glPopAttrib();
         } else if (shadowMapFBOs.size() > 0) {
             for (int n = 0; n < shadowMapFBOs.size(); n++) {
                 shadowMapFBOs.remove(0).destroy();
@@ -232,7 +235,9 @@ public class GL20Scene implements IScene {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
         _draw();
+        glPopAttrib();
 
         if (antialiasing) {
             msaaBuffer.unbindFramebuffer();
@@ -259,22 +264,26 @@ public class GL20Scene implements IScene {
             glEnable(GL_TEXTURE_2D);
             bloomEffect.getOutputBuffer().bindTexture();
 
+            ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
+
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
-            glVertex2f(-1, -1);
-            glTexCoord2f(1, 0);
-            glVertex2f(1, -1);
-            glTexCoord2f(1, 1);
-            glVertex2i(1, 1);
+            glVertex2f(0, 0);
             glTexCoord2f(0, 1);
-            glVertex2f(-1, 1);
+            glVertex2f(0, viewHeight);
+            glTexCoord2f(1, 1);
+            glVertex2f(viewWidth, viewHeight);
+            glTexCoord2f(1, 0);
+            glVertex2f(viewWidth, 0);
             glEnd();
+            ImmediateProjection.toFrustrumProjection();
 
             bloomEffect.getOutputBuffer().unbindTexture();
             glPopAttrib();
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glPopAttrib();
     }
 
     @Override

@@ -16,6 +16,8 @@ public class BloomFBO implements ISampledFramebuffer {
 
     public BloomFBO(int width, int height, int filter, boolean depth) {
         this.filter = filter;
+        this.width = width;
+        this.height = height;
         texture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
@@ -28,7 +30,7 @@ public class BloomFBO implements ISampledFramebuffer {
         if (depth) {
             depthBuffer = glGenRenderbuffers();
             glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
             glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
 
@@ -114,7 +116,7 @@ public class BloomFBO implements ISampledFramebuffer {
 
         if (depthBuffer > 0) {
             glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
             glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
     }

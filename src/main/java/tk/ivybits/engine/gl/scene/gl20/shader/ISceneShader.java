@@ -6,12 +6,6 @@ import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.model.node.Material;
 
 public interface ISceneShader {
-    void attach();
-
-    void detach();
-
-    void destroy();
-
     void useMaterial(Material material);
 
     int getAttributeLocation(VertexAttribute attribute);
