@@ -2,10 +2,8 @@ package sandbox;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.*;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
@@ -30,6 +28,7 @@ import java.io.IOException;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
+import static org.lwjgl.opengl.ARBDebugOutput.*;
 import static tk.ivybits.engine.gl.GL.*;
 
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
@@ -53,6 +52,17 @@ public class Sandbox {
             }
         });
         setup();
+        glDebugMessageCallbackARB(new ARBDebugOutputCallback(new ARBDebugOutputCallback.Handler() {
+            @Override
+            public void handleMessage(int i, int i2, int i3, int i4, String s) {
+                try {
+                    throw new OpenGLException(s);
+                } catch (OpenGLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }));
+
         ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 
         ISceneGraph graph = new DefaultSceneGraph();
@@ -110,9 +120,7 @@ public class Sandbox {
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glLoadIdentity();
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
             scene.draw();
-            glPopAttrib();
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             glDisable(GL_LIGHTING);
@@ -144,18 +152,18 @@ public class Sandbox {
             glPopAttrib();
 
             glColor4f(0.4f, 0.5f, 0.4f, 1);
-           // glColor4f(1, 1, 1, 1);
+            // glColor4f(1, 1, 1, 1);
 
             if (frame == 100) {
                 float fps = timer.fps();
-                fpsLabel.setText(String.format("%.1f (%.2fms/frame), %d/%d objects drawn\n", fps, 1000 / fps, ((GL20Scene)scene).drawn, root.getActors().size()));
+                fpsLabel.setText(String.format("%.1f (%.2fms/frame), %d/%d objects drawn\n", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 screenOverlay.markDirty();
                 frame = 0;
             }
             glPopAttrib();
             ImmediateProjection.toFrustrumProjection();
             Display.update();
-           // Display.sync(60);
+            // Display.sync(60);
         }
 
         screenOverlay.destroy();
@@ -260,7 +268,7 @@ public class Sandbox {
             Display.setResizable(true);
 
             // Display.setFullscreen(true);
-            Display.create();
+            Display.create(new PixelFormat(), new ContextAttribs().withDebug(true));
             Keyboard.create();
             Mouse.create();
             System.out.print("Done.\n");

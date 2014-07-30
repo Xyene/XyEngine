@@ -115,8 +115,6 @@ public class BloomEffect {
     }
 
     public void process() {
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-
         blur[0].bind();
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -190,8 +188,6 @@ public class BloomEffect {
         }
 
         glDisable(GL_BLEND);
-        output.bind();
-
-        glPopAttrib();
+        output.unbind();
     }
 }

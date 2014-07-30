@@ -24,6 +24,5 @@ public class ImmediateProjection {
         glPopMatrix();
         glMatrixMode(GL_MODELVIEW);
         glPopMatrix();
-        glPopAttrib();
     }
 }

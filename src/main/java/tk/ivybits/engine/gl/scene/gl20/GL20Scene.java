@@ -153,9 +153,6 @@ public class GL20Scene implements IScene {
     }
 
     protected void _draw() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();
-
         currentGeometryShader = lightingShader;
         if (lightingShader != null) lightingShader.getProgram().attach();
 
@@ -242,9 +239,7 @@ public class GL20Scene implements IScene {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
         _draw();
-        glPopAttrib();
 
         if (antialiasing) {
             msaaBuffer.unbindFramebuffer();
@@ -262,17 +257,11 @@ public class GL20Scene implements IScene {
 
             bloomEffect.process();
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glDisable(GL_LIGHTING);
             glDisable(GL_DEPTH_TEST);
 
-            glActiveTexture(GL_TEXTURE0);
-            glEnable(GL_TEXTURE_2D);
             bloomEffect.getOutputBuffer().bind();
 
             ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
-
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
             glVertex2f(0, 0);
@@ -286,10 +275,10 @@ public class GL20Scene implements IScene {
             ImmediateProjection.toFrustrumProjection();
 
             bloomEffect.getOutputBuffer().unbind();
-            glPopAttrib();
+
+            glEnable(GL_DEPTH_TEST);
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glPopAttrib();
     }
 
