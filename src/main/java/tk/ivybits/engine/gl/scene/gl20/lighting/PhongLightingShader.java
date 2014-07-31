@@ -400,11 +400,10 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
 
     @Override
     public void fogUpdated(IFog fog) {
-        // TODO: recompile shader for these settings
         if (scene.getDrawContext().isEnabled(FOG)) {
             boolean attached = getProgram().isAttached();
             if (!attached) shader.attach();
-            setupHandles();
+            System.out.println(shader.getUniformLocation("u_fog.fogColor"));
             Color fogColor = fog.getFogColor();
             shader.setUniform("u_fog.fogColor",
                     fogColor.getRed() / 255F,
