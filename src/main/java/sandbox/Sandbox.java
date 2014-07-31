@@ -389,6 +389,16 @@ public class Sandbox {
             });
         }
 
+        if (scene.getDrawContext().isSupported(FOG)) {
+            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Fog ", scene.getDrawContext().isEnabled(FOG))));
+            alpha.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(FOG, !scene.getDrawContext().isEnabled(FOG));
+                }
+            });
+        }
+
         if (scene.getDrawContext().isSupported(OBJECT_SHADOWS)) {
             JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Shadows ", scene.getDrawContext().isEnabled(OBJECT_SHADOWS))));
             alpha.addActionListener(new AbstractAction() {
