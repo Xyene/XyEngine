@@ -1,5 +1,7 @@
 package tk.ivybits.engine.gl;
 
+import org.lwjgl.opengl.OpenGLException;
+
 import java.io.*;
 import java.util.*;
 
@@ -26,7 +28,7 @@ public class ProgramBuilder {
                 source.append(line).append('\n');
             }
         } catch (IOException e) {
-            throw new IllegalStateException(e); // TODO: better?
+            throw new OpenGLException(e.getMessage());
         }
         return source.toString();
     }

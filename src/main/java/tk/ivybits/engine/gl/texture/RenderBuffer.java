@@ -1,8 +1,6 @@
 package tk.ivybits.engine.gl.texture;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.GL.GL_RENDERBUFFER;
-import static tk.ivybits.engine.gl.GL.glDeleteRenderbuffers;
 
 public class RenderBuffer {
     private final int target;

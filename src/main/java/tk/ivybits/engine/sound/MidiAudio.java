@@ -68,7 +68,7 @@ public class MidiAudio implements IAudio {
                     channel.controlChange(7, (int) volume);
                 }
             }
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
     }
 

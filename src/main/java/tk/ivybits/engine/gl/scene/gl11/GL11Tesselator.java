@@ -11,14 +11,13 @@ public class GL11Tesselator implements ITesselator {
     private final GL11DrawContext drawContext;
     private final int flags;
     private int primitiveType;
-    // Todo: don't use bullet stuff -.-
     private FloatArrayList vertices, normals, textures;
 
     public GL11Tesselator(GL11DrawContext drawContext, int flags, int primitiveType) {
         this.drawContext = drawContext;
         this.flags = flags;
         this.primitiveType = primitiveType;
-        if ((flags & VERTEX_ATTR) > 0) vertices = new FloatArrayList();
+        vertices = new FloatArrayList();
         if ((flags & NORMAL_ATTR) > 0) normals = new FloatArrayList();
         if ((flags & UV_ATTR) > 0) textures = new FloatArrayList();
     }
@@ -30,7 +29,6 @@ public class GL11Tesselator implements ITesselator {
 
     @Override
     public void vertex(float x, float y, float z) {
-        if (vertices == null) throw new IllegalStateException("buffer not initialized for vertex inputs");
         vertices.add(x);
         vertices.add(y);
         vertices.add(z);
@@ -94,8 +92,8 @@ public class GL11Tesselator implements ITesselator {
 
         glBegin(primitiveType);
         for (int i = 0; i < indexCount; i++) {
-            glTexCoord2f(textures.get(ui++), textures.get(ui++));
-            glNormal3f(normals.get(ni++), normals.get(ni++), normals.get(ni++));
+            if (textures != null) glTexCoord2f(textures.get(ui++), textures.get(ui++));
+            if (normals != null) glNormal3f(normals.get(ni++), normals.get(ni++), normals.get(ni++));
             glVertex3f(vertices.get(vi++), vertices.get(vi++), vertices.get(vi++));
         }
         glEnd();

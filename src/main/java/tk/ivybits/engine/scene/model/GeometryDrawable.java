@@ -1,7 +1,5 @@
 package tk.ivybits.engine.scene.model;
 
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Face;
@@ -10,14 +8,11 @@ import tk.ivybits.engine.scene.model.node.Vertex;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
-import static tk.ivybits.engine.scene.VertexAttribute.*;
 
 public class GeometryDrawable implements IDrawable {
     private final IGeometry model;
@@ -79,7 +74,7 @@ public class GeometryDrawable implements IDrawable {
             if (mat != currentMaterial || i == faces.size() - 1) { // Check last index: some models have no texture and only one material
                 limit = i + 1;
 
-                int flag = ITesselator.VERTEX_ATTR;
+                int flag = 0;
                 if (normals) {
                     flag |= ITesselator.NORMAL_ATTR;
                 }

@@ -1,7 +1,6 @@
 package tk.ivybits.engine.scene.model;
 
 import tk.ivybits.engine.scene.model.IGeometry;
-import tk.ivybits.engine.scene.model.node.Mesh;
 
 import java.io.*;
 

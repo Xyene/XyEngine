@@ -13,8 +13,6 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.GL.GL_ARRAY_BUFFER;
-import static tk.ivybits.engine.gl.GL.GL_STATIC_DRAW;
 import static tk.ivybits.engine.scene.VertexAttribute.UV_BUFFER;
 
 public class GL20Tesselator implements ITesselator {
@@ -27,7 +25,7 @@ public class GL20Tesselator implements ITesselator {
         this.drawContext = drawContext;
         this.flags = flags;
         this.primitiveType = primitiveType;
-        if ((flags & VERTEX_ATTR) > 0) vertices = new FloatArrayList();
+        vertices = new FloatArrayList();
         if ((flags & NORMAL_ATTR) > 0) normals = new FloatArrayList();
         if ((flags & TANGENT_ATTR) > 0) tangents = new FloatArrayList();
         if ((flags & UV_ATTR) > 0) textures = new FloatArrayList();
@@ -40,7 +38,6 @@ public class GL20Tesselator implements ITesselator {
 
     @Override
     public void vertex(float x, float y, float z) {
-        if (vertices == null) throw new IllegalStateException("buffer not initialized for vertex inputs");
         vertices.add(x);
         vertices.add(y);
         vertices.add(z);
@@ -153,11 +150,11 @@ public class GL20Tesselator implements ITesselator {
         int indexSize = 3;
         int[] offsets = new int[VERTEX_ATTRIBUTES.length];
         int stride = 0;
-        if (vertices != null) {
-            indexSize += 3;
-            offsets[0] = stride;
-            stride += 12;
-        }
+        // Vertices
+        indexSize += 3;
+        offsets[0] = stride;
+        stride += 12;
+
         if (normals != null) {
             indexSize += 3;
             offsets[1] = stride;
@@ -174,13 +171,13 @@ public class GL20Tesselator implements ITesselator {
             stride += 12;
         }
 
-        int indexCount = vertices.size() / 3; // TODO: something more elegant (npe)
+        int indexCount = vertices.size() / 3;
         FloatBuffer interleaved = BufferUtils.createFloatBuffer(indexCount * indexSize);
 
         int vi = 0, ni = 0, ti = 0, ui = 0;
 
         for (int i = 0; i < indexCount; i++) {
-            if (vertices != null) for (int j = 0; j < 3; j++) interleaved.put(vertices.get(vi++));
+           for (int j = 0; j < 3; j++) interleaved.put(vertices.get(vi++));
             if (normals != null) for (int j = 0; j < 3; j++) interleaved.put(normals.get(ni++));
             if (textures != null) for (int j = 0; j < 2; j++) interleaved.put(textures.get(ui++));
             if (tangents != null) for (int j = 0; j < 3; j++) interleaved.put(tangents.get(ti++));

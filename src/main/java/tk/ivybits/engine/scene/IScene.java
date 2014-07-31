@@ -1,7 +1,6 @@
 package tk.ivybits.engine.scene;
 
 import org.lwjgl.util.vector.Matrix4f;
-import tk.ivybits.engine.scene.camera.ICamera;
 import tk.ivybits.engine.scene.node.ISceneGraph;
 
 public interface IScene {

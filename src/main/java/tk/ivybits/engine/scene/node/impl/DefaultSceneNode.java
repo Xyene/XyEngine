@@ -1,6 +1,8 @@
 package tk.ivybits.engine.scene.node.impl;
 
+import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.scene.IActor;
+import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.node.*;
 
 import java.util.*;
@@ -149,9 +151,6 @@ public class DefaultSceneNode implements ISceneNode {
 
     @Override
     public void destroy(IActor actor) {
-        // TODO
-//        IDrawable drawable = scene.tracker.remove(actor);
-//        if (drawable != null) drawable.destroy();
         DefaultSceneNode self = this;
         do {
             self.actors.remove(actor);
@@ -164,10 +163,11 @@ public class DefaultSceneNode implements ISceneNode {
         if (parent == null) {
             throw new UnsupportedOperationException("can't destroy root node");
         }
-        // TODO: doesn't actually kill lights
-        spotLights.clear();
-        pointLights.clear();
-        dirLights.clear();
+        // Warning: this will send multiple events for same object if several levels deep
+        for(ISpotLight light : spotLights) destroy(light);
+        for(IPointLight light : pointLights) destroy(light);
+        for(IDirectionalLight light : dirLights) destroy(light);
+        for(IActor actor : actors) destroy(actor);
         actors.clear();
         for (ISceneNode node : children)
             node.destroy();

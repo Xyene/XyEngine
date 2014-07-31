@@ -5,9 +5,6 @@ import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
     private final boolean[] caps;
@@ -21,8 +18,8 @@ public class GL20DrawContext implements IDrawContext {
                 GLContext.getCapabilities().OpenGL30, // Dynamic shadows
                 true,  // alpha testing
                 true,    // Fog
-                GLContext.getCapabilities().OpenGL30,    // ANTIALIASING
-                true    // bloom
+                GLContext.getCapabilities().OpenGL32,    // ANTIALIASING
+                GLContext.getCapabilities().OpenGL30    // bloom
         };
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);

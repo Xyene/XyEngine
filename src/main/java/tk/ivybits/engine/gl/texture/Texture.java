@@ -8,9 +8,7 @@ import java.awt.image.*;
 import java.nio.*;
 import java.util.Hashtable;
 
-import static org.lwjgl.util.glu.GLU.gluBuild2DMipmaps;
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.GL.glTexImage2D;
 
 public class Texture {
     private int target;

@@ -114,8 +114,10 @@ public class GL20Scene implements IScene {
                 );
             }
         } else if (shadowMapFBOs.size() > numLights) {
-            for (int n = numLights; n < shadowMapFBOs.size(); n++) {
-                // shadowMapFBOs.remove(0).destroy(); TODO
+            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapFBOs.entrySet().iterator();
+            for (int n = 0; n < shadowMapFBOs.size(); n++) {
+                iterator.next();
+                iterator.remove();
             }
         }
 
@@ -204,8 +206,10 @@ public class GL20Scene implements IScene {
             generateShadowMaps();
             glPopAttrib();
         } else if (shadowMapFBOs.size() > 0) {
+            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapFBOs.entrySet().iterator();
             for (int n = 0; n < shadowMapFBOs.size(); n++) {
-                // shadowMapFBOs.remove(0).destroy(); TODO
+                iterator.next();
+                iterator.remove();
             }
         }
 

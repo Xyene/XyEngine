@@ -149,7 +149,7 @@ public class ALAudio implements IAudio {
             if (alGetError() == AL_NO_ERROR) {
                 return temp.get(0);
             }
-        } catch (OpenALException e) {
+        } catch (OpenALException ignored) {
         }
         return -1;
     }

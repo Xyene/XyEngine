@@ -1,6 +1,5 @@
 package tk.ivybits.engine.scene;
 
-import com.bulletphysics.collision.shapes.CollisionShape;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 

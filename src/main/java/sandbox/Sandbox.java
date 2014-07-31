@@ -28,7 +28,6 @@ import java.io.IOException;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
-import static org.lwjgl.opengl.ARBDebugOutput.*;
 import static tk.ivybits.engine.gl.GL.*;
 
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
@@ -52,7 +51,7 @@ public class Sandbox {
             }
         });
         setup();
-        glDebugMessageCallbackARB(new ARBDebugOutputCallback(new ARBDebugOutputCallback.Handler() {
+        glDebugMessageCallback(new KHRDebugCallback(new KHRDebugCallback.Handler() {
             @Override
             public void handleMessage(int i, int i2, int i3, int i4, String s) {
                 try {
@@ -213,9 +212,6 @@ public class Sandbox {
                                     .setIntensity(3.5f)
                                     .setCutoff(10);
                             break;
-                        case Keyboard.KEY_C:
-                            // TODO
-                            break;
                     }
                 }
             }
@@ -266,6 +262,7 @@ public class Sandbox {
             Display.setDisplayMode(new DisplayMode(1024, 600));
             Display.setTitle("Xy Sandbox");
             Display.setResizable(true);
+            //Display.setVSyncEnabled(true);
 
             // Display.setFullscreen(true);
             Display.create(new PixelFormat(), new ContextAttribs().withDebug(true));

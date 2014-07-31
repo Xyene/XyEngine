@@ -87,7 +87,7 @@ public class BloomEffect {
     }
 
     public Texture getOutputBuffer() {
-        return output.getColorBuffer();
+        return output.getTexture();
     }
 
     private void drawDeviceQuad(FrameBuffer fbo) {
@@ -122,14 +122,14 @@ public class BloomEffect {
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
         thresholdShader.attach();
-        input.getColorBuffer().bind();
+        input.getTexture().bind();
         drawDeviceQuad(blur[0]);
-        input.getColorBuffer().unbind();
+        input.getTexture().unbind();
         thresholdShader.detach();
 
         blur[0].unbind();
 
-        blur[0].getColorBuffer().bind();
+        blur[0].getTexture().bind();
         for (int i = 1; i < LOD; i++) {
             blur[i].bind();
             glClearColor(0, 0, 0, 0);
@@ -137,7 +137,7 @@ public class BloomEffect {
             drawDeviceQuad(blur[i]);
             blur[i].bind();
         }
-        blur[0].getColorBuffer().unbind();
+        blur[0].getTexture().unbind();
 
         for (int i = 0; i < LOD; i++) {
             swap[i].bind();
@@ -148,9 +148,9 @@ public class BloomEffect {
 
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            blur[i].getColorBuffer().bind();
+            blur[i].getTexture().bind();
             drawDeviceQuad(swap[i]);
-            blur[i].getColorBuffer().unbind();
+            blur[i].getTexture().unbind();
             swap[i].bind();
 
             vblur.detach();
@@ -163,9 +163,9 @@ public class BloomEffect {
 
             glActiveTexture(GL_TEXTURE0);
             glEnable(GL_TEXTURE_2D);
-            swap[i].getColorBuffer().bind();
+            swap[i].getTexture().bind();
             drawDeviceQuad(blur[i]);
-            swap[i].getColorBuffer().unbind();
+            swap[i].getTexture().unbind();
             blur[i].bind();
 
             hblur.detach();
@@ -177,14 +177,14 @@ public class BloomEffect {
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        input.getColorBuffer().bind();
+        input.getTexture().bind();
         drawDeviceQuad(output);
-        input.getColorBuffer().bind();
+        input.getTexture().bind();
 
         for (int i = 0; i < LOD; i++) {
-            blur[i].getColorBuffer().bind();
+            blur[i].getTexture().bind();
             drawDeviceQuad(output);
-            blur[i].getColorBuffer().bind();
+            blur[i].getTexture().bind();
         }
 
         glDisable(GL_BLEND);

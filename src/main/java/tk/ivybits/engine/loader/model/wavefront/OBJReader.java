@@ -1,6 +1,5 @@
 package tk.ivybits.engine.loader.model.wavefront;
 
-import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.model.IModelReader;
 import tk.ivybits.engine.scene.model.TangentSpace;
 import tk.ivybits.engine.scene.model.node.Face;
@@ -8,7 +7,6 @@ import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.model.node.Mesh;
 import tk.ivybits.engine.scene.model.node.Vertex;
 
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
@@ -22,7 +20,6 @@ import java.util.StringTokenizer;
 
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 
 public class OBJReader implements IModelReader {
     protected static final String

@@ -23,6 +23,7 @@ import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.ProgramType.FRAGMENT_SHADER;
 import static tk.ivybits.engine.gl.ProgramType.VERTEX_SHADER;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
 public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
     private final IScene scene;
@@ -72,6 +73,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
                     .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                     .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
                     .setParameter(GL_GENERATE_MIPMAP, GL_TRUE)
+                    .setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT))
                     .unbind();
             textureCache.put(image, tex);
         }

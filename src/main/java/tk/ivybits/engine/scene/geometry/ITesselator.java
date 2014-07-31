@@ -3,10 +3,9 @@ package tk.ivybits.engine.scene.geometry;
 import tk.ivybits.engine.scene.IDrawable;
 
 public interface ITesselator {
-    int VERTEX_ATTR = 0x1,
-            NORMAL_ATTR = 0x2,
-            UV_ATTR = 0x4,
-            TANGENT_ATTR = 0x8;
+    int NORMAL_ATTR = 0x1,
+            UV_ATTR = 0x2,
+            TANGENT_ATTR = 0x4;
 
     int getType();
 

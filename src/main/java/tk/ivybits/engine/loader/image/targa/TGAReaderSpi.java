@@ -146,14 +146,11 @@ public class TGAReaderSpi extends ImageReaderSpi {
             inputStream.readUnsignedByte(); // idLength
             inputStream.readUnsignedByte(); // has color map
             final int imageType = inputStream.readUnsignedByte();
-            if ((imageType != TGAConstants.TRUE_COLOR)
+            return !((imageType != TGAConstants.TRUE_COLOR)
                     && (imageType != TGAConstants.RLE_TRUE_COLOR)
                     && (imageType != TGAConstants.COLOR_MAP)
-                    && (imageType != TGAConstants.RLE_COLOR_MAP)) {
-                return false;
-            } /* else -- it's *possible* (though not known) that this is a TGA */
+                    && (imageType != TGAConstants.RLE_COLOR_MAP));
 
-            return true;
         } finally {
             // reset so that the ImageInputStream is put back where it was
             inputStream.reset();

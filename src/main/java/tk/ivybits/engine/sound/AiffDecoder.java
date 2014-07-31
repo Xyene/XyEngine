@@ -229,7 +229,7 @@ public class AiffDecoder {
         //close stream
         try {
             ais.close();
-        } catch (IOException ioe) {
+        } catch (IOException ignored) {
         }
 
         return Aiffdata;

@@ -5582,11 +5582,11 @@ public class GL {
     }
 
     public static void glObjectLabel(int a, int b, ByteBuffer c) {
-        GL43.glObjectLabel(a, b, c);
+        KHRDebug.glObjectLabel(a, b, c);
     }
 
     public static void glObjectLabel(int a, int b, CharSequence c) {
-        GL43.glObjectLabel(a, b, c);
+        KHRDebug.glObjectLabel(a, b, c);
     }
 
     public static String glGetProgramResourceName(int a, int b, int c, int d) {
@@ -5598,15 +5598,15 @@ public class GL {
     }
 
     public static int glGetDebugMessageLog(int a, IntBuffer b, IntBuffer c, IntBuffer d, IntBuffer e, IntBuffer f, ByteBuffer g) {
-        return GL43.glGetDebugMessageLog(a, b, c, d, e, f, g);
+        return KHRDebug.glGetDebugMessageLog(a, b, c, d, e, f, g);
     }
 
     public static void glDebugMessageControl(int a, int b, int c, IntBuffer d, boolean e) {
-        GL43.glDebugMessageControl(a, b, c, d, e);
+        KHRDebug.glDebugMessageControl(a, b, c, d, e);
     }
 
     public static void glDebugMessageCallback(KHRDebugCallback a) {
-        GL43.glDebugMessageCallback(a);
+        KHRDebug.glDebugMessageCallback(a);
     }
 
     public static void glGetFramebufferParameter(int a, int b, IntBuffer c) {
@@ -5614,11 +5614,11 @@ public class GL {
     }
 
     public static String glGetObjectPtrLabel(PointerWrapper a, int b) {
-        return GL43.glGetObjectPtrLabel(a, b);
+        return KHRDebug.glGetObjectPtrLabel(a, b);
     }
 
     public static void glGetObjectPtrLabel(PointerWrapper a, IntBuffer b, ByteBuffer c) {
-        GL43.glGetObjectPtrLabel(a, b, c);
+        KHRDebug.glGetObjectPtrLabel(a, b, c);
     }
 
     public static void glInvalidateTexSubImage(int a, int b, int c, int d, int e, int f, int g, int h) {
@@ -5642,15 +5642,15 @@ public class GL {
     }
 
     public static void glPopDebugGroup() {
-        GL43.glPopDebugGroup();
+        KHRDebug.glPopDebugGroup();
     }
 
     public static void glDebugMessageInsert(int a, int b, int c, int d, ByteBuffer e) {
-        GL43.glDebugMessageInsert(a, b, c, d, e);
+        KHRDebug.glDebugMessageInsert(a, b, c, d, e);
     }
 
     public static void glDebugMessageInsert(int a, int b, int c, int d, CharSequence e) {
-        GL43.glDebugMessageInsert(a, b, c, d, e);
+        KHRDebug.glDebugMessageInsert(a, b, c, d, e);
     }
 
     public static long glGetInternalformati64(int a, int b, int c) {
@@ -5694,19 +5694,19 @@ public class GL {
     }
 
     public static void glPushDebugGroup(int a, int b, ByteBuffer c) {
-        GL43.glPushDebugGroup(a, b, c);
+        KHRDebug.glPushDebugGroup(a, b, c);
     }
 
     public static void glPushDebugGroup(int a, int b, CharSequence c) {
-        GL43.glPushDebugGroup(a, b, c);
+        KHRDebug.glPushDebugGroup(a, b, c);
     }
 
     public static String glGetObjectLabel(int a, int b, int c) {
-        return GL43.glGetObjectLabel(a, b, c);
+        return KHRDebug.glGetObjectLabel(a, b, c);
     }
 
     public static void glGetObjectLabel(int a, int b, IntBuffer c, ByteBuffer d) {
-        GL43.glGetObjectLabel(a, b, c, d);
+        KHRDebug.glGetObjectLabel(a, b, c, d);
     }
 
     public static int glGetFramebufferParameteri(int a, int b) {
@@ -5742,11 +5742,11 @@ public class GL {
     }
 
     public static void glObjectPtrLabel(PointerWrapper a, CharSequence b) {
-        GL43.glObjectPtrLabel(a, b);
+        KHRDebug.glObjectPtrLabel(a, b);
     }
 
     public static void glObjectPtrLabel(PointerWrapper a, ByteBuffer b) {
-        GL43.glObjectPtrLabel(a, b);
+        KHRDebug.glObjectPtrLabel(a, b);
     }
 
     public static void glVertexAttribIFormat(int a, int b, int c, int d) {

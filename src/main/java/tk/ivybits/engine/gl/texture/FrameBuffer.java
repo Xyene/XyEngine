@@ -27,23 +27,23 @@ public class FrameBuffer {
 
     public FrameBuffer attach(RenderBuffer buffer) {
         boolean b = bound;
-        if (!b) glBindFramebuffer(GL_FRAMEBUFFER, handle);
+        if (!b) bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, buffer.target(), GL_RENDERBUFFER, buffer.id());
-        if (!b) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (!b) unbind();
         renderBufferList.add(buffer);
         return this;
     }
 
     public FrameBuffer attach(Texture buffer) {
         boolean b = bound;
-        if (!b) glBindFramebuffer(GL_FRAMEBUFFER, handle);
+        if (!b) bind();
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, buffer.target(), buffer.id(), 0);
-        if (!b) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (!b) unbind();
         colorBuffer = buffer;
         return this;
     }
 
-    public Texture getColorBuffer() {
+    public Texture getTexture() {
         return colorBuffer;
     }
 
@@ -57,11 +57,11 @@ public class FrameBuffer {
 
     public void bind() {
         bound = true;
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, handle);
+        glBindFramebuffer(GL_FRAMEBUFFER, handle);
     }
 
     public void unbind() {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         bound = false;
     }
 
@@ -75,7 +75,7 @@ public class FrameBuffer {
         for (RenderBuffer buffer : renderBufferList) {
             buffer.resize(width, height);
         }
-       if(colorBuffer != null) colorBuffer.resize(width, height);
+        if (colorBuffer != null) colorBuffer.resize(width, height);
     }
 
     public void destroy() {
@@ -83,7 +83,7 @@ public class FrameBuffer {
         for (RenderBuffer buffer : renderBufferList) {
             buffer.destroy();
         }
-        if(colorBuffer != null)  colorBuffer.destroy();
+        if (colorBuffer != null) colorBuffer.destroy();
     }
 
     private void blit(int id) {
