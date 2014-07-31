@@ -218,14 +218,15 @@ public class GL20Scene implements IScene {
 
         if (antialiasing && msaaBuffer == null) {
             msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
+            glEnable(GL_MULTISAMPLE);
+            glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         } else if (!antialiasing && msaaBuffer != null) {
             msaaBuffer.destroy();
             msaaBuffer = null;
+            glDisable(GL_MULTISAMPLE);
+            glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         }
         if (antialiasing) {
-            glEnable(GL_MULTISAMPLE);
-            glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-
             msaaBuffer.bindFramebuffer();
         }
 

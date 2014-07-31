@@ -7,7 +7,7 @@ import java.awt.*;
 public class DefaultFog implements IFog {
     private DefaultSceneGraph scene;
     private Color fogColor = Color.LIGHT_GRAY;
-    private float fogNear = 5, fogFar = 70;
+    private float fogNear = 5, fogFar = 50;
 
     public DefaultFog(DefaultSceneGraph scene) {
         this.scene = scene;

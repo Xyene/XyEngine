@@ -122,16 +122,13 @@ public class Sandbox {
             scene.draw();
 
             glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glDisable(GL_LIGHTING);
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_CULL_FACE);
+//            glDisable(GL_LIGHTING);
+//            glDisable(GL_DEPTH_TEST);
+//            glDisable(GL_CULL_FACE);
             glEnable(GL_TEXTURE_2D);
 
             ImmediateProjection.toOrthographicProjection();
 
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-            glDisable(GL_LIGHTING);
-            glDisable(GL_DEPTH_TEST);
             glColor4f(1, 1, 1, 1);
 
             screenOverlay.bind();
@@ -148,10 +145,6 @@ public class Sandbox {
             glEnd();
 
             screenOverlay.unbind();
-            glPopAttrib();
-
-            glColor4f(0.4f, 0.5f, 0.4f, 1);
-            // glColor4f(1, 1, 1, 1);
 
             if (frame == 100) {
                 float fps = timer.fps();

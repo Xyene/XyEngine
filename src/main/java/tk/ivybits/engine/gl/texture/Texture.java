@@ -1,5 +1,6 @@
 package tk.ivybits.engine.gl.texture;
 
+import org.lwjgl.opengl.EXTDirectStateAccess;
 import org.lwjgl.opengl.GLContext;
 
 import java.awt.*;
@@ -71,26 +72,6 @@ public class Texture {
         imageBuffer.put(data, 0, data.length);
         imageBuffer.flip();
 
-        ByteBuffer textureBuffer = imageBuffer;
-
-//        if (target == GL_TEXTURE_2D) {
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//            // glGenerateMipmap(GL_TEXTURE_2D);
-//            //glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-//        }
-
-        // produce a texture from the byte buffer
-//        glTexImage2D(target,
-//                0,
-//                GL_RGBA,
-//                _get2Fold(texImage.getWidth()),
-//                _get2Fold(texImage.getHeight()),
-//                0,
-//                srcPixelFormat,
-//                GL_UNSIGNED_BYTE,
-//                textureBuffer);
-
         data = ((DataBufferByte) raster.getDataBuffer()).getData();
 
         ByteBuffer nativeBuffer = ByteBuffer.allocateDirect(data.length);
@@ -103,9 +84,7 @@ public class Texture {
     }
 
     public Texture setParameter(int key, int value) {
-        bind();
-        glTexParameteri(target, key, value);
-        unbind();
+        glTexParameteri(handle, target, key, value);
         return this;
     }
 
@@ -148,21 +127,18 @@ public class Texture {
     }
 
     public Texture setData(int type, Buffer buffer) {
-        boolean b = bound;
-        if (!b) bind();
         if (buffer == null)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (ByteBuffer) null);
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (ByteBuffer) null);
         else if (buffer instanceof ByteBuffer)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (ByteBuffer) buffer);
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (ByteBuffer) buffer);
         else if (buffer instanceof FloatBuffer)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (FloatBuffer) buffer);
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (FloatBuffer) buffer);
         else if (buffer instanceof DoubleBuffer)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (DoubleBuffer) buffer);
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (DoubleBuffer) buffer);
         else if (buffer instanceof IntBuffer)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (IntBuffer) buffer);
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (IntBuffer) buffer);
         else if (buffer instanceof ShortBuffer)
-            glTexImage2D(target, 0, format, width, height, 0, format, type, (ShortBuffer) buffer);
-        if (!b) unbind();
+            glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (ShortBuffer) buffer);
         return this;
     }
 
@@ -183,7 +159,6 @@ public class Texture {
         }
         return ret;
     }
-
 
     private static ColorModel glAlphaColorModel = new ComponentColorModel(
             ColorSpace.getInstance(ColorSpace.CS_sRGB),

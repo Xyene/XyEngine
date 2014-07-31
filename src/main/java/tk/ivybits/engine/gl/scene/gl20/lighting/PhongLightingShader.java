@@ -1,5 +1,6 @@
 package tk.ivybits.engine.gl.scene.gl20.lighting;
 
+import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramBuilder;
@@ -67,14 +68,13 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
 
     private Texture asGLTexture(BufferedImage image) {
         Texture tex = textureCache.get(image);
-        if(tex == null) {
+        if (tex == null) {
             tex = new Texture(image)
-                    .bind()
                     .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                     .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-                    .setParameter(GL_GENERATE_MIPMAP, GL_TRUE)
-                    .setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT))
-                    .unbind();
+                    .setParameter(GL_GENERATE_MIPMAP, GL_TRUE);
+            if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
+                tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
             textureCache.put(image, tex);
         }
         return tex;

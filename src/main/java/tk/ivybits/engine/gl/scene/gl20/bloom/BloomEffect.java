@@ -23,12 +23,10 @@ public class BloomEffect {
     private FrameBuffer createBuffer(int filter, int width, int height) {
         FrameBuffer bloom = new FrameBuffer(width, height);
         bloom.attach(new Texture(GL_TEXTURE_2D, GL_RGB, width, height)
-                .bind()
                 .setParameter(GL_TEXTURE_MAG_FILTER, filter)
                 .setParameter(GL_TEXTURE_MIN_FILTER, filter)
                 .setParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
                 .setParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-                .unbind()
         );
         return bloom;
     }
@@ -165,8 +163,6 @@ public class BloomEffect {
 
             vblur.attach();
 
-            glActiveTexture(GL_TEXTURE0);
-            glEnable(GL_TEXTURE_2D);
             blur[i].getTexture().bind();
             drawDeviceQuad(swap[i]);
             blur[i].getTexture().unbind();
@@ -180,8 +176,6 @@ public class BloomEffect {
 
             hblur.attach();
 
-            glActiveTexture(GL_TEXTURE0);
-            glEnable(GL_TEXTURE_2D);
             swap[i].getTexture().bind();
             drawDeviceQuad(blur[i]);
             swap[i].getTexture().unbind();
