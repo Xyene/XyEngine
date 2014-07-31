@@ -5582,11 +5582,11 @@ public class GL {
     }
 
     public static void glObjectLabel(int a, int b, ByteBuffer c) {
-        KHRDebug.glObjectLabel(a, b, c);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glObjectLabel(a, b, c);
     }
 
     public static void glObjectLabel(int a, int b, CharSequence c) {
-        KHRDebug.glObjectLabel(a, b, c);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glObjectLabel(a, b, c);
     }
 
     public static String glGetProgramResourceName(int a, int b, int c, int d) {
@@ -5598,15 +5598,16 @@ public class GL {
     }
 
     public static int glGetDebugMessageLog(int a, IntBuffer b, IntBuffer c, IntBuffer d, IntBuffer e, IntBuffer f, ByteBuffer g) {
-        return KHRDebug.glGetDebugMessageLog(a, b, c, d, e, f, g);
+        return (GLContext.getCapabilities().GL_KHR_debug) ? KHRDebug.glGetDebugMessageLog(a, b, c, d, e, f, g) : -1;
     }
 
     public static void glDebugMessageControl(int a, int b, int c, IntBuffer d, boolean e) {
-        KHRDebug.glDebugMessageControl(a, b, c, d, e);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glDebugMessageControl(a, b, c, d, e);
     }
 
     public static void glDebugMessageCallback(KHRDebugCallback a) {
-        KHRDebug.glDebugMessageCallback(a);
+        if (GLContext.getCapabilities().GL_KHR_debug)
+            if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glDebugMessageCallback(a);
     }
 
     public static void glGetFramebufferParameter(int a, int b, IntBuffer c) {
@@ -5614,11 +5615,11 @@ public class GL {
     }
 
     public static String glGetObjectPtrLabel(PointerWrapper a, int b) {
-        return KHRDebug.glGetObjectPtrLabel(a, b);
+        return (GLContext.getCapabilities().GL_KHR_debug) ? KHRDebug.glGetObjectPtrLabel(a, b) : "";
     }
 
     public static void glGetObjectPtrLabel(PointerWrapper a, IntBuffer b, ByteBuffer c) {
-        KHRDebug.glGetObjectPtrLabel(a, b, c);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glGetObjectPtrLabel(a, b, c);
     }
 
     public static void glInvalidateTexSubImage(int a, int b, int c, int d, int e, int f, int g, int h) {
@@ -5642,15 +5643,15 @@ public class GL {
     }
 
     public static void glPopDebugGroup() {
-        KHRDebug.glPopDebugGroup();
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glPopDebugGroup();
     }
 
     public static void glDebugMessageInsert(int a, int b, int c, int d, ByteBuffer e) {
-        KHRDebug.glDebugMessageInsert(a, b, c, d, e);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glDebugMessageInsert(a, b, c, d, e);
     }
 
     public static void glDebugMessageInsert(int a, int b, int c, int d, CharSequence e) {
-        KHRDebug.glDebugMessageInsert(a, b, c, d, e);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glDebugMessageInsert(a, b, c, d, e);
     }
 
     public static long glGetInternalformati64(int a, int b, int c) {
@@ -5694,19 +5695,19 @@ public class GL {
     }
 
     public static void glPushDebugGroup(int a, int b, ByteBuffer c) {
-        KHRDebug.glPushDebugGroup(a, b, c);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glPushDebugGroup(a, b, c);
     }
 
     public static void glPushDebugGroup(int a, int b, CharSequence c) {
-        KHRDebug.glPushDebugGroup(a, b, c);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glPushDebugGroup(a, b, c);
     }
 
     public static String glGetObjectLabel(int a, int b, int c) {
-        return KHRDebug.glGetObjectLabel(a, b, c);
+        return (GLContext.getCapabilities().GL_KHR_debug) ? KHRDebug.glGetObjectLabel(a, b, c) : "";
     }
 
     public static void glGetObjectLabel(int a, int b, IntBuffer c, ByteBuffer d) {
-        KHRDebug.glGetObjectLabel(a, b, c, d);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glGetObjectLabel(a, b, c, d);
     }
 
     public static int glGetFramebufferParameteri(int a, int b) {
@@ -5742,11 +5743,11 @@ public class GL {
     }
 
     public static void glObjectPtrLabel(PointerWrapper a, CharSequence b) {
-        KHRDebug.glObjectPtrLabel(a, b);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glObjectPtrLabel(a, b);
     }
 
     public static void glObjectPtrLabel(PointerWrapper a, ByteBuffer b) {
-        KHRDebug.glObjectPtrLabel(a, b);
+        if (GLContext.getCapabilities().GL_KHR_debug) KHRDebug.glObjectPtrLabel(a, b);
     }
 
     public static void glVertexAttribIFormat(int a, int b, int c, int d) {
