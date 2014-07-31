@@ -2267,7 +2267,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glRenderbufferStorageMultisample(int a, int b, int c, int d, int e) {
-        GL30.glRenderbufferStorageMultisample(a, b, c, d, e);
+        EXTFramebufferMultisample.glRenderbufferStorageMultisampleEXT(a, b, c, d, e);
     }
 
     public static void glUniform3ui(int a, int b, int c, int d) {
@@ -2811,7 +2811,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glTexImage3DMultisample(int a, int b, int c, int d, int e, int f, boolean g) {
-        GL32.glTexImage3DMultisample(a, b, c, d, e, f, g);
+        ARBTextureMultisample.glTexImage3DMultisample(a, b, c, d, e, f, g);
     }
 
     public static void glDrawRangeElementsBaseVertex(int a, int b, int c, int d, int e, long f, int g) {
@@ -2835,11 +2835,11 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glTexImage2DMultisample(int a, int b, int c, int d, int e, boolean f) {
-        GL32.glTexImage2DMultisample(a, b, c, d, e, f);
+        ARBTextureMultisample.glTexImage2DMultisample(a, b, c, d, e, f);
     }
 
     public static void glGetMultisample(int a, int b, FloatBuffer c) {
-        GL32.glGetMultisample(a, b, c);
+        ARBTextureMultisample.glGetMultisample(a, b, c);
     }
 
     public static void glFramebufferTexture(int a, int b, int c, int d) {
@@ -4095,11 +4095,11 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glTexStorage2DMultisample(int a, int b, int c, int d, int e, boolean f) {
-        GL43.glTexStorage2DMultisample(a, b, c, d, e, f);
+        ARBTextureStorageMultisample.glTexStorage2DMultisample(a, b, c, d, e, f);
     }
 
     public static void glTexStorage3DMultisample(int a, int b, int c, int d, int e, int f, boolean g) {
-        GL43.glTexStorage3DMultisample(a, b, c, d, e, f, g);
+        ARBTextureStorageMultisample.glTexStorage3DMultisample(a, b, c, d, e, f, g);
     }
 
     public static void glVertexAttribBinding(int a, int b) {

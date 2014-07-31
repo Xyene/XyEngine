@@ -5,6 +5,8 @@ import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.node.Material;
 
+import static org.lwjgl.opengl.GLContext.getCapabilities;
+
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
     private final boolean[] caps;
@@ -15,11 +17,14 @@ public class GL20DrawContext implements IDrawContext {
         caps = new boolean[]{
                 true,  // Normal mapping
                 true,  // Specular mapping
-                GLContext.getCapabilities().OpenGL30, // Dynamic shadows
+                getCapabilities().OpenGL30, // Dynamic shadows
                 true,  // alpha testing
                 true,    // Fog
-                GLContext.getCapabilities().OpenGL32,    // ANTIALIASING
-                GLContext.getCapabilities().GL_EXT_framebuffer_object    // bloom
+                getCapabilities().GL_EXT_framebuffer_object
+                        && getCapabilities().GL_EXT_framebuffer_multisample
+                        && getCapabilities().GL_ARB_texture_multisample
+                        && getCapabilities().GL_EXT_framebuffer_blit,    // ANTIALIASING
+                getCapabilities().GL_EXT_framebuffer_object    // bloom
         };
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);
