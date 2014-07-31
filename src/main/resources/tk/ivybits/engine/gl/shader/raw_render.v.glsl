@@ -5,7 +5,6 @@
 #define in attribute
 #endif
 
-
 in vec3 a_Vertex;
 
 uniform mat4 u_projectionMatrix;

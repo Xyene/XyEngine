@@ -30,7 +30,7 @@ public class FrameBuffer {
         if (!b) bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, buffer.target(), GL_RENDERBUFFER, buffer.id());
         if (!b) unbind();
-        renderBufferList.add(buffer);
+        if(!renderBufferList.contains(buffer)) renderBufferList.add(buffer);
         return this;
     }
 
@@ -74,6 +74,7 @@ public class FrameBuffer {
         this.height = height;
         for (RenderBuffer buffer : renderBufferList) {
             buffer.resize(width, height);
+            attach(buffer);
         }
         if (colorBuffer != null) colorBuffer.resize(width, height);
     }

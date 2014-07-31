@@ -17,6 +17,8 @@ public class BloomEffect {
 
     private FrameBuffer[] swap = new FrameBuffer[LOD];
     private FrameBuffer[] blur = new FrameBuffer[LOD];
+    private int width;
+    private int height;
 
     private FrameBuffer createBuffer(int filter, int width, int height) {
         FrameBuffer bloom = new FrameBuffer(width, height);
@@ -32,17 +34,9 @@ public class BloomEffect {
     }
 
     public BloomEffect(int width, int height) {
-        output = createBuffer(GL_NEAREST, width, height);
-        input = createBuffer(GL_NEAREST, width, height).attach(RenderBuffer.newDepthBuffer(width, height));
-
-        int cwidth = width, cheight = height;
-        for (int i = 0; i < LOD; i++) {
-            cwidth *= REDUCTION_FACTOR;
-            cheight *= REDUCTION_FACTOR;
-            blur[i] = createBuffer(GL_LINEAR, cwidth, cheight);
-            swap[i] = createBuffer(GL_LINEAR, cwidth, cheight);
-        }
-
+        this.width = width;
+        this.height = height;
+        create();
         thresholdShader = Program.builder()
                 .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl")
                 .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.v.glsl")
@@ -60,16 +54,39 @@ public class BloomEffect {
                 .build();
     }
 
-    public void resize(int width, int height) {
-        output.resize(width, height);
-        input.resize(width, height);
+    private void create() {
+        output = createBuffer(GL_NEAREST, width, height);
+        input = createBuffer(GL_NEAREST, width, height).attach(RenderBuffer.newDepthBuffer(width, height));
+
         int cwidth = width, cheight = height;
         for (int i = 0; i < LOD; i++) {
             cwidth *= REDUCTION_FACTOR;
             cheight *= REDUCTION_FACTOR;
-            blur[i].resize(cwidth, cheight);
-            swap[i].resize(cwidth, cheight);
+            blur[i] = createBuffer(GL_LINEAR, cwidth, cheight);
+            swap[i] = createBuffer(GL_LINEAR, cwidth, cheight);
         }
+    }
+
+    public void resize(int width, int height) {
+        this.width = width;
+        this.height = height;
+        // FIXME: resize approach doesn't work
+//        output.resize(width, height);
+//        input.resize(width, height);
+//        int cwidth = width, cheight = height;
+//        for (int i = 0; i < LOD; i++) {
+//            cwidth *= REDUCTION_FACTOR;
+//            cheight *= REDUCTION_FACTOR;
+//            blur[i].resize(cwidth, cheight);
+//            swap[i].resize(cwidth, cheight);
+//        }
+        output.destroy();
+        input.destroy();
+        for (int i = 0; i < LOD; i++) {
+            blur[i].destroy();
+            swap[i].destroy();
+        }
+        create();
     }
 
     public void destroy() {
@@ -80,6 +97,8 @@ public class BloomEffect {
             swap[i].destroy();
         }
         thresholdShader.destroy();
+        vblur.destroy();
+        hblur.destroy();
     }
 
     public FrameBuffer getInputBuffer() {

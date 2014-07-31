@@ -144,11 +144,7 @@ public class Texture {
     public Texture resize(int width, int height) {
         this.width = width;
         this.height = height;
-        boolean b = bound;
-        if (!b) bind();
-        setData(GL_UNSIGNED_BYTE, null);
-        if (!b) unbind();
-        return this;
+        return setData(GL_UNSIGNED_BYTE, null);
     }
 
     public Texture setData(int type, Buffer buffer) {

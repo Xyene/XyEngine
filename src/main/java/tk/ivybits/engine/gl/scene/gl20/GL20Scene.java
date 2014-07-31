@@ -106,8 +106,9 @@ public class GL20Scene implements IScene {
         int numLights = spotLights.size();
         if (shadowMapFBOs.size() < numLights) {
             for (int n = shadowMapFBOs.size(); n < numLights; n++) {
+                FrameBuffer self;
                 shadowMapFBOs.put(
-                        new FrameBuffer(viewWidth, viewHeight)
+                        self = new FrameBuffer(viewWidth, viewHeight)
                                 .attach(RenderBuffer.newDepthBuffer(viewWidth, viewHeight))
                                 .attach(new Texture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT, viewWidth, viewHeight)),
                         new Matrix4f()
