@@ -19,7 +19,7 @@ public class GL20DrawContext implements IDrawContext {
                 true,  // alpha testing
                 true,    // Fog
                 GLContext.getCapabilities().OpenGL32,    // ANTIALIASING
-                GLContext.getCapabilities().OpenGL30    // bloom
+                GLContext.getCapabilities().GL_EXT_framebuffer_object    // bloom
         };
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);

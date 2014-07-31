@@ -2254,15 +2254,16 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static int glGetFramebufferAttachmentParameteri(int a, int b, int c) {
-        return GL30.glGetFramebufferAttachmentParameteri(a, b, c);
+
+        return EXTFramebufferObject.glGetFramebufferAttachmentParameteriEXT(a, b, c);
     }
 
     public static int glGetFramebufferAttachmentParameter(int a, int b, int c) {
-        return GL30.glGetFramebufferAttachmentParameter(a, b, c);
+        return EXTFramebufferObject.glGetFramebufferAttachmentParameterEXT(a, b, c);
     }
 
     public static void glGetFramebufferAttachmentParameter(int a, int b, int c, IntBuffer d) {
-        GL30.glGetFramebufferAttachmentParameter(a, b, c, d);
+        EXTFramebufferObject.glGetFramebufferAttachmentParameterEXT(a, b, c, d);
     }
 
     public static void glRenderbufferStorageMultisample(int a, int b, int c, int d, int e) {
@@ -2426,7 +2427,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static int glCheckFramebufferStatus(int a) {
-        return GL30.glCheckFramebufferStatus(a);
+        return EXTFramebufferObject.glCheckFramebufferStatusEXT(a);
     }
 
     public static void glRenderbufferStorage(int a, int b, int c, int d) {
@@ -2442,7 +2443,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glFramebufferTexture1D(int a, int b, int c, int d, int e) {
-        GL30.glFramebufferTexture1D(a, b, c, d, e);
+        EXTFramebufferObject.glFramebufferTexture1DEXT(a, b, c, d, e);
     }
 
     public static int glGetRenderbufferParameteri(int a, int b) {
@@ -2450,7 +2451,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glFramebufferTexture3D(int a, int b, int c, int d, int e, int f) {
-        GL30.glFramebufferTexture3D(a, b, c, d, e, f);
+        EXTFramebufferObject.glFramebufferTexture3DEXT(a, b, c, d, e, f);
     }
 
     public static void glGenerateMipmap(int a) {
@@ -2486,15 +2487,15 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glFramebufferTexture2D(int a, int b, int c, int d, int e) {
-        GL30.glFramebufferTexture2D(a, b, c, d, e);
+        EXTFramebufferObject.glFramebufferTexture2DEXT(a, b, c, d, e);
     }
 
     public static void glFramebufferRenderbuffer(int a, int b, int c, int d) {
-        GL30.glFramebufferRenderbuffer(a, b, c, d);
+        EXTFramebufferObject.glFramebufferRenderbufferEXT(a, b, c, d);
     }
 
     public static void glBlitFramebuffer(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
-        GL30.glBlitFramebuffer(a, b, c, d, e, f, g, h, i, j);
+        EXTFramebufferBlit.glBlitFramebufferEXT(a, b, c, d, e, f, g, h, i, j);
     }
 
     public static void glTexParameterI(int a, int b, IntBuffer c) {
@@ -2502,11 +2503,11 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glGenFramebuffers(IntBuffer a) {
-        GL30.glGenFramebuffers(a);
+        EXTFramebufferObject.glGenFramebuffersEXT(a);
     }
 
     public static int glGenFramebuffers() {
-        return GL30.glGenFramebuffers();
+        return EXTFramebufferObject.glGenFramebuffersEXT();
     }
 
     public static void glEndConditionalRender() {
@@ -2514,11 +2515,11 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glDeleteFramebuffers(int a) {
-        GL30.glDeleteFramebuffers(a);
+        EXTFramebufferObject.glDeleteFramebuffersEXT(a);
     }
 
     public static void glDeleteFramebuffers(IntBuffer a) {
-        GL30.glDeleteFramebuffers(a);
+        EXTFramebufferObject.glDeleteFramebuffersEXT(a);
     }
 
     public static void glTexParameterIi(int a, int b, int c) {
@@ -2530,7 +2531,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static boolean glIsFramebuffer(int a) {
-        return GL30.glIsFramebuffer(a);
+        return EXTFramebufferObject.glIsFramebufferEXT(a);
     }
 
     public static void glBeginConditionalRender(int a, int b) {
@@ -2538,7 +2539,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glBindFramebuffer(int a, int b) {
-        GL30.glBindFramebuffer(a, b);
+        EXTFramebufferObject.glBindFramebufferEXT(a, b);
     }
 
     public static void glTexParameterIui(int a, int b, int c) {
