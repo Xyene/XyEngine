@@ -1,4 +1,4 @@
-package tk.ivybits.engine.gl.scene.gl20.lighting.shadow;
+package tk.ivybits.engine.gl.scene.gl20.lighting;
 
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.Program;
@@ -23,7 +23,7 @@ public class RawRenderShader implements ISceneShader {
                 getProgram().getAttributeLocation("a_Vertex"),
                 -1, // No normals
                 -1, // No UV
-                -1 // No tangents
+                -1  // No tangents
         }[attribute.ordinal()];
     }
 

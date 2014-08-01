@@ -32,12 +32,14 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
 
     private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.f.glsl";
     private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.v.glsl";
-    private static final String VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE;
+    private static final String BASE_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/lighting.glsl";
+    private static final String VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE, BASE_SHADER_SOURCE;
     private Matrix4f modelMatrix = new Matrix4f(), viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
     static {
         VERTEX_SHADER_SOURCE = ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(VERTEX_SHADER_LOCATION));
         FRAGMENT_SHADER_SOURCE = ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(FRAGMENT_SHADER_LOCATION));
+        BASE_SHADER_SOURCE = ProgramBuilder.readSourceFrom(ClassLoader.getSystemResourceAsStream(BASE_SHADER_LOCATION));
     }
 
     private boolean needsScenePush = true;
@@ -232,6 +234,7 @@ public class PhongLightingShader implements ISceneShader, ISceneChangeListener {
         if (shader == null) {
             ProgramBuilder builder = Program.builder()
                     .addShader(VERTEX_SHADER, VERTEX_SHADER_SOURCE)
+                    .addShader(FRAGMENT_SHADER, BASE_SHADER_SOURCE)
                     .addShader(FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
             for (int i = 0; i != identifier.size(); i++) {
                 if (identifier.get(i)) {

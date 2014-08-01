@@ -6,7 +6,7 @@ import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
 import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
 import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
-import tk.ivybits.engine.gl.scene.gl20.lighting.shadow.RawRenderShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.RawRenderShader;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;

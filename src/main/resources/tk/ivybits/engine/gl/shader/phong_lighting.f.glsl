@@ -7,56 +7,6 @@
 #define textureProj texture2DProj
 #endif
 
-struct SpotLight {
-    vec3 position;
-    vec3 direction;
-    float cutoff;
-    float intensity;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
-
-struct PointLight {
-    vec3 position;
-    float intensity;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
-
-struct DirectionalLight {
-    vec3 direction;
-    float intensity;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
-
-struct Material {
-    bool hasDiffuse;
-    sampler2D diffuseMap;
-    bool hasSpecular;
-    sampler2D specularMap;
-#ifdef NORMAL_MAPPING
-    bool hasNormal;
-    sampler2D normalMap;
-#endif
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float shininess;
-    float transparency;
-};
-
-#ifdef FOG
-struct Fog {
-    vec3 fogColor;
-    float fogNear;
-    float fogFar;
-};
-#endif
-
 #define MAX_LIGHTS 8
 
 in vec3 v_surfaceNormal;

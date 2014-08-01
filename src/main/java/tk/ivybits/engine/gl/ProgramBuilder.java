@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import static tk.ivybits.engine.gl.GL.*;
+import static tk.ivybits.engine.gl.GL.glShaderSource;
 
 public class ProgramBuilder {
     private static final int[] SHADER_ENUM_LOOKUP = {
@@ -15,7 +16,7 @@ public class ProgramBuilder {
             GL_TESS_EVALUATION_SHADER,
             GL_TESS_CONTROL_SHADER
     };
-    private List<Map.Entry<ProgramType, String>> shaders = new ArrayList<>();
+    private HashMap<ProgramType, List<String>> shaders = new HashMap<>();
     private HashMap<String, String> defines = new HashMap<>();
 
     public static String readSourceFrom(InputStream in) {
@@ -46,14 +47,19 @@ public class ProgramBuilder {
     }
 
     public ProgramBuilder addShader(ProgramType type, String source) {
-        shaders.add(new AbstractMap.SimpleImmutableEntry<>(type, source));
+        List<String> sources = shaders.get(type);
+        if (sources == null) {
+            sources = new ArrayList<>();
+            shaders.put(type, sources);
+        }
+        sources.add(source);
         return this;
     }
 
     public Program build() {
         int handle = glCreateProgram();
         List<Integer> toUnbind = new ArrayList<>(shaders.size());
-        for (Map.Entry<ProgramType, String> shader : shaders) {
+        for (Map.Entry<ProgramType, List<String>> shader : shaders.entrySet()) {
             int shaderHandle = glCreateShader(SHADER_ENUM_LOOKUP[shader.getKey().ordinal()]);
 
             String header = "";
@@ -61,18 +67,24 @@ public class ProgramBuilder {
                 header += "#define " + def.getKey() + " " + def.getValue() + "\n";
             }
 
-            String source = shader.getValue().trim();
-            if (source.startsWith("#version")) {
-                int idx = source.indexOf('\n');
-                source = source.substring(0, idx + 1) + header + source.substring(idx + 1);
-            } else {
-                source = header + source;
+            List<String> value = shader.getValue();
+            String[] sources = new String[value.size()];
+            for (int i = 0; i < value.size(); i++) {
+                String source = value.get(i);
+                source = source.trim();
+                if (source.startsWith("#version")) {
+                    int idx = source.indexOf('\n');
+                    source = source.substring(0, idx + 1) + header + source.substring(idx + 1);
+                } else {
+                    source = header + source;
+                }
+                sources[i] = source;
             }
 
-            glShaderSource(shaderHandle, source);
+            glShaderSource(shaderHandle, sources);
+
             glCompileShader(shaderHandle);
-            String log = glGetShaderInfoLog(shaderHandle, glGetShaderi(shaderHandle, GL_INFO_LOG_LENGTH));
-            if (log.length() > 0) System.err.println(log);
+
             if (glGetShaderi(shaderHandle, GL_COMPILE_STATUS) == GL_FALSE) {
                 glDeleteShader(shaderHandle);
             }
@@ -83,10 +95,6 @@ public class ProgramBuilder {
         }
         glLinkProgram(handle);
         if (glGetProgrami(handle, GL_LINK_STATUS) == GL_FALSE) {
-            String log = glGetProgramInfoLog(handle, glGetProgrami(handle, GL_INFO_LOG_LENGTH));
-
-            if (log.length() > 0) System.err.println(log);
-
             glDeleteProgram(handle);
             handle = -1;
         }
