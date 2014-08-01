@@ -1,13 +1,14 @@
 package tk.ivybits.engine.scene;
 
 import tk.ivybits.engine.scene.model.GeometryDrawable;
-import tk.ivybits.engine.scene.model.IGeometry;
+import tk.ivybits.engine.scene.model.node.Mesh;
+import tk.ivybits.engine.scene.model.node.Model;
 
 public class GeometryActor extends AbstractActor {
-    private IGeometry model;
+    private Model model;
     private BoundingBox boundingBox;
 
-    public GeometryActor(IGeometry model) {
+    public GeometryActor(Model model) {
         this.model = model;
     }
 

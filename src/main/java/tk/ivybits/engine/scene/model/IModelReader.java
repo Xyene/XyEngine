@@ -1,6 +1,7 @@
 package tk.ivybits.engine.scene.model;
 
-import tk.ivybits.engine.scene.model.IGeometry;
+import tk.ivybits.engine.scene.model.node.Mesh;
+import tk.ivybits.engine.scene.model.node.Model;
 
 import java.io.*;
 
@@ -38,11 +39,11 @@ public interface IModelReader {
         }
     };
 
-    IGeometry load(File in) throws IOException;
+    Model load(File in) throws IOException;
 
-    IGeometry loadSystem(String in) throws IOException;
+    Model loadSystem(String in) throws IOException;
 
-    IGeometry load(String in, ResourceFinder finder) throws IOException;
+    Model load(String in, ResourceFinder finder) throws IOException;
 
     String getFileType();
 }

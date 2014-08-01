@@ -2,10 +2,7 @@ package tk.ivybits.engine.loader.model.wavefront;
 
 import tk.ivybits.engine.scene.model.IModelReader;
 import tk.ivybits.engine.scene.model.TangentSpace;
-import tk.ivybits.engine.scene.model.node.Face;
-import tk.ivybits.engine.scene.model.node.Material;
-import tk.ivybits.engine.scene.model.node.Mesh;
-import tk.ivybits.engine.scene.model.node.Vertex;
+import tk.ivybits.engine.scene.model.node.*;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector2f;
@@ -44,25 +41,26 @@ public class OBJReader implements IModelReader {
             TEXTURE_TRANSPARENCY = "map_d",
             TEXTURE_BUMP_MAP = "map_bump";
 
-    public Mesh load(File in) throws IOException {
+    public Model load(File in) throws IOException {
         return load(in.getAbsolutePath(), RESOURCE_FINDER_FILE);
     }
 
-    public Mesh loadSystem(String in) throws IOException {
+    public Model loadSystem(String in) throws IOException {
         return load(in, RESOURCE_FINDER_PACKAGED_RESOURCE);
     }
 
-    public Mesh load(String in, ResourceFinder finder) throws IOException {
+    public Model load(String in, ResourceFinder finder) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(finder.open(in)));
 
         ArrayList<Vector3f> V = new ArrayList<>();
         ArrayList<Vector3f> VN = new ArrayList<>();
         ArrayList<Vector2f> VT = new ArrayList<>();
-        Mesh mesh = new Mesh();
-        List<Face> faces = mesh.getFaces();
+        Model model = new Model();
         Material currentMaterial = null;
         HashMap<String, Material> materials = new HashMap<>();
         boolean tangent = false;
+
+        Mesh currentMesh = new Mesh(null);
 
         for (String line; (line = reader.readLine()) != null; ) {
             if ((line = line.trim()).isEmpty())
@@ -86,7 +84,7 @@ public class OBJReader implements IModelReader {
                     if (vertexCount > 4)
                         throw new IllegalArgumentException("unsupported number of vertices/face: " + vertexCount);
 
-                    Face face = new Face(vertexCount, currentMaterial);
+                    Face face = new Face(vertexCount);
                     Vertex[] vertices = face.getVertices();
 
                     for (int i = 0; i < vertexCount; i++) {
@@ -103,7 +101,7 @@ public class OBJReader implements IModelReader {
                                 v.normal = VN.get(parseInt(raw[2]) - 1);
                         vertices[i] = v;
                     }
-                    faces.add(face);
+                    currentMesh.getFaces().add(face);
                     if (tangent) {
                         TangentSpace.calculateTangents(face);
                     }
@@ -114,13 +112,18 @@ public class OBJReader implements IModelReader {
                 case USE_MATERIAL:
                     currentMaterial = materials.get(concatTokens(tokens));
                     tangent = currentMaterial.bumpMap != null;
+                    if(currentMesh.getFaces().size() > 0)
+                        model.getMeshes().add(currentMesh);
+                    currentMesh = new Mesh(currentMaterial);
                     break;
                 case MATERIAL_FILE:
                     materials = loadMaterials(finder.parent(in) + concatTokens(tokens), finder);
                     break;
             }
         }
-        return mesh;
+        if(currentMesh.getFaces().size() > 0)
+            model.getMeshes().add(currentMesh);
+        return model;
     }
 
     private static String concatTokens(StringTokenizer tokenizer) {

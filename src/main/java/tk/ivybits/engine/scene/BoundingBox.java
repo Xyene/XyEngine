@@ -1,7 +1,8 @@
 package tk.ivybits.engine.scene;
 
-import tk.ivybits.engine.scene.model.IGeometry;
 import tk.ivybits.engine.scene.model.node.Face;
+import tk.ivybits.engine.scene.model.node.Mesh;
+import tk.ivybits.engine.scene.model.node.Model;
 import tk.ivybits.engine.scene.model.node.Vertex;
 import tk.ivybits.engine.util.ToString;
 
@@ -34,23 +35,26 @@ public class BoundingBox {
     }
 
     /**
-     * Naively computes the bounding box of an {@link tk.ivybits.engine.scene.model.IGeometry} instance.
+     * Naively computes the bounding box of an {@link tk.ivybits.engine.scene.model.node.Mesh} instance.
      *
      * @param geom The mesh.
      * @return A bounding box of the given mesh.
      */
-    public static BoundingBox getBoundingBox(IGeometry geom) {
-        List<Face> faces = geom.getFaces();
+    public static BoundingBox getBoundingBox(Model geom) {
         float min_length = 0, min_width = 0, min_height = 0, max_length = 0, max_width = 0, max_height = 0;
-        for (Face f : faces) {
-            for (Vertex v : f) {
-                Vector3f n = v.pos;
-                max_length = Math.max(max_length, n.x);
-                max_width = Math.max(max_width, n.z);
-                max_height = Math.max(max_height, n.y);
-                min_length = Math.min(min_length, n.x);
-                min_width = Math.min(min_width, n.z);
-                min_height = Math.min(min_height, n.y);
+
+        for (Mesh mesh : geom.getMeshes()) {
+            List<Face> faces = mesh.getFaces();
+            for (Face f : faces) {
+                for (Vertex v : f) {
+                    Vector3f n = v.pos;
+                    max_length = Math.max(max_length, n.x);
+                    max_width = Math.max(max_width, n.z);
+                    max_height = Math.max(max_height, n.y);
+                    min_length = Math.min(min_length, n.x);
+                    min_width = Math.min(min_width, n.z);
+                    min_height = Math.min(min_height, n.y);
+                }
             }
         }
         return new BoundingBox(Math.abs(max_length - min_length), Math.abs(max_width - min_width), Math.abs(max_height - min_height));

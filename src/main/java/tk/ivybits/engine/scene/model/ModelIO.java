@@ -1,5 +1,8 @@
 package tk.ivybits.engine.scene.model;
 
+import tk.ivybits.engine.scene.model.node.Mesh;
+import tk.ivybits.engine.scene.model.node.Model;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -18,7 +21,7 @@ public class ModelIO {
         return keys;
     }
 
-    public static IGeometry read(File in) throws IOException {
+    public static Model read(File in) throws IOException {
         String suffix = in.getName();
         suffix = suffix.substring(suffix.lastIndexOf(".") + 1).toUpperCase();
         for (IModelReader decoder : sReaders)
@@ -27,7 +30,7 @@ public class ModelIO {
         throw new IllegalArgumentException("unsupported format: " + suffix);
     }
 
-    public static IGeometry readSystem(String in) throws IOException {
+    public static Model readSystem(String in) throws IOException {
         String suffix = in;
         suffix = suffix.substring(suffix.lastIndexOf(".") + 1).toUpperCase();
         for (IModelReader decoder : sReaders)

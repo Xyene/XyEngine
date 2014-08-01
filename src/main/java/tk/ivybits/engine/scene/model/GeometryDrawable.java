@@ -2,45 +2,36 @@ package tk.ivybits.engine.scene.model;
 
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.geometry.ITesselator;
-import tk.ivybits.engine.scene.model.node.Face;
-import tk.ivybits.engine.scene.model.node.Material;
-import tk.ivybits.engine.scene.model.node.Vertex;
+import tk.ivybits.engine.scene.model.node.*;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class GeometryDrawable implements IDrawable {
-    private final IGeometry model;
+    private final Model model;
     private final IDrawContext ctx;
     private List<BufferedMesh> meshes;
     private boolean transparent;
 
-    public GeometryDrawable(IDrawContext with, IGeometry model) {
+    public GeometryDrawable(IDrawContext with, Model model) {
         this.ctx = with;
         this.model = model;
     }
 
     @Override
     public boolean isTransparent() {
-        if (meshes == null) {
-            meshes = compile();
-        }
+        compile();
         return transparent;
     }
 
     @Override
     public void draw(IScene scene) {
-        if (meshes == null) {
-            meshes = compile();
-        }
+        compile();
 
-        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+        glPushAttrib(GL_CURRENT_BIT | GL_TEXTURE_BIT);
 
         for (BufferedMesh mesh : meshes) {
             if (mesh.material != null) ctx.useMaterial(mesh.material);
@@ -50,81 +41,53 @@ public class GeometryDrawable implements IDrawable {
         glPopAttrib();
     }
 
-    private List<BufferedMesh> compile() {
-        List<BufferedMesh> buffered = new ArrayList<>();
+    private void compile() {
+        if(meshes != null) return;
+        meshes = new LinkedList<>();
 
-        List<Face> faces = model.getFaces();
-        if (faces.size() == 0) return Collections.emptyList();
+        for (Mesh mesh : model.getMeshes()) {
+            Material material = mesh.getMaterial();
+            List<Face> faces = mesh.getFaces();
 
-        Collections.sort(faces, new Comparator<Face>() {
-            @Override
-            public int compare(Face o1, Face o2) {
-                return o1.getMaterial().hashCode() - o2.getMaterial().hashCode();
+            boolean normals = mesh.hasNormals(), uvs = mesh.hasUVs(), tangents = mesh.hasTangents();
+
+            transparent = transparent || material.transparency != 0;
+
+            int flag = 0;
+            if (normals) {
+                flag |= ITesselator.NORMAL_ATTR;
             }
-        });
-
-        Material currentMaterial = faces.get(0).getMaterial();
-
-        int position = 0, limit;
-        boolean normals = false, uvs = false, tangents = false;
-
-        for (int i = 0; i < faces.size(); i++) {
-            Face face = faces.get(i);
-            for (Vertex v : face.getVertices()) {
-                normals = normals || v.normal != null;
-                tangents = tangents || v.tangent != null;
-                uvs = uvs || v.uv != null;
+            if (uvs) {
+                flag |= ITesselator.UV_ATTR;
+            }
+            if (tangents) {
+                flag |= ITesselator.TANGENT_ATTR;
             }
 
-            Material mat = face.getMaterial();
-            transparent = transparent || mat.transparency != 0;
+            ITesselator buffer = ctx.createTesselator(flag, GL_TRIANGLES);
 
-            if (mat != currentMaterial || i == faces.size() - 1) { // Check last index: some models have no texture and only one material
-                limit = i + 1;
+            for (int f = 0; f < faces.size(); f++) {
+                Face _face = faces.get(f);
+                Vertex[] vertices = _face.getVertices();
 
-                int flag = 0;
-                if (normals) {
-                    flag |= ITesselator.NORMAL_ATTR;
-                }
-                if (uvs) {
-                    flag |= ITesselator.UV_ATTR;
-                }
-                if (tangents) {
-                    flag |= ITesselator.TANGENT_ATTR;
-                }
-                ITesselator buffer = ctx.createTesselator(flag, GL_TRIANGLES);
-
-                for (int f = position; f < limit; f++) {
-                    Face _face = faces.get(f);
-                    Vertex[] vertices = _face.getVertices();
-
+                vertex(vertices[0], buffer, normals, tangents, uvs);
+                vertex(vertices[1], buffer, normals, tangents, uvs);
+                vertex(vertices[2], buffer, normals, tangents, uvs);
+                if (_face.getVertexCount() == 4) {
                     vertex(vertices[0], buffer, normals, tangents, uvs);
-                    vertex(vertices[1], buffer, normals, tangents, uvs);
                     vertex(vertices[2], buffer, normals, tangents, uvs);
-                    if (face.getVertexCount() == 4) {
-                        vertex(vertices[0], buffer, normals, tangents, uvs);
-                        vertex(vertices[2], buffer, normals, tangents, uvs);
-                        vertex(vertices[3], buffer, normals, tangents, uvs);
-                    }
+                    vertex(vertices[3], buffer, normals, tangents, uvs);
                 }
-
-                BufferedMesh bmesh = new BufferedMesh();
-                bmesh.buffer = buffer.create();
-
-
-                bmesh.material = currentMaterial;
-                buffered.add(bmesh);
-
-                currentMaterial = mat;
-                position = limit;
-                normals = uvs = tangents = false;
             }
-        }
 
-        return buffered;
+            BufferedMesh bmesh = new BufferedMesh();
+            bmesh.buffer = buffer.create();
+            bmesh.material = material;
+            meshes.add(bmesh);
+        }
     }
 
-    public IGeometry getModel() {
+    public Model getModel() {
         return model;
     }
 

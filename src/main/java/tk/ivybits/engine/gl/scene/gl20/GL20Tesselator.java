@@ -66,6 +66,7 @@ public class GL20Tesselator implements ITesselator {
 
     private static final String[] VERTEX_ATTRIBUTES = {"a_Vertex", "a_Normal", "a_UV", "a_Tangent"};
     private static final int[] VERTEX_ATTRIBUTE_SIZES = {3, 3, 2, 3};
+    private static final int[] VERTEX_ATTRIBUTE_TYPES = {GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT};
 
     class InterleavedDrawable implements IDrawable {
         private final int handle;
@@ -87,7 +88,7 @@ public class GL20Tesselator implements ITesselator {
             for (int i = 0; i < VERTEX_ATTRIBUTES.length; i++) {
                 int location = locations[i];
                 if (location > -1) {
-                    glVertexAttribPointer(location, VERTEX_ATTRIBUTE_SIZES[i], GL_FLOAT, false, stride, offsets[i]);
+                    glVertexAttribPointer(location, VERTEX_ATTRIBUTE_SIZES[i], VERTEX_ATTRIBUTE_TYPES[i], false, stride, offsets[i]);
                 }
             }
         }
@@ -112,7 +113,7 @@ public class GL20Tesselator implements ITesselator {
                         glVertexAttribPointer(
                                 location,
                                 VERTEX_ATTRIBUTE_SIZES[i],
-                                GL_FLOAT,
+                                VERTEX_ATTRIBUTE_TYPES[i],
                                 false,
                                 stride,
                                 offsets[i]);

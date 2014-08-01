@@ -6,11 +6,9 @@ import java.util.Iterator;
 public class Face implements Iterable<Vertex> {
     private final int vertexCount;
     private Vertex[] vertices;
-    private Material material;
 
-    public Face(int vertexCount, Material material) {
+    public Face(int vertexCount) {
         this.vertexCount = vertexCount;
-        this.material = material;
         vertices = new Vertex[vertexCount];
     }
 
@@ -20,14 +18,6 @@ public class Face implements Iterable<Vertex> {
 
     public Vertex[] getVertices() {
         return vertices;
-    }
-
-    public Material getMaterial() {
-        return material;
-    }
-
-    public void setMaterial(Material material) {
-        this.material = material;
     }
 
     @Override
