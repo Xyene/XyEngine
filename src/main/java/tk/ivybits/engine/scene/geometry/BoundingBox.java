@@ -1,12 +1,12 @@
 package tk.ivybits.engine.scene.geometry;
 
+import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.scene.model.Face;
 import tk.ivybits.engine.scene.model.Mesh;
 import tk.ivybits.engine.scene.model.Model;
 import tk.ivybits.engine.scene.model.Vertex;
 import tk.ivybits.engine.util.ToString;
 
-import javax.vecmath.Vector3f;
 import java.util.List;
 
 import static tk.ivybits.engine.util.ToString.Printable;

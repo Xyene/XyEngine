@@ -1,12 +1,12 @@
 package tk.ivybits.engine.io.model.wavefront;
 
+import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.io.model.IModelReader;
 import tk.ivybits.engine.scene.model.*;
 import tk.ivybits.engine.util.TangentSpace;
 
 import javax.imageio.ImageIO;
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3f;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;

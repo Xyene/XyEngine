@@ -1,7 +1,8 @@
 package tk.ivybits.engine.scene.model;
 
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3f;
+import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.util.vector.Vector3f;
+
 import java.awt.*;
 
 public class Vertex {
