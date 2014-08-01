@@ -10,6 +10,7 @@ import tk.ivybits.engine.scene.IDrawable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -54,6 +55,13 @@ public class GeometryDrawable implements IDrawable {
 
         List<Face> faces = model.getFaces();
         if (faces.size() == 0) return Collections.emptyList();
+
+        Collections.sort(faces, new Comparator<Face>() {
+            @Override
+            public int compare(Face o1, Face o2) {
+                return o1.getMaterial().hashCode() - o2.getMaterial().hashCode();
+            }
+        });
 
         Material currentMaterial = faces.get(0).getMaterial();
 
@@ -144,7 +152,7 @@ public class GeometryDrawable implements IDrawable {
         if (uvs) {
             if (vertex.uv != null) {
                 tes.texture(vertex.uv.x, vertex.uv.y);
-            }else {
+            } else {
                 tes.texture(0, 0);
             }
         }
