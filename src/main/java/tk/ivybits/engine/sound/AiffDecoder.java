@@ -47,7 +47,6 @@ import java.nio.ShortBuffer;
 import static org.lwjgl.openal.AL10.*;
 
 /**
- *
  * Utitlity class for loading wavefiles.
  *
  * @author Brian Matzon <brian@matzon.dk>
@@ -71,8 +70,8 @@ public class AiffDecoder {
     /**
      * Creates a new AiffData
      *
-     * @param data actual Aiffdata
-     * @param format format of Aiff data
+     * @param data       actual Aiffdata
+     * @param format     format of Aiff data
      * @param samplerate sample rate of data
      */
     private AiffDecoder(ByteBuffer data, int format, int samplerate) {
@@ -98,7 +97,7 @@ public class AiffDecoder {
         try {
             return create(
                     AudioSystem.getAudioInputStream(
-                    new BufferedInputStream(path.openStream())));
+                            new BufferedInputStream(path.openStream())));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -140,7 +139,7 @@ public class AiffDecoder {
         try {
             return create(
                     AudioSystem.getAudioInputStream(
-                    new BufferedInputStream(new ByteArrayInputStream(buffer))));
+                            new BufferedInputStream(new ByteArrayInputStream(buffer))));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -207,9 +206,9 @@ public class AiffDecoder {
         //read data into buffer
         byte[] buf =
                 new byte[audioformat.getChannels()
-                * (int) ais.getFrameLength()
-                * audioformat.getSampleSizeInBits()
-                / 8];
+                        * (int) ais.getFrameLength()
+                        * audioformat.getSampleSizeInBits()
+                        / 8];
         int read = 0, total = 0;
         try {
             while ((read = ais.read(buf, total, buf.length - total)) != -1
@@ -224,7 +223,7 @@ public class AiffDecoder {
         ByteBuffer buffer = convertAudioBytes(audioformat, buf, audioformat.getSampleSizeInBits() == 16);
 
         //create our result
-        AiffDecoder Aiffdata =  new AiffDecoder(buffer, channels, (int) audioformat.getSampleRate());
+        AiffDecoder Aiffdata = new AiffDecoder(buffer, channels, (int) audioformat.getSampleRate());
 
         //close stream
         try {
@@ -238,8 +237,8 @@ public class AiffDecoder {
     /**
      * Convert the audio bytes into the stream
      *
-     * @param format The audio format being decoded
-     * @param audio_bytes The audio byts
+     * @param format         The audio format being decoded
+     * @param audio_bytes    The audio byts
      * @param two_bytes_data True if we using double byte data
      * @return The byte bufer of data
      */

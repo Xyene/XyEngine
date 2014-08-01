@@ -51,7 +51,7 @@ public class Program {
     }
 
     public void setUniform(int handle, Object... objs) {
-        if(handle < 0)
+        if (handle < 0)
             return;
         if (objs.length == 1) {
             Object obj = objs[0];

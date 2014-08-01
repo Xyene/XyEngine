@@ -6,6 +6,7 @@ package tk.ivybits.engine.loader.image.targa;
  *   See bottom of file for license and warranty information.
  * Created on Sep 26, 2003
  */
+
 /**
  * <p>Various header and such constants for the TGA image format.</p>
  *

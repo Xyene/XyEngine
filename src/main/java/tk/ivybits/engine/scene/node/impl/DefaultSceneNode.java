@@ -164,10 +164,10 @@ public class DefaultSceneNode implements ISceneNode {
             throw new UnsupportedOperationException("can't destroy root node");
         }
         // Warning: this will send multiple events for same object if several levels deep
-        for(ISpotLight light : spotLights) destroy(light);
-        for(IPointLight light : pointLights) destroy(light);
-        for(IDirectionalLight light : dirLights) destroy(light);
-        for(IActor actor : actors) destroy(actor);
+        for (ISpotLight light : spotLights) destroy(light);
+        for (IPointLight light : pointLights) destroy(light);
+        for (IDirectionalLight light : dirLights) destroy(light);
+        for (IActor actor : actors) destroy(actor);
         actors.clear();
         for (ISceneNode node : children)
             node.destroy();

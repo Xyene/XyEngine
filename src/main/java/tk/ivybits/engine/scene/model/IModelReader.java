@@ -31,7 +31,7 @@ public interface IModelReader {
 
         @Override
         public String parent(String name) {
-            if(name.endsWith("/"))
+            if (name.endsWith("/"))
                 name = name.substring(0, name.lastIndexOf("/"));
             name = name.substring(0, name.lastIndexOf("/"));
             return name + "/";

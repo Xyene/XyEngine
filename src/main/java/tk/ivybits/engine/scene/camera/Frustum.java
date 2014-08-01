@@ -113,7 +113,7 @@ public class Frustum {
 
     // Assumes a model transformation of 0,0,0 and no rotation
     public boolean bbInFrustum(float x, float y, float z, BoundingBox bb) {
-        if(true) return true; // FIXME
+        if (true) return true; // FIXME
         float length = bb.getLength() / 2;
         float width = bb.getWidth() / 2;
         float height = bb.getHeight();

@@ -27,7 +27,7 @@ public class ALAudio implements IAudio {
     /**
      * Create a new sound
      *
-     * @param store The sound store from which the sound was created
+     * @param store  The sound store from which the sound was created
      * @param buffer The buffer containing the sound data
      */
     ALAudio(int buffer, AudioFormat format) {

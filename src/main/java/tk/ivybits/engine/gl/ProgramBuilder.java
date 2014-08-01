@@ -20,8 +20,6 @@ public class ProgramBuilder {
     private HashMap<ProgramType, List<String>> shaders = new HashMap<>();
     private HashMap<String, String> defines = new HashMap<>();
 
-
-
     public ProgramBuilder loadShader(ProgramType type, String path) throws FileNotFoundException {
         return loadShader(type, new FileInputStream(new File(path)));
     }
@@ -107,8 +105,8 @@ public class ProgramBuilder {
     }
 
     public ProgramBuilder add(Map<ProgramType, List<String>> sources) {
-        for(Map.Entry<ProgramType, List<String>> source : sources.entrySet()) {
-            for(String part : source.getValue()) {
+        for (Map.Entry<ProgramType, List<String>> source : sources.entrySet()) {
+            for (String part : source.getValue()) {
                 addShader(source.getKey(), part);
             }
         }

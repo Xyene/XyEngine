@@ -177,7 +177,7 @@ public class GL20Tesselator implements ITesselator {
         int vi = 0, ni = 0, ti = 0, ui = 0;
 
         for (int i = 0; i < indexCount; i++) {
-           for (int j = 0; j < 3; j++) interleaved.put(vertices.get(vi++));
+            for (int j = 0; j < 3; j++) interleaved.put(vertices.get(vi++));
             if (normals != null) for (int j = 0; j < 3; j++) interleaved.put(normals.get(ni++));
             if (textures != null) for (int j = 0; j < 2; j++) interleaved.put(textures.get(ui++));
             if (tangents != null) for (int j = 0; j < 3; j++) interleaved.put(tangents.get(ti++));

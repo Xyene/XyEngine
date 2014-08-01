@@ -6,7 +6,6 @@ import java.awt.*;
 import java.io.IOException;
 
 /**
- *
  * @author Tudor
  */
 public class JSAudio implements IAudio {
@@ -79,7 +78,7 @@ public class JSAudio implements IAudio {
     public AudioFormat getFormat() {
         return clip.getFormat();
     }
-    
+
     public Clip getClip() {
         return clip;
     }

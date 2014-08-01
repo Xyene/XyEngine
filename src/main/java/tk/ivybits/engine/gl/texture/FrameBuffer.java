@@ -30,7 +30,7 @@ public class FrameBuffer {
         if (!b) bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, buffer.target(), GL_RENDERBUFFER, buffer.id());
         if (!b) unbind();
-        if(!renderBufferList.contains(buffer)) renderBufferList.add(buffer);
+        if (!renderBufferList.contains(buffer)) renderBufferList.add(buffer);
         return this;
     }
 

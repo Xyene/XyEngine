@@ -31,7 +31,7 @@ public class GL11DrawContext implements IDrawContext {
 
     @Override
     public void useMaterial(Material material) {
-            parent.useMaterial(material);
+        parent.useMaterial(material);
     }
 
     @Override

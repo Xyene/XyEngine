@@ -25,15 +25,16 @@ import javax.imageio.stream.ImageInputStream;
  *   See bottom of file for license and warranty information.
  * Created on Sep 26, 2003
  */
+
 /**
  * <p>The {@link javax.imageio.ImageReader} that exposes the TGA image reading.
  * 8, 15, 16, 24 and 32 bit true color or color mapped (RLE compressed or
  * uncompressed) are supported.  Monochrome images are not supported.</p>
- *
+ * <p/>
  * <p>Great care should be employed with {@link javax.imageio.ImageReadParam}s.
  * Little to no effort has been made to correctly handle sub-sampling or
  * specified bands.</p>
- *
+ * <p/>
  * <p>{@link javax.imageio.ImageIO#setUseCache(boolean)} should be set to <code>false</code>
  * when using this reader.  Also, {@link javax.imageio.ImageIO#read(java.io.InputStream)}
  * is the preferred read method if used against a buffered array (for performance
@@ -61,6 +62,7 @@ public class TargaReader extends ImageReader {
     private TGAHeader header;
 
     // =========================================================================
+
     /**
      * @see javax.imageio.ImageReader#ImageReader(javax.imageio.spi.ImageReaderSpi)
      */
@@ -134,9 +136,9 @@ public class TargaReader extends ImageReader {
      * specified image index and if not <code>0</code> then {@link java.lang.IndexOutOfBoundsException}
      * is thrown.</p>
      *
-     * @param  imageIndex the index of the image to validate
+     * @param imageIndex the index of the image to validate
      * @throws IndexOutOfBoundsException if the <code>imageIndex</code> is not
-     *         <code>0</code>
+     *                                   <code>0</code>
      */
     private void checkImageIndex(final int imageIndex) {
         // if the imageIndex is not 0 then throw an exception
@@ -147,6 +149,7 @@ public class TargaReader extends ImageReader {
 
     // =========================================================================
     // Required ImageReader methods
+
     /**
      * @see javax.imageio.ImageReader#getImageTypes(int)
      */
@@ -479,9 +482,9 @@ public class TargaReader extends ImageReader {
      * <p>Reads and returns an array of color mapped values.  If the image does
      * not contain a color map <code>null</code> will be returned</p>
      *
-     * @param  header the <code>TGAHeader</code> for the image
+     * @param header the <code>TGAHeader</code> for the image
      * @return the array of <code>int</code> color map values or <code>null</code>
-     *         if the image does not contain a color map
+     * if the image does not contain a color map
      * @throws IOException if there is an I/O error while reading the color map
      */
     private int[] readColorMap(final TGAHeader header)
@@ -557,11 +560,11 @@ public class TargaReader extends ImageReader {
      * contains only the default values.  If non-default values are present,
      * {@link java.io.IOException} is thrown.</p>
      *
-     * @param  param the <code>ImageReadParam</code> to be validated
-     * @param  head the <code>TGAHeader</code> that contains information about
-     *         the source image
+     * @param param the <code>ImageReadParam</code> to be validated
+     * @param head  the <code>TGAHeader</code> that contains information about
+     *              the source image
      * @throws IOException if the <code>ImageReadParam</code> contains non-default
-     *         values
+     *                     values
      */
     private void checkImageReadParam(final ImageReadParam param,
                                      final TGAHeader header)

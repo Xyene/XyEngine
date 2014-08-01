@@ -31,7 +31,7 @@ public class ToString {
             Field f = fields.get(i);
             if (f.getAnnotation(Printable.class) == null) continue;
             f.setAccessible(true);
-            if(!first) {
+            if (!first) {
                 if (i + 1 < fields.size()) {
                     toString.append(", ");
                 }

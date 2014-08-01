@@ -6,6 +6,7 @@ package tk.ivybits.engine.loader.image.targa;
  *   See bottom of file for license and warranty information.
  * Created on Sep 26, 2003
  */
+
 import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
@@ -94,6 +95,7 @@ public class TGAReaderSpi extends ImageReaderSpi {
     static final String[] EXTRA_IMAGE_METADATA_FORMAT_CLASSNAMES = null;
 
     // =========================================================================
+
     /**
      * <p>Constructs an {@link javax.imageio.spi.ImageReaderSpi} that accepts
      * {@link javax.imageio.stream.ImageInputStream} as its input type.</p>

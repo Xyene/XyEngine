@@ -18,8 +18,8 @@ public class DefaultSceneGraph implements ISceneGraph {
 
     public void fireEvent(String name, Object arg) {
         Method[] methods = ISceneChangeListener.class.getMethods();
-        for(Method m : methods) {
-            if(m.getName().equals(name)) {
+        for (Method m : methods) {
+            if (m.getName().equals(name)) {
                 for (ISceneChangeListener listener : listenerList) {
                     try {
                         m.invoke(listener, arg);
