@@ -8,7 +8,6 @@ import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
 import tk.ivybits.engine.gl.scene.gl20.lighting.BaseShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.RawRenderShader;
-import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
@@ -36,7 +35,7 @@ public class GL20Scene implements IScene {
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
      */
-    ISceneShader currentGeometryShader;
+    BaseShader currentGeometryShader;
     private ISceneGraph sceneGraph;
     private MSAAFBO msaaBuffer;
     private Frustum frustum = new Frustum();
