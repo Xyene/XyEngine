@@ -51,6 +51,8 @@ public class Program {
     }
 
     public void setUniform(int handle, Object... objs) {
+        if(handle < 0)
+            return;
         if (objs.length == 1) {
             Object obj = objs[0];
             if (obj instanceof Matrix2f || obj instanceof Matrix3f || obj instanceof Matrix4f) {
