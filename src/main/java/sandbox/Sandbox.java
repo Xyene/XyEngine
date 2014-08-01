@@ -40,7 +40,6 @@ public class Sandbox {
     private static UITexture screenOverlay;
     private static JLabel fpsLabel;
 
-
     public static void main(String[] args) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
@@ -121,15 +120,9 @@ public class Sandbox {
             glLoadIdentity();
             scene.draw();
 
-            glPushAttrib(GL_ALL_ATTRIB_BITS);
-//            glDisable(GL_LIGHTING);
-//            glDisable(GL_DEPTH_TEST);
-//            glDisable(GL_CULL_FACE);
             glEnable(GL_TEXTURE_2D);
 
             ImmediateProjection.toOrthographicProjection();
-
-            glColor4f(1, 1, 1, 1);
 
             screenOverlay.bind();
 
@@ -146,14 +139,15 @@ public class Sandbox {
 
             screenOverlay.unbind();
 
+            ImmediateProjection.toFrustrumProjection();
+
             if (frame == 100) {
                 float fps = timer.fps();
                 fpsLabel.setText(String.format("%.1f (%.2fms/frame), %d/%d objects drawn\n", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 screenOverlay.markDirty();
                 frame = 0;
             }
-            glPopAttrib();
-            ImmediateProjection.toFrustrumProjection();
+
             Display.update();
             // Display.sync(60);
         }
@@ -381,7 +375,6 @@ public class Sandbox {
                 }
             });
         }
-
         if (scene.getDrawContext().isSupported(FOG)) {
             JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Fog ", scene.getDrawContext().isEnabled(FOG))));
             alpha.addActionListener(new AbstractAction() {
@@ -391,7 +384,6 @@ public class Sandbox {
                 }
             });
         }
-
         if (scene.getDrawContext().isSupported(OBJECT_SHADOWS)) {
             JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Shadows ", scene.getDrawContext().isEnabled(OBJECT_SHADOWS))));
             alpha.addActionListener(new AbstractAction() {

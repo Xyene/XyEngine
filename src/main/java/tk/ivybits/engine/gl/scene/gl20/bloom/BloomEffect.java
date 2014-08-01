@@ -9,16 +9,15 @@ import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.ProgramType.*;
 
 public class BloomEffect {
-    private static final int LOD = 3;
-    private static final float REDUCTION_FACTOR = 0.6f;
-
     private FrameBuffer input, output;
     public Program thresholdShader, vblur, hblur;
 
-    private FrameBuffer[] swap = new FrameBuffer[LOD];
-    private FrameBuffer[] blur = new FrameBuffer[LOD];
+    private FrameBuffer[] swap;
+    private FrameBuffer[] blur;
     private int width;
     private int height;
+    private final int lod;
+    private final float reductionFactor;
 
     private FrameBuffer createBuffer(int filter, int width, int height) {
         FrameBuffer bloom = new FrameBuffer(width, height);
@@ -31,10 +30,17 @@ public class BloomEffect {
         return bloom;
     }
 
-    public BloomEffect(int width, int height) {
+    public BloomEffect(int width, int height, int lod, float reductionFactor) {
         this.width = width;
         this.height = height;
+        this.lod = lod;
+        this.reductionFactor = reductionFactor;
+
+        swap = new FrameBuffer[lod];
+        blur = new FrameBuffer[lod];
+
         create();
+
         thresholdShader = Program.builder()
                 .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl")
                 .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.v.glsl")
@@ -52,14 +58,17 @@ public class BloomEffect {
                 .build();
     }
 
+    /**
+     * Creates the framebuffers needed for this bloom effect. Only the input buffer has a depth attachment.
+     */
     private void create() {
         output = createBuffer(GL_NEAREST, width, height);
         input = createBuffer(GL_NEAREST, width, height).attach(RenderBuffer.newDepthBuffer(width, height));
 
         int cwidth = width, cheight = height;
-        for (int i = 0; i < LOD; i++) {
-            cwidth *= REDUCTION_FACTOR;
-            cheight *= REDUCTION_FACTOR;
+        for (int i = 0; i < lod; i++) {
+            cwidth *= reductionFactor;
+            cheight *= reductionFactor;
             blur[i] = createBuffer(GL_LINEAR, cwidth, cheight);
             swap[i] = createBuffer(GL_LINEAR, cwidth, cheight);
         }
@@ -80,7 +89,7 @@ public class BloomEffect {
 //        }
         output.destroy();
         input.destroy();
-        for (int i = 0; i < LOD; i++) {
+        for (int i = 0; i < lod; i++) {
             blur[i].destroy();
             swap[i].destroy();
         }
@@ -90,7 +99,7 @@ public class BloomEffect {
     public void destroy() {
         output.destroy();
         input.destroy();
-        for (int i = 0; i < LOD; i++) {
+        for (int i = 0; i < lod; i++) {
             blur[i].destroy();
             swap[i].destroy();
         }
@@ -110,7 +119,6 @@ public class BloomEffect {
     private void drawDeviceQuad(FrameBuffer fbo) {
         int viewWidth = fbo.width();
         int viewHeight = fbo.height();
-        glLoadIdentity();
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -134,7 +142,7 @@ public class BloomEffect {
     public void process() {
         blur[0].bind();
         glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
@@ -147,19 +155,19 @@ public class BloomEffect {
         blur[0].unbind();
 
         blur[0].getTexture().bind();
-        for (int i = 1; i < LOD; i++) {
+        for (int i = 1; i < lod; i++) {
             blur[i].bind();
             glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT);
             drawDeviceQuad(blur[i]);
             blur[i].bind();
         }
         blur[0].getTexture().unbind();
 
-        for (int i = 0; i < LOD; i++) {
+        for (int i = 0; i < lod; i++) {
             swap[i].bind();
             glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             vblur.attach();
 
@@ -172,7 +180,7 @@ public class BloomEffect {
 
             blur[i].bind();
             glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             hblur.attach();
 
@@ -186,15 +194,16 @@ public class BloomEffect {
 
         output.bind();
         glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         glEnable(GL_BLEND);
+        // Enable additive blending to blend downscaled bloom buffers
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         input.getTexture().bind();
         drawDeviceQuad(output);
         input.getTexture().bind();
 
-        for (int i = 0; i < LOD; i++) {
+        for (int i = 0; i < lod; i++) {
             blur[i].getTexture().bind();
             drawDeviceQuad(output);
             blur[i].getTexture().bind();

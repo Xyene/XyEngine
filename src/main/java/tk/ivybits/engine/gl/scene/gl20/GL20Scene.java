@@ -232,7 +232,7 @@ public class GL20Scene implements IScene {
 
         boolean bloom = drawContext.isEnabled(BLOOM);
         if (bloom && bloomEffect == null) {
-            bloomEffect = new BloomEffect(viewWidth, viewHeight);
+            bloomEffect = new BloomEffect(viewWidth, viewHeight, 2, 0.6f);
         }
         if (!bloom && bloomEffect != null) {
             bloomEffect.destroy();

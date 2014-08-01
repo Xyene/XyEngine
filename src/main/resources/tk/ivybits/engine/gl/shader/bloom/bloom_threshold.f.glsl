@@ -13,6 +13,6 @@ void main() {
     float luminance = dot(luminanceVector, sample.rgb);
     luminance = max(0.0, luminance - brightPassThreshold);
     sample.rgba *= sign(luminance);
-    //sample.a = 0.5;
+
     gl_FragColor = sample;
 }
