@@ -5,7 +5,6 @@ import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
-import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
@@ -27,7 +26,7 @@ import static tk.ivybits.engine.gl.ProgramType.VERTEX_SHADER;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
-public class BaseShader implements ISceneShader, ISceneChangeListener {
+public class BaseShader implements ISceneChangeListener {
     private final Map<ProgramType, List<String>> sources;
     private final IScene scene;
     private HashMap<FrameBuffer, Matrix4f> shadowMapFBO;
@@ -92,7 +91,6 @@ public class BaseShader implements ISceneShader, ISceneChangeListener {
         this.shadowMapFBO = shadowMapFBO;
     }
 
-    @Override
     public void useMaterial(Material material) {
         boolean attached = getProgram().isAttached();
         if (!attached) shader.attach();
@@ -156,7 +154,6 @@ public class BaseShader implements ISceneShader, ISceneChangeListener {
         if (!attached) shader.detach();
     }
 
-    @Override
     public int getAttributeLocation(VertexAttribute attribute) {
         if (!needsScenePush) {
             boolean attached = getProgram().isAttached();
@@ -232,7 +229,6 @@ public class BaseShader implements ISceneShader, ISceneChangeListener {
         if (!attached) shader.detach();
     }
 
-    @Override
     public Program getProgram() {
         List<Boolean> identifier = Arrays.asList(
                 scene.getDrawContext().isEnabled(NORMAL_MAPS),
@@ -255,19 +251,16 @@ public class BaseShader implements ISceneShader, ISceneChangeListener {
         return shader;
     }
 
-    @Override
     public void setModelTransform(Matrix4f modelMatrix) {
         this.modelMatrix = modelMatrix;
         setProjection();
     }
 
-    @Override
     public void setViewTransform(Matrix4f viewMatrix) {
         this.viewMatrix = viewMatrix;
         setProjection();
     }
 
-    @Override
     public void setProjectionTransform(Matrix4f projectionMatrix) {
         this.projectionMatrix = projectionMatrix;
         setProjection();

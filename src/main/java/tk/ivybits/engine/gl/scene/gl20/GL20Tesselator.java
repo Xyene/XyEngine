@@ -2,7 +2,7 @@ package tk.ivybits.engine.gl.scene.gl20;
 
 import org.lwjgl.BufferUtils;
 import tk.ivybits.engine.gl.Program;
-import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
+import tk.ivybits.engine.gl.scene.gl20.lighting.BaseShader;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.VertexAttribute;
@@ -107,7 +107,7 @@ public class GL20Tesselator implements ITesselator {
                 lastShader = drawContext.parent.currentGeometryShader.getProgram();
                 for (int i = 0, vertex_attributesLength = VERTEX_ATTRIBUTES.length; i < vertex_attributesLength; i++) {
                     VertexAttribute attr = VERTEX_ATTRIBUTES[i];
-                    ISceneShader shader = drawContext.parent.currentGeometryShader;
+                    BaseShader shader = drawContext.parent.currentGeometryShader;
                     int location = shader.getAttributeLocation(attr);
 
                     locations[attr.ordinal()] = location;
