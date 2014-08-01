@@ -5,6 +5,7 @@ import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
 import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
+import tk.ivybits.engine.gl.scene.gl20.lighting.BaseShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.PhongLightingShader;
 import tk.ivybits.engine.gl.scene.gl20.lighting.RawRenderShader;
 import tk.ivybits.engine.gl.scene.gl20.shader.ISceneShader;
@@ -27,11 +28,11 @@ public class GL20Scene implements IScene {
     GL20DrawContext drawContext;
     PriorityQueue<PriorityComparableDrawable> tracker = new PriorityQueue<>(1, PriorityComparableDrawable.COMPARATOR);
     private BasicCamera camera;
-    PhongLightingShader lightingShader;
+    BaseShader lightingShader;
     private int viewWidth;
     private int viewHeight;
     private RawRenderShader rawGeometryShader;
-    private HashMap<FrameBuffer, Matrix4f> shadowMapFBOs = new HashMap<>();
+    private HashMap<FrameBuffer, Matrix4f> shadowMapBuffers = new HashMap<>();
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
      */
@@ -47,7 +48,7 @@ public class GL20Scene implements IScene {
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
         this.sceneGraph = sceneGraph;
-        lightingShader = new PhongLightingShader(this, shadowMapFBOs);
+        lightingShader = new PhongLightingShader(this, shadowMapBuffers);
         currentGeometryShader = lightingShader;
 
         sceneGraph.addSceneChangeListener(new SceneChangeAdapter() {
@@ -88,7 +89,7 @@ public class GL20Scene implements IScene {
 
     @Override
     public void setViewportSize(int width, int height) {
-        for (FrameBuffer fbo : shadowMapFBOs.keySet()) fbo.resize(width, height);
+        for (FrameBuffer fbo : shadowMapBuffers.keySet()) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
         if (bloomEffect != null) bloomEffect.resize(width, height);
         camera.setAspectRatio(width / (float) height);
@@ -98,31 +99,31 @@ public class GL20Scene implements IScene {
 
     private void generateShadowMaps() {
         if (rawGeometryShader == null) {
-            rawGeometryShader = new RawRenderShader();
+            rawGeometryShader = new RawRenderShader(this, shadowMapBuffers);
         }
 
         currentGeometryShader = rawGeometryShader;
         List<ISpotLight> spotLights = sceneGraph.getRoot().getSpotLights();
         int numLights = spotLights.size();
-        if (shadowMapFBOs.size() < numLights) {
-            for (int n = shadowMapFBOs.size(); n < numLights; n++) {
+        if (shadowMapBuffers.size() < numLights) {
+            for (int n = shadowMapBuffers.size(); n < numLights; n++) {
                 FrameBuffer self;
-                shadowMapFBOs.put(
+                shadowMapBuffers.put(
                         self = new FrameBuffer(viewWidth, viewHeight)
                                 .attach(RenderBuffer.newDepthBuffer(viewWidth, viewHeight))
                                 .attach(new Texture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT, viewWidth, viewHeight)),
                         new Matrix4f()
                 );
             }
-        } else if (shadowMapFBOs.size() > numLights) {
-            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapFBOs.entrySet().iterator();
-            for (int n = 0; n < shadowMapFBOs.size(); n++) {
+        } else if (shadowMapBuffers.size() > numLights) {
+            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
+            for (int n = 0; n < shadowMapBuffers.size(); n++) {
                 iterator.next();
                 iterator.remove();
             }
         }
 
-        Iterator<FrameBuffer> maps = shadowMapFBOs.keySet().iterator();
+        Iterator<FrameBuffer> maps = shadowMapBuffers.keySet().iterator();
         for (int n = 0; n < numLights; n++) {
             camera.pushMatrix();
             ISpotLight light = spotLights.get(n);
@@ -140,7 +141,7 @@ public class GL20Scene implements IScene {
             camera.setRotation(light.pitch(), light.yaw(), 0);
             camera.setPosition(light.x(), light.y(), light.z());
 
-            shadowMapFBOs.put(fbo, viewMatrix);
+            shadowMapBuffers.put(fbo, viewMatrix);
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
@@ -206,9 +207,9 @@ public class GL20Scene implements IScene {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
             generateShadowMaps();
             glPopAttrib();
-        } else if (shadowMapFBOs.size() > 0) {
-            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapFBOs.entrySet().iterator();
-            for (int n = 0; n < shadowMapFBOs.size(); n++) {
+        } else if (shadowMapBuffers.size() > 0) {
+            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
+            for (int n = 0; n < shadowMapBuffers.size(); n++) {
                 iterator.next();
                 iterator.remove();
             }

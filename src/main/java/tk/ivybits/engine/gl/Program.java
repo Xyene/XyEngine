@@ -129,4 +129,8 @@ public class Program {
     public boolean isAttached() {
         return isAttached;
     }
+
+    public boolean hasUniform(String id) {
+        return getUniformLocation(id) >= 0;
+    }
 }

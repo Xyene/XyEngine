@@ -113,4 +113,13 @@ public class ProgramBuilder {
     public ProgramBuilder define(String key) {
         return define(key, "");
     }
+
+    public ProgramBuilder add(Map<ProgramType, List<String>> sources) {
+        for(Map.Entry<ProgramType, List<String>> source : sources.entrySet()) {
+            for(String part : source.getValue()) {
+                addShader(source.getKey(), part);
+            }
+        }
+        return this;
+    }
 }
