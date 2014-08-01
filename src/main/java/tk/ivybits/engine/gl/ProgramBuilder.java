@@ -1,6 +1,7 @@
 package tk.ivybits.engine.gl;
 
 import org.lwjgl.opengl.OpenGLException;
+import tk.ivybits.engine.util.IO;
 
 import java.io.*;
 import java.util.*;
@@ -19,20 +20,7 @@ public class ProgramBuilder {
     private HashMap<ProgramType, List<String>> shaders = new HashMap<>();
     private HashMap<String, String> defines = new HashMap<>();
 
-    public static String readSourceFrom(InputStream in) {
-        StringBuilder source = new StringBuilder();
-        BufferedReader reader = null;
-        reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(in)));
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                source.append(line).append('\n');
-            }
-        } catch (IOException e) {
-            throw new OpenGLException(e.getMessage());
-        }
-        return source.toString();
-    }
+
 
     public ProgramBuilder loadShader(ProgramType type, String path) throws FileNotFoundException {
         return loadShader(type, new FileInputStream(new File(path)));
@@ -43,7 +31,11 @@ public class ProgramBuilder {
     }
 
     public ProgramBuilder loadShader(ProgramType type, InputStream in) {
-        return addShader(type, readSourceFrom(in));
+        try {
+            return addShader(type, IO.readString(in));
+        } catch (IOException e) {
+            throw new OpenGLException(e.getMessage());
+        }
     }
 
     public ProgramBuilder addShader(ProgramType type, String source) {
