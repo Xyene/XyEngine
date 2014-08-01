@@ -23,6 +23,9 @@ import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
+/**
+ * Defines a common base for all shaders extending scene rendering.
+ */
 public class BaseShader implements ISceneChangeListener {
     private final Map<ProgramType, List<String>> sources;
     private final IScene scene;
@@ -54,21 +57,23 @@ public class BaseShader implements ISceneChangeListener {
     private List<ISpotLight> spotLights = new ArrayList<>();
     private List<IPointLight> pointLights = new ArrayList<>();
     private List<IDirectionalLight> dirLights = new ArrayList<>();
-    private HashMap<BufferedImage, Texture> textureCache = new HashMap<>();
-
-    private Texture asGLTexture(BufferedImage image) {
-        Texture tex = textureCache.get(image);
-        if (tex == null) {
-            tex = new Texture(image)
-                    .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                    .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-                    .setParameter(GL_GENERATE_MIPMAP, GL_TRUE);
-            if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
-                tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
-            textureCache.put(image, tex);
+    private final HashMap<BufferedImage, Texture> textureCache = new HashMap<BufferedImage, Texture>() {
+        @Override
+        public Texture get(Object obj) {
+            Texture tex = super.get(obj);
+            BufferedImage image = (BufferedImage)obj;
+            if (tex == null) {
+                tex = new Texture(image)
+                        .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+                        .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                        .setParameter(GL_GENERATE_MIPMAP, GL_TRUE);
+                if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
+                    tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
+                put(image, tex);
+            }
+            return tex;
         }
-        return tex;
-    }
+    };
 
     private void setupHandles() {
         if (!needsScenePush) {
@@ -99,7 +104,7 @@ public class BaseShader implements ISceneChangeListener {
                 glActiveTexture(GL_TEXTURE0 + texture);
                 glEnable(GL_TEXTURE_2D);
                 shader.setUniform("u_material.diffuseMap", (texture++));
-                asGLTexture(material.diffuseTexture).bind();
+                textureCache.get(material.diffuseTexture).bind();
             }
         } else {
             shader.setUniform("u_material.hasDiffuse", 0);
@@ -111,7 +116,7 @@ public class BaseShader implements ISceneChangeListener {
                     glActiveTexture(GL_TEXTURE0 + texture);
                     glEnable(GL_TEXTURE_2D);
                     shader.setUniform("u_material.specularMap", (texture++));
-                    asGLTexture(material.specularTexture).bind();
+                    textureCache.get(material.specularTexture).bind();
                 }
             } else {
                 shader.setUniform("u_material.hasSpecular", 0);
@@ -124,7 +129,7 @@ public class BaseShader implements ISceneChangeListener {
                     glEnable(GL_TEXTURE_2D);
                     shader.setUniform("u_material.normalMap", texture);
                 }
-                asGLTexture(material.bumpMap).bind();
+                textureCache.get(material.bumpMap).bind();
             } else {
                 shader.setUniform("u_material.hasNormal", 0);
             }
