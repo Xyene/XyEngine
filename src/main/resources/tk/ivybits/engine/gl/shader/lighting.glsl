@@ -27,8 +27,10 @@ struct DirectionalLight {
 struct Material {
     bool hasDiffuse;
     sampler2D diffuseMap;
+#ifdef SPECULAR_MAPPING
     bool hasSpecular;
     sampler2D specularMap;
+#endif
 #ifdef NORMAL_MAPPING
     bool hasNormal;
     sampler2D normalMap;
