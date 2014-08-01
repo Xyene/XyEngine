@@ -1,6 +1,7 @@
 package tk.ivybits.engine.gl;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.*;
 
 import java.nio.FloatBuffer;
@@ -12,7 +13,8 @@ public class Program {
     private final int handle;
     private final HashMap<String, Integer> uniforms = new HashMap<>();
     private final HashMap<String, Integer> attributes = new HashMap<>();
-    private boolean isAttached;
+    private int attachDepth = 0;
+    private int lastShader;
 
     public Program(int handle) {
         this.handle = handle;
@@ -21,7 +23,9 @@ public class Program {
     public int getUniformLocation(String name) {
         Integer loc = uniforms.get(name);
         if (loc == null) {
+            attach();
             loc = glGetUniformLocation(handle, name);
+            detach();
             uniforms.put(name, loc);
         }
         return loc;
@@ -30,7 +34,9 @@ public class Program {
     public int getAttributeLocation(String name) {
         Integer loc = attributes.get(name);
         if (loc == null) {
+            attach();
             loc = glGetAttribLocation(handle, name);
+            detach();
             attributes.put(name, loc);
         }
         return loc;
@@ -53,6 +59,7 @@ public class Program {
     public void setUniform(int handle, Object... objs) {
         if (handle < 0)
             return;
+        attach();
         if (objs.length == 1) {
             Object obj = objs[0];
             if (obj instanceof Matrix2f || obj instanceof Matrix3f || obj instanceof Matrix4f) {
@@ -79,8 +86,10 @@ public class Program {
             else if (obj instanceof Integer)
                 glUniform1i(handle, (Integer) obj);
             else {
+                detach();
                 throw new UnsupportedOperationException("cannot perform automatic type conversion on object of type " + obj.getClass().getSimpleName());
             }
+            detach();
             return;
         }
         Class type = ensureConstantTypes(objs);
@@ -96,11 +105,29 @@ public class Program {
                     glUniform4f(handle, (float) objs[0], (float) objs[1], (float) objs[2], (float) objs[3]);
                     break;
                 default:
+                    detach();
                     throw new UnsupportedOperationException("can only convert float arrays of length 2, 3, or 4");
             }
+        } else if (type == Integer.class) {
+            switch (objs.length) {
+                case 2:
+                    glUniform2i(handle, (int) objs[0], (int) objs[1]);
+                    break;
+                case 3:
+                    glUniform3i(handle, (int) objs[0], (int) objs[1], (int) objs[2]);
+                    break;
+                case 4:
+                    glUniform4i(handle, (int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]);
+                    break;
+                default:
+                    detach();
+                    throw new UnsupportedOperationException("can only convert int arrays of length 2, 3, or 4");
+            }
         } else {
+            detach();
             throw new UnsupportedOperationException("cannot perform automatic type conversion on array of type " + type.getSimpleName());
         }
+        detach();
     }
 
     public int getId() {
@@ -113,21 +140,30 @@ public class Program {
 
     public void destroy() {
         glDeleteProgram(handle);
-        isAttached = false;
+        attachDepth = 0;
     }
 
     public void attach() {
+        attachDepth++;
+        if (attachDepth > 1) return;
+        lastShader = glGetInteger(GL_CURRENT_PROGRAM);
         glUseProgram(handle);
-        isAttached = true;
     }
 
     public void detach() {
-        glUseProgram(0);
-        isAttached = false;
+        attachDepth--;
+        if (attachDepth > 0) {
+            return;
+        }
+
+        if (attachDepth < 0)
+            throw new OpenGLException("shader not attached");
+
+        glUseProgram(lastShader);
     }
 
     public boolean isAttached() {
-        return isAttached;
+        return attachDepth > 0;
     }
 
     public boolean hasUniform(String id) {

@@ -36,7 +36,7 @@ public final class Natives {
     private static final String NIX_DIR = NATIVE_DIR + "linux/";
     private static final String MAC_DIR = NATIVE_DIR + "mac/";
     private static final String CACHE_DIR = System.getProperty("java.io.tmpdir") + File.separatorChar
-            + "lwjglcache_1.0.0_" + (DEV ? System.currentTimeMillis() : REV);
+            + "xycache_1.0.0_" + (DEV ? System.currentTimeMillis() : REV);
 
     public static void unpack() {
         System.setProperty("org.lwjgl.librarypath", CACHE_DIR);

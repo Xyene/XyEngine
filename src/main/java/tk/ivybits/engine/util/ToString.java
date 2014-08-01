@@ -10,12 +10,50 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ToString {
+    /**
+     * Annotation to define which fields should be included in {@link tk.ivybits.engine.util.ToString#toString}.
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public static @interface Printable {
 
     }
 
+    /**
+     * Reflectively generates a string representing an object, useful for easy implementations of {@link java.lang.Object#toString}.
+     * <p/>
+     * Fields to be included in the string representation must be annotated with {@link tk.ivybits.engine.util.ToString.Printable}.
+     * <p/>
+     * For example:
+     * <p/>
+     * <code>
+     * class Foo {
+     *      private @Printable float fizz = 0;
+     *      private @Printable int buzz = 1;
+     *
+     *      @Override
+     *      public String toString() {
+     *          return ToString.toString(this);
+     *      }
+     * }
+     * ...
+     * Foo foo = new Foo();
+     * System.out.println(foo);
+     * </code>
+     * <p/>
+     * Would yield:
+     * <p/>
+     * <code>
+     * "Foo{fizz=0.0, buzz=1}"
+     * </code>
+     * <p/>
+     *
+     * <b>Note: the order of the fields as they appear in the toString-ified representation is unspecified,
+     * and may not be the order they appear in source. On the Oracle VM and OpenJDK, however, they are.</b>
+     *
+     * @param obj The object to stringify.
+     * @return A string representation of the given object.
+     */
     public static String toString(Object obj) {
         StringBuilder toString = new StringBuilder();
         toString.append(obj.getClass().getSimpleName());

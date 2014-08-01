@@ -11,6 +11,9 @@ import static java.lang.Math.*;
 import static java.lang.Math.toRadians;
 import static tk.ivybits.engine.util.ToString.*;
 
+/**
+ * A simple camera implementing {@link tk.ivybits.engine.scene.camera.ICamera}
+ */
 public class BasicCamera implements ICamera {
     protected @Printable float x, y, z;
     protected @Printable float pitch, yaw, roll;
@@ -19,6 +22,11 @@ public class BasicCamera implements ICamera {
     protected Matrix4f projectionMatrix = new Matrix4f();
     protected @Printable float fieldOfView, aspectRatio, zNear, zFar;
 
+    /**
+     * Creates a new BasicCamera instance.
+     *
+     * @param scene The {@link tk.ivybits.engine.scene.IScene} instance to forward transformations to.
+     */
     public BasicCamera(IScene scene) {
         this.scene = scene;
         viewMatrixStack.push(new Matrix4f());
@@ -49,6 +57,9 @@ public class BasicCamera implements ICamera {
         scene.setProjectionTransform(projectionMatrix);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera setRotation(float pitch, float yaw, float roll) {
         this.pitch = pitch;
@@ -58,43 +69,19 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public float x() {
-        return x;
-    }
-
-    @Override
-    public float y() {
-        return y;
-    }
-
-    @Override
-    public float z() {
-        return z;
-    }
-
-    @Override
-    public float pitch() {
-        return pitch;
-    }
-
-    @Override
-    public float yaw() {
-        return yaw;
-    }
-
-    @Override
-    public float roll() {
-        return roll;
-    }
-
-    @Override
-    public BasicCamera setAspectRatio(float aspectRatio) {
-        this.aspectRatio = aspectRatio;
+    public BasicCamera setAspectRatio(float ratio) {
+        this.aspectRatio = ratio;
         updateProjection();
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera setPosition(float x, float y, float z) {
         this.x = x;
@@ -104,6 +91,9 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera setFieldOfView(float fov) {
         this.fieldOfView = fov;
@@ -111,6 +101,9 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera setClip(float zFar, float zNear) {
         this.zNear = zNear;
@@ -119,6 +112,9 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera pushMatrix() {
         viewMatrixStack.push(new Matrix4f());
@@ -126,6 +122,9 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BasicCamera popMatrix() {
         viewMatrixStack.pop();
@@ -133,26 +132,94 @@ public class BasicCamera implements ICamera {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Matrix4f getViewTransform() {
         return viewMatrixStack.peek();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Matrix4f getProjectionTransform() {
         return projectionMatrix;
     }
 
+    /*
+        FIXME: the following methods do not respect the behaviour specified in ICamera, since they return
+        FIXME: the last set values rather than the values of the current view/projection matrix.
+    */
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float x() {
+        return x;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float y() {
+        return y;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float z() {
+        return z;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float pitch() {
+        return pitch;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float yaw() {
+        return yaw;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float roll() {
+        return roll;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float dx() {
         return (float) (cos(toRadians(yaw - 90)) * m());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float dy() {
         return (float) -sin(toRadians(pitch));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float dz() {
         return (float) sin(toRadians(yaw - 90)) * m();
@@ -162,36 +229,41 @@ public class BasicCamera implements ICamera {
         return (float) cos(toRadians(pitch));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getFieldOfView() {
         return fieldOfView;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getAspectRatio() {
         return aspectRatio;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getZNear() {
         return zNear;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getZFar() {
         return zFar;
     }
 
-    @Override
-    public Vector3f position() {
-        return new Vector3f(x(), y(), z());
-    }
-
-    @Override
-    public Vector3f direction() {
-        return new Vector3f(dx(), dy(), dz());
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return ToString.toString(this);

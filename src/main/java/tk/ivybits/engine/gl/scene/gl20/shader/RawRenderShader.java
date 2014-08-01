@@ -1,4 +1,4 @@
-package tk.ivybits.engine.gl.scene.gl20.lighting;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
 import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.Matrix4f;

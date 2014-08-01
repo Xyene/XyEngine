@@ -2,10 +2,9 @@ package tk.ivybits.engine.gl.scene.gl20;
 
 import org.lwjgl.BufferUtils;
 import tk.ivybits.engine.gl.Program;
-import tk.ivybits.engine.gl.scene.gl20.lighting.BaseShader;
+import tk.ivybits.engine.gl.scene.gl20.shader.BaseShader;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.util.FloatArrayList;
 
@@ -13,7 +12,6 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.scene.VertexAttribute.UV_BUFFER;
 
 public class GL20Tesselator implements ITesselator {
     private final GL20DrawContext drawContext;
@@ -66,7 +64,8 @@ public class GL20Tesselator implements ITesselator {
         tangents.add(z);
     }
 
-    private static final VertexAttribute[] VERTEX_ATTRIBUTES = VertexAttribute.values();
+    private static final String[] VERTEX_ATTRIBUTES = {"a_Vertex", "a_Normal", "a_UV", "a_Tangent"};
+    private static final int[] VERTEX_ATTRIBUTE_SIZES = {3, 3, 2, 3};
 
     class InterleavedDrawable implements IDrawable {
         private final int handle;
@@ -85,11 +84,10 @@ public class GL20Tesselator implements ITesselator {
         }
 
         private void setVertexPointers() {
-            for (VertexAttribute attr : VERTEX_ATTRIBUTES) {
-                int ordinal = attr.ordinal();
-                int location = locations[ordinal];
+            for (int i = 0; i < VERTEX_ATTRIBUTES.length; i++) {
+                int location = locations[i];
                 if (location > -1) {
-                    glVertexAttribPointer(location, attr != UV_BUFFER ? 3 : 2, GL_FLOAT, false, stride, offsets[ordinal]);
+                    glVertexAttribPointer(location, VERTEX_ATTRIBUTE_SIZES[i], GL_FLOAT, false, stride, offsets[i]);
                 }
             }
         }
@@ -106,25 +104,23 @@ public class GL20Tesselator implements ITesselator {
             if (drawContext.parent.currentGeometryShader.getProgram() != lastShader) {
                 lastShader = drawContext.parent.currentGeometryShader.getProgram();
                 for (int i = 0, vertex_attributesLength = VERTEX_ATTRIBUTES.length; i < vertex_attributesLength; i++) {
-                    VertexAttribute attr = VERTEX_ATTRIBUTES[i];
                     BaseShader shader = drawContext.parent.currentGeometryShader;
-                    int location = shader.getAttributeLocation(attr);
+                    int location = shader.getProgram().getAttributeLocation(VERTEX_ATTRIBUTES[i]);
 
-                    locations[attr.ordinal()] = location;
+                    locations[i] = location;
                     if (location > -1) {
                         glVertexAttribPointer(
                                 location,
-                                attr != UV_BUFFER ? 3 : 2,
+                                VERTEX_ATTRIBUTE_SIZES[i],
                                 GL_FLOAT,
                                 false,
                                 stride,
-                                offsets[attr.ordinal()]);
+                                offsets[i]);
                     }
                 }
             }
             for (int i = 0, vertex_attributesLength = VERTEX_ATTRIBUTES.length; i < vertex_attributesLength; i++) {
-                VertexAttribute attr = VERTEX_ATTRIBUTES[i];
-                int location = locations[attr.ordinal()];
+                int location = locations[i];
                 if (location > -1) {
                     glEnableVertexAttribArray(location);
                 }

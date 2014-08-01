@@ -1,8 +1,7 @@
-package tk.ivybits.engine.gl.scene.gl20.lighting;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
 import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.Matrix4f;
-import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.scene.IScene;

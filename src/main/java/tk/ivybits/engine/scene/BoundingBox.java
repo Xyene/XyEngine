@@ -33,6 +33,12 @@ public class BoundingBox {
         return height;
     }
 
+    /**
+     * Naively computes the bounding box of an {@link tk.ivybits.engine.scene.model.IGeometry} instance.
+     *
+     * @param geom The mesh.
+     * @return A bounding box of the given mesh.
+     */
     public static BoundingBox getBoundingBox(IGeometry geom) {
         List<Face> faces = geom.getFaces();
         float min_length = 0, min_width = 0, min_height = 0, max_length = 0, max_width = 0, max_height = 0;

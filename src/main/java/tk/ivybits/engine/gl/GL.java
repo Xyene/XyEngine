@@ -21,6 +21,8 @@ public class GL extends GLDirectAccess implements GLConstant {
     private static final int[] textureUnitsBuf = new int[GL11.glGetInteger(GL_MAX_TEXTURE_UNITS)];
     private static final int[] textureUnitsSampled = new int[GL11.glGetInteger(GL_MAX_TEXTURE_UNITS)];
     private static final int[] textureUnitsSampledArr = new int[GL11.glGetInteger(GL_MAX_TEXTURE_UNITS)];
+    // Optimize glGetInteger(GL_CURRENT_PROGRAM) used by Program instances
+    private static int currentProgram = 0;
 
     public static void glPixelTransferi(int a, int b) {
         GL11.glPixelTransferi(a, b);
@@ -921,6 +923,8 @@ public class GL extends GLDirectAccess implements GLConstant {
 
     public static int glGetInteger(int a) {
         switch (a) {
+            case GL_CURRENT_PROGRAM:
+                return currentProgram;
             case GL_MAX_TEXTURE_UNITS:
                 return textureUnits1d.length;
             case GL_TEXTURE_BINDING_1D:
@@ -1907,6 +1911,7 @@ public class GL extends GLDirectAccess implements GLConstant {
 
     public static void glUseProgram(int a) {
         GL20.glUseProgram(a);
+        currentProgram = a;
     }
 
     public static void glUniform2(int a, FloatBuffer b) {

@@ -11,7 +11,7 @@ public abstract class AbstractActor implements IActor {
     protected @Printable float x, y, z;
     protected @Printable float pitch, yaw, roll;
     protected Matrix4f modelMatrix = new Matrix4f();
-    private boolean needsNewModelMatrix = false;
+    protected boolean needsNewModelMatrix = false;
 
     @Override
     public void position(float x, float y, float z) {
@@ -34,11 +34,6 @@ public abstract class AbstractActor implements IActor {
     @Override
     public float z() {
         return z;
-    }
-
-    @Override
-    public Vector3f position() {
-        return new Vector3f(x, y, z);
     }
 
     @Override

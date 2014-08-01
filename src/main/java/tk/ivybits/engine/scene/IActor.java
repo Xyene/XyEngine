@@ -26,7 +26,5 @@ public interface IActor {
 
     IDrawable createDrawable(IDrawContext context);
 
-    Vector3f position();
-
     void rotate(float pitch, float yaw, float roll);
 }

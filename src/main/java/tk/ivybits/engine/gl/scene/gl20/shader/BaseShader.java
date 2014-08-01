@@ -1,4 +1,4 @@
-package tk.ivybits.engine.gl.scene.gl20.lighting;
+package tk.ivybits.engine.gl.scene.gl20.shader;
 
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix3f;
@@ -9,7 +9,6 @@ import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.IActor;
-import tk.ivybits.engine.scene.VertexAttribute;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.model.node.Material;
 import tk.ivybits.engine.scene.node.*;
@@ -21,8 +20,6 @@ import java.util.*;
 import java.util.List;
 
 import static tk.ivybits.engine.gl.GL.*;
-import static tk.ivybits.engine.gl.ProgramType.FRAGMENT_SHADER;
-import static tk.ivybits.engine.gl.ProgramType.VERTEX_SHADER;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
@@ -92,8 +89,7 @@ public class BaseShader implements ISceneChangeListener {
     }
 
     public void useMaterial(Material material) {
-        boolean attached = getProgram().isAttached();
-        if (!attached) shader.attach();
+        getProgram().attach();
         setupHandles();
 
         int texture = 0;
@@ -150,28 +146,11 @@ public class BaseShader implements ISceneChangeListener {
                 specular.getBlue() / 255F);
         shader.setUniform("u_material.shininess", 128 - material.shininess + 1);
         shader.setUniform("u_material.transparency", material.transparency);
-
-        if (!attached) shader.detach();
-    }
-
-    public int getAttributeLocation(VertexAttribute attribute) {
-        if (!needsScenePush) {
-            boolean attached = getProgram().isAttached();
-            if (!attached) shader.attach();
-            setupHandles();
-            if (!attached) shader.detach();
-        }
-        return new int[]{
-                getProgram().getAttributeLocation("a_Vertex"),
-                getProgram().getAttributeLocation("a_Normal"),
-                getProgram().getAttributeLocation("a_UV"),
-                getProgram().getAttributeLocation("a_Tangent")
-        }[attribute.ordinal()];
+        shader.detach();
     }
 
     private void setProjection() {
-        boolean attached = getProgram().isAttached();
-        if (!attached) shader.attach();
+        getProgram().attach();
         shader.setUniform("u_modelMatrix", modelMatrix);
 
         if (shader.hasUniform("u_normalMatrix")) {
@@ -226,7 +205,7 @@ public class BaseShader implements ISceneChangeListener {
             }
         }
 
-        if (!attached) shader.detach();
+        shader.detach();
     }
 
     public Program getProgram() {
@@ -267,8 +246,7 @@ public class BaseShader implements ISceneChangeListener {
     }
 
     void updateLights() {
-        boolean attached = getProgram().isAttached();
-        if (!attached) shader.attach();
+        getProgram().attach();
         setupHandles();
         if (shader.hasUniform("u_dirLights[0].direction")) {
             for (int i = 0; i < dirLights.size(); i++) {
@@ -353,7 +331,7 @@ public class BaseShader implements ISceneChangeListener {
             shader.setUniform("u_spotLightCount", spotLights.size());
         }
 
-        if (!attached) shader.detach();
+        shader.detach();
     }
 
     @Override
@@ -410,8 +388,7 @@ public class BaseShader implements ISceneChangeListener {
     @Override
     public void fogUpdated(IFog fog) {
         if (scene.getDrawContext().isEnabled(FOG)) {
-            boolean attached = getProgram().isAttached();
-            if (!attached) shader.attach();
+            getProgram().attach();
             if (shader.hasUniform("u_fog.fogColor")) {
                 Color fogColor = fog.getFogColor();
                 shader.setUniform("u_fog.fogColor",
@@ -422,7 +399,7 @@ public class BaseShader implements ISceneChangeListener {
                 shader.setUniform("u_fog.fogFar", fog.getFogFar());
             }
 
-            if (!attached) shader.detach();
+            shader.detach();
         }
     }
 
