@@ -1,8 +1,10 @@
-package tk.ivybits.engine.scene;
+package tk.ivybits.engine.scene.node.impl;
 
-import tk.ivybits.engine.scene.model.GeometryDrawable;
-import tk.ivybits.engine.scene.model.node.Mesh;
-import tk.ivybits.engine.scene.model.node.Model;
+import tk.ivybits.engine.gl.scene.GeometryDrawable;
+import tk.ivybits.engine.scene.IDrawContext;
+import tk.ivybits.engine.scene.IDrawable;
+import tk.ivybits.engine.scene.geometry.BoundingBox;
+import tk.ivybits.engine.scene.model.Model;
 
 public class GeometryActor extends AbstractActor {
     private Model model;

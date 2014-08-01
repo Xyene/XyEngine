@@ -1,9 +1,9 @@
-package tk.ivybits.engine.scene;
+package tk.ivybits.engine.scene.geometry;
 
-import tk.ivybits.engine.scene.model.node.Face;
-import tk.ivybits.engine.scene.model.node.Mesh;
-import tk.ivybits.engine.scene.model.node.Model;
-import tk.ivybits.engine.scene.model.node.Vertex;
+import tk.ivybits.engine.scene.model.Face;
+import tk.ivybits.engine.scene.model.Mesh;
+import tk.ivybits.engine.scene.model.Model;
+import tk.ivybits.engine.scene.model.Vertex;
 import tk.ivybits.engine.util.ToString;
 
 import javax.vecmath.Vector3f;
@@ -35,7 +35,7 @@ public class BoundingBox {
     }
 
     /**
-     * Naively computes the bounding box of an {@link tk.ivybits.engine.scene.model.node.Mesh} instance.
+     * Naively computes the bounding box of an {@link tk.ivybits.engine.scene.model.Mesh} instance.
      *
      * @param geom The mesh.
      * @return A bounding box of the given mesh.

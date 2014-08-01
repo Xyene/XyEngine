@@ -1,4 +1,4 @@
-package tk.ivybits.engine.loader.image.targa;
+package tk.ivybits.engine.io.image.targa;
 
 
 import java.awt.Rectangle;

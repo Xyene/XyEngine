@@ -10,7 +10,8 @@ import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.model.node.Material;
+import tk.ivybits.engine.scene.event.ISceneChangeListener;
+import tk.ivybits.engine.scene.model.Material;
 import tk.ivybits.engine.scene.node.*;
 
 import java.awt.*;

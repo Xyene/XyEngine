@@ -1,7 +1,7 @@
-package tk.ivybits.engine.scene.model;
+package tk.ivybits.engine.util;
 
-import tk.ivybits.engine.scene.model.node.Face;
-import tk.ivybits.engine.scene.model.node.Vertex;
+import tk.ivybits.engine.scene.model.Face;
+import tk.ivybits.engine.scene.model.Vertex;
 
 import javax.vecmath.Vector3f;
 

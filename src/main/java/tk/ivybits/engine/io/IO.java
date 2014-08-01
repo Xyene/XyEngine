@@ -1,4 +1,4 @@
-package tk.ivybits.engine.util;
+package tk.ivybits.engine.io;
 
 import org.lwjgl.opengl.OpenGLException;
 

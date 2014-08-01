@@ -1,6 +1,10 @@
-package tk.ivybits.engine.scene.node;
+package tk.ivybits.engine.scene.event;
 
 import tk.ivybits.engine.scene.IActor;
+import tk.ivybits.engine.scene.node.IDirectionalLight;
+import tk.ivybits.engine.scene.node.IFog;
+import tk.ivybits.engine.scene.node.IPointLight;
+import tk.ivybits.engine.scene.node.ISpotLight;
 
 public abstract class SceneChangeAdapter implements ISceneChangeListener {
     @Override

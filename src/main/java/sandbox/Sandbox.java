@@ -10,10 +10,11 @@ import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.FPSCamera;
-import tk.ivybits.engine.scene.model.ModelIO;
+import tk.ivybits.engine.io.model.ModelIO;
 import tk.ivybits.engine.scene.node.ISceneGraph;
 import tk.ivybits.engine.scene.node.ISceneNode;
 import tk.ivybits.engine.scene.node.impl.DefaultSceneGraph;
+import tk.ivybits.engine.scene.node.impl.GeometryActor;
 import tk.ivybits.engine.util.FrameTimer;
 import tk.ivybits.engine.util.Natives;
 

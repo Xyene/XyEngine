@@ -1,7 +1,7 @@
 package tk.ivybits.engine.gl;
 
 import org.lwjgl.opengl.OpenGLException;
-import tk.ivybits.engine.util.IO;
+import tk.ivybits.engine.io.IO;
 
 import java.io.*;
 import java.util.*;

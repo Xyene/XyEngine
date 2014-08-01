@@ -1,9 +1,8 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
-import org.lwjgl.opengl.GLContext;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
-import tk.ivybits.engine.scene.model.node.Material;
+import tk.ivybits.engine.scene.model.Material;
 
 import static org.lwjgl.opengl.GLContext.getCapabilities;
 

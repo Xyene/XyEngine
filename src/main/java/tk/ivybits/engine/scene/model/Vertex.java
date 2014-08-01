@@ -1,4 +1,4 @@
-package tk.ivybits.engine.scene.model.node;
+package tk.ivybits.engine.scene.model;
 
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;

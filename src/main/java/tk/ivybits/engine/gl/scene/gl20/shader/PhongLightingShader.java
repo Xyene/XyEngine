@@ -5,7 +5,7 @@ import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.util.IO;
+import tk.ivybits.engine.io.IO;
 
 import java.io.IOException;
 import java.util.Arrays;

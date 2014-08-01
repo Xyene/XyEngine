@@ -1,7 +1,6 @@
-package tk.ivybits.engine.scene.model;
+package tk.ivybits.engine.io.model;
 
-import tk.ivybits.engine.scene.model.node.Mesh;
-import tk.ivybits.engine.scene.model.node.Model;
+import tk.ivybits.engine.scene.model.Model;
 
 import java.io.File;
 import java.io.IOException;

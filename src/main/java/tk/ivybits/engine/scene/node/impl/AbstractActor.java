@@ -1,7 +1,8 @@
-package tk.ivybits.engine.scene;
+package tk.ivybits.engine.scene.node.impl;
 
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
+import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.util.ToString;
 
 import static java.lang.Math.toRadians;

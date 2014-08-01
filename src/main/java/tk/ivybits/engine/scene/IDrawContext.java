@@ -1,7 +1,7 @@
 package tk.ivybits.engine.scene;
 
 import tk.ivybits.engine.scene.geometry.ITesselator;
-import tk.ivybits.engine.scene.model.node.Material;
+import tk.ivybits.engine.scene.model.Material;
 
 public interface IDrawContext {
     public static enum Capability {

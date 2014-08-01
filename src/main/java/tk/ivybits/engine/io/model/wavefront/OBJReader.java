@@ -1,8 +1,8 @@
-package tk.ivybits.engine.loader.model.wavefront;
+package tk.ivybits.engine.io.model.wavefront;
 
-import tk.ivybits.engine.scene.model.IModelReader;
-import tk.ivybits.engine.scene.model.TangentSpace;
-import tk.ivybits.engine.scene.model.node.*;
+import tk.ivybits.engine.io.model.IModelReader;
+import tk.ivybits.engine.scene.model.*;
+import tk.ivybits.engine.util.TangentSpace;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector2f;
@@ -12,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import static java.lang.Float.parseFloat;

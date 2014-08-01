@@ -1,4 +1,4 @@
-package tk.ivybits.engine.scene.model.node;
+package tk.ivybits.engine.scene.model;
 
 import java.util.Arrays;
 import java.util.Iterator;

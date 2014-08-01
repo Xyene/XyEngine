@@ -1,8 +1,8 @@
-package tk.ivybits.engine.scene.model;
+package tk.ivybits.engine.gl.scene;
 
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.geometry.ITesselator;
-import tk.ivybits.engine.scene.model.node.*;
+import tk.ivybits.engine.scene.model.*;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 

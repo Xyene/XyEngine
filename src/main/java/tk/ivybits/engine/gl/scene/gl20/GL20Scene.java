@@ -14,6 +14,7 @@ import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.Frustum;
 import tk.ivybits.engine.scene.camera.BasicCamera;
+import tk.ivybits.engine.scene.event.SceneChangeAdapter;
 import tk.ivybits.engine.scene.node.*;
 
 import static tk.ivybits.engine.gl.GL.*;

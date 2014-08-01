@@ -1,4 +1,4 @@
-package tk.ivybits.engine.scene.model.node;
+package tk.ivybits.engine.scene.model;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

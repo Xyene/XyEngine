@@ -2,7 +2,7 @@ package tk.ivybits.engine.gl.scene.gl11;
 
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
-import tk.ivybits.engine.scene.model.node.Material;
+import tk.ivybits.engine.scene.model.Material;
 
 public class GL11DrawContext implements IDrawContext {
     final GL11Scene parent;

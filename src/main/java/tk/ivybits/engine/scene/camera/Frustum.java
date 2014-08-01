@@ -1,7 +1,7 @@
 package tk.ivybits.engine.scene.camera;
 
 import org.lwjgl.util.vector.Matrix4f;
-import tk.ivybits.engine.scene.BoundingBox;
+import tk.ivybits.engine.scene.geometry.BoundingBox;
 
 public class Frustum {
     public float[][] frustum = new float[6][4];

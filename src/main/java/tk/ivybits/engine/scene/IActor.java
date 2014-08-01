@@ -1,7 +1,7 @@
 package tk.ivybits.engine.scene;
 
 import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
+import tk.ivybits.engine.scene.geometry.BoundingBox;
 
 public interface IActor {
     void update(float delta);

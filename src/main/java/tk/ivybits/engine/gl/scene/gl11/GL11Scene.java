@@ -7,9 +7,9 @@ import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.model.node.Material;
+import tk.ivybits.engine.scene.model.Material;
 import tk.ivybits.engine.scene.node.ISceneGraph;
-import tk.ivybits.engine.scene.node.SceneChangeAdapter;
+import tk.ivybits.engine.scene.event.SceneChangeAdapter;
 
 import java.awt.*;
 import java.nio.FloatBuffer;

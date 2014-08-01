@@ -1,5 +1,6 @@
 package tk.ivybits.engine.scene.node.impl;
 
+import tk.ivybits.engine.scene.event.ISceneChangeListener;
 import tk.ivybits.engine.scene.node.*;
 
 import java.lang.reflect.Method;
