@@ -1,3 +1,21 @@
+/*
+ * This file is part of XyEngine.
+ *
+ * XyEngine is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * XyEngine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with XyEngine. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
 package tk.ivybits.engine.gl.scene.gl20;
 
 import org.lwjgl.util.vector.Matrix4f;
@@ -16,6 +34,7 @@ import tk.ivybits.engine.scene.camera.Frustum;
 import tk.ivybits.engine.scene.camera.BasicCamera;
 import tk.ivybits.engine.scene.event.SceneChangeAdapter;
 import tk.ivybits.engine.scene.node.*;
+import tk.ivybits.engine.util.FrameTimer;
 
 import static tk.ivybits.engine.gl.GL.*;
 
@@ -161,8 +180,9 @@ public class GL20Scene implements IScene {
         if (lightingShader != null) lightingShader.getProgram().attach();
 
         List<PriorityComparableDrawable> visible = new ArrayList<>();
+        float delta = timer.getDelta();
         for (PriorityComparableDrawable entity : tracker) {
-            entity.actor.update(1); // TODO: real delta
+            entity.actor.update(delta); // TODO: real delta
             if (frustum.bbInFrustum(entity.actor.x(), entity.actor.y(), entity.actor.z(), entity.actor.getBoundingBox())) {
                 visible.add(entity);
             }
@@ -201,8 +221,16 @@ public class GL20Scene implements IScene {
         if (lightingShader != null) lightingShader.getProgram().detach();
     }
 
+    private FrameTimer timer;
+
     @Override
     public void draw() {
+        if(timer == null) {
+            timer = new FrameTimer();
+            timer.start();
+        }
+        else
+        timer.update();
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         if (drawContext.isEnabled(OBJECT_SHADOWS)) {
             glPushAttrib(GL_ALL_ATTRIB_BITS);

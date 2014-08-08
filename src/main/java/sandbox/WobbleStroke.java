@@ -1,4 +1,3 @@
-package sandbox;
 /*
 Copyright 2006 Jerry Huxtable
 
@@ -14,6 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+package sandbox;
 
 import java.awt.*;
 import java.awt.geom.FlatteningPathIterator;
