@@ -17,9 +17,9 @@ public class MagicCircleActor extends GeometryActor {
 
     @Override
     public void update(float delta) {
-        size += 0.01f * mod;
+        size += delta / 5000 * mod;
         if(size > 2 || size < 1) mod *= -1;
         scale(size, size, size);
-        rotate(pitch, yaw + 0.2f, roll);
+        rotate(pitch, yaw + delta / 50, roll);
     }
 }

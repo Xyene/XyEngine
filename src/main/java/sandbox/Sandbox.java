@@ -26,6 +26,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Arrays;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
@@ -39,7 +40,6 @@ public class Sandbox {
     private static IScene scene;
     private static FPSCamera camera;
     private static UITexture screenOverlay;
-    private static JLabel fpsLabel;
 
     public static void main(String[] args) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -151,8 +151,7 @@ public class Sandbox {
 
             if (frame == 100) {
                 float fps = timer.fps();
-                fpsLabel.setText(String.format("%.1f (%.2fms/frame), %d/%d objects drawn\n", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
-                screenOverlay.markDirty();
+                Display.setTitle(String.format("Xy Sandbox | %.1f (%.2fms/frame), %d/%d objects drawn", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 frame = 0;
             }
 
@@ -180,36 +179,31 @@ public class Sandbox {
         } else {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
-        if (Mouse.isGrabbed()) {
-            while (Keyboard.next()) {
-                int key = Keyboard.getEventKey();
-                if (Keyboard.getEventKeyState()) {
-                    switch (key) {
-                        case Keyboard.KEY_ESCAPE:
-                            System.exit(0);
-                        case Keyboard.KEY_ADD:
-                            speed *= 2f;
-                            break;
-                        case Keyboard.KEY_SUBTRACT:
-                            speed /= 2f;
-                            break;
-                        case Keyboard.KEY_L:
-                            scene.getSceneGraph().getRoot().createPointLight()
-                                    .setPosition(camera.x(), camera.y(), camera.z())
-                                    .setDiffuseColor(WHITE)
-                                    .setIntensity(2);
-                            break;
-                        case Keyboard.KEY_P:
-                            scene.getSceneGraph().getRoot().createSpotLight()
-                                    .setPosition(camera.x(), camera.y(), camera.z())
-                                    .setRotation(camera.pitch(), camera.yaw())
-                                    .setDiffuseColor(Color.GREEN)
-                                    .setIntensity(3.5f)
-                                    .setCutoff(10);
-                            break;
-                    }
+
+        while (Keyboard.next()) {
+            int key = Keyboard.getEventKey();
+            if (Keyboard.getEventKeyState()) {
+                switch (key) {
+                    case Keyboard.KEY_ESCAPE:
+                        System.exit(0);
+                    case Keyboard.KEY_ADD:
+                        speed *= 2f;
+                        break;
+                    case Keyboard.KEY_SUBTRACT:
+                        speed /= 2f;
+                        break;
+                    case Keyboard.KEY_LCONTROL:
+                    case Keyboard.KEY_RCONTROL:
+                        Mouse.setGrabbed(false);
+                        onScreenUI.add(new SpellcastDrawPanel(), BorderLayout.CENTER);
+                        onScreenUI.revalidate();
+                        screenOverlay.markDirty();
+                        break;
                 }
             }
+        }
+
+        if (Mouse.isGrabbed()) {
             //camera.processKeyboard(speed, timer.getDelta() * (16 * speed));
 
             float delta = timer.getDelta() * (16 * speed);
@@ -289,11 +283,9 @@ public class Sandbox {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_LEQUAL);
         glEnable(GL_DEPTH_TEST);
-
-        glMatrixMode(GL_MODELVIEW);
-
-        glShadeModel(GL_SMOOTH);
     }
+
+    static final JPanel onScreenUI = new JPanel();
 
     private static void setupUI() throws ClassNotFoundException, UnsupportedLookAndFeelException, InstantiationException, IllegalAccessException {
         for (UIManager.LookAndFeelInfo lfi : UIManager.getInstalledLookAndFeels()) {
@@ -301,19 +293,17 @@ public class Sandbox {
                 UIManager.setLookAndFeel(lfi.getClassName());
         }
 
-        final JPanel onScreenUI = new JPanel();
         onScreenUI.setBackground(new Color(0, 0, 0, 0));
         onScreenUI.setLayout(new BorderLayout());
 
-        JPanel opts = new JPanel() {
+        GamePanel opts = new GamePanel() {
             @Override
             public Component add(Component box) {
                 super.add(box);
                 if (box instanceof JCheckBox) {
                     box.setForeground(Color.GREEN);
-                    ((JCheckBox) box).setOpaque(true);
+                    ((JCheckBox) box).setOpaque(false);
                 }
-                box.setBackground(new Color(0, 0, 0, 0.25f));
                 return box;
             }
         };
@@ -337,7 +327,6 @@ public class Sandbox {
         scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
 
         // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
-
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
             JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
             msaa.addActionListener(new AbstractAction() {
@@ -404,16 +393,10 @@ public class Sandbox {
 
         opts.add(bar);
 
-        fpsLabel = new JLabel("...");
-        fpsLabel.setOpaque(true);
-        fpsLabel.setBackground(new Color(0, 0, 0, 0.25f));
-        fpsLabel.setForeground(Color.GREEN);
-        onScreenUI.add(fpsLabel, BorderLayout.SOUTH);
-
         onScreenUI.add(opts, BorderLayout.EAST);
 
         opts.setBackground(new Color(0, 0, 0, 0));
-        opts.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 0));
+        opts.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
