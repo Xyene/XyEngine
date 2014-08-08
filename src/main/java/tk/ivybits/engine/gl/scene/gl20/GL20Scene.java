@@ -55,7 +55,7 @@ public class GL20Scene implements IScene {
             @Override
             public void actorAdded(IActor actor) {
                 IDrawable draw = actor.createDrawable(drawContext);
-                tracker.add(new PriorityComparableDrawable(actor, draw, draw.priority()));
+                tracker.add(new PriorityComparableDrawable(actor, draw));
             }
 
             @Override
@@ -145,8 +145,8 @@ public class GL20Scene implements IScene {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
-                rawGeometryShader.setModelTransform(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                rawGeometryShader.setModelTransform(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
             glDisable(GL_CULL_FACE);
             rawGeometryShader.getProgram().detach();
@@ -162,7 +162,8 @@ public class GL20Scene implements IScene {
 
         List<PriorityComparableDrawable> visible = new ArrayList<>();
         for (PriorityComparableDrawable entity : tracker) {
-            if (frustum.bbInFrustum(entity.wrapped.x(), entity.wrapped.y(), entity.wrapped.z(), entity.wrapped.getBoundingBox())) {
+            entity.actor.update(1); // TODO: real delta
+            if (frustum.bbInFrustum(entity.actor.x(), entity.actor.y(), entity.actor.z(), entity.actor.getBoundingBox())) {
                 visible.add(entity);
             }
         }
@@ -171,27 +172,27 @@ public class GL20Scene implements IScene {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : visible) {
-                if (!entity.draw.isTransparent()) continue;
-                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (!entity.drawable.isTransparent()) continue;
+                currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : visible) {
-                if (!entity.draw.isTransparent()) continue;
-                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (!entity.drawable.isTransparent()) continue;
+                currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                entity.drawable.draw(this);
                 drawn++;
             }
             glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : visible) {
-                if (entity.draw.isTransparent()) continue;
-                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (entity.drawable.isTransparent()) continue;
+                currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
         } else {
             for (PriorityComparableDrawable entity : visible) {
-                currentGeometryShader.setModelTransform(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
         }
 

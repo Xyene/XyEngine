@@ -6,19 +6,22 @@ import tk.ivybits.engine.scene.IDrawable;
 import java.util.Comparator;
 
 public class PriorityComparableDrawable {
+    /**
+     * A sorting comparator that sorts collections of {@link tk.ivybits.engine.gl.scene.PriorityComparableDrawable}
+     * based on declared priority, highest to lowest.
+     */
     public static Comparator<PriorityComparableDrawable> COMPARATOR = new Comparator<PriorityComparableDrawable>() {
         @Override
         public int compare(PriorityComparableDrawable o1, PriorityComparableDrawable o2) {
-            return o1.priority - o2.priority;
+            return o2.drawable.priority() - o1.drawable.priority();
         }
     };
-    public final IActor wrapped;
-    public final IDrawable draw;
-    public final int priority;
 
-    public PriorityComparableDrawable(IActor actor, IDrawable draw, int priority) {
-        this.wrapped = actor;
-        this.draw = draw;
-        this.priority = priority;
+    public final IActor actor;
+    public final IDrawable drawable;
+
+    public PriorityComparableDrawable(IActor actor, IDrawable drawable) {
+        this.actor = actor;
+        this.drawable = drawable;
     }
 }

@@ -3,9 +3,12 @@ package tk.ivybits.engine.gl.texture;
 import org.lwjgl.opengl.EXTDirectStateAccess;
 import org.lwjgl.opengl.GLContext;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.*;
 import java.util.Hashtable;
 
@@ -36,7 +39,7 @@ public class Texture {
         int srcPixelFormat;
         boolean alpha = in.getColorModel().hasAlpha();
 
-        if (in.getColorModel().hasAlpha()) {
+        if (alpha) {
             srcPixelFormat = GL_RGBA;
         } else {
             srcPixelFormat = GL_RGB;
@@ -50,7 +53,7 @@ public class Texture {
 
         // create a raster that can be used by OpenGL as a source
         // for a texture
-        if (in.getColorModel().hasAlpha()) {
+        if (alpha) {
             raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
             texImage = new BufferedImage(glAlphaColorModel, raster, false, new Hashtable());
         } else {
@@ -78,6 +81,12 @@ public class Texture {
         nativeBuffer.order(ByteOrder.nativeOrder());
         nativeBuffer.put(data, 0, data.length);
         nativeBuffer.flip();
+
+//        try {
+//            ImageIO.write(texImage, "PNG", new File(handle + ".png"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         glTexImage2D(target, 0, this.format = alpha ? GL_RGBA : GL_RGB, width, height, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
         unbind();

@@ -4,6 +4,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.*;
 
+import java.lang.ref.WeakReference;
 import java.nio.FloatBuffer;
 import java.util.*;
 

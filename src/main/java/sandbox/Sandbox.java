@@ -76,11 +76,18 @@ public class Sandbox {
         setupUI();
 
         System.out.print("Reading models... ");
-        IActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder.obj")));
+
+        IActor circle = root.track(new MagicCircleActor());
+        circle.position(0, 0.1f, 0);
+        circle.rotate(0, 0, 0);
+
+        IActor ground = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
+        ground.position(0, 0, 0);
+
+        IActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder2.obj")));
         ship.position(0, -2.5f, 10);
         ship.rotate(0, 0, 0);
-        IActor crate = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
-        crate.position(0, 0, 0);
+
         System.out.print("Done.\n");
 
         root.createDirectionalLight()

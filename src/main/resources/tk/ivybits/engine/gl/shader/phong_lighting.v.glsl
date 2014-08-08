@@ -1,4 +1,3 @@
-#version 110
 
 #if  __VERSION__ < 130
 #define out varying
@@ -35,6 +34,8 @@ uniform mat4 u_mvpMatrix;
 
 void main(void)  
 {
+    //vec3 v = a_Vertex;
+    //v.y = sin(v.x) + sin(v.z);
     vec4 hVertex = vec4(a_Vertex, 1.0);
 
     gl_Position = u_mvpMatrix * hVertex;
@@ -52,6 +53,7 @@ void main(void)
 
     v_surfaceNormal = normalize(u_normalMatrix * a_Normal);
     v_vertexPosition = vec3(u_modelMatrix * hVertex);
+
     v_UV = a_UV;
 
     #ifdef NORMAL_MAPPING

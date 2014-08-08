@@ -12,13 +12,15 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class GeometryDrawable implements IDrawable {
     private final Model model;
+    private final int priority;
     private final IDrawContext ctx;
     private List<BufferedMesh> meshes;
     private boolean transparent;
 
-    public GeometryDrawable(IDrawContext with, Model model) {
+    public GeometryDrawable(IDrawContext with, Model model, int priority) {
         this.ctx = with;
         this.model = model;
+        this.priority = priority;
     }
 
     @Override
@@ -33,6 +35,17 @@ public class GeometryDrawable implements IDrawable {
 
         glPushAttrib(GL_CURRENT_BIT | GL_TEXTURE_BIT);
 
+        glClearColor(0, 0, 0, 0);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DITHER);
+        glEnable(GL_BLEND);
+        glDisable(GL_COLOR_MATERIAL);
+        glColor4f(0, 0, 0, 0);
+       // glAlphaFunc(GL_GREATER, 0.0f);
+
+        // Enables/disables
+        glEnable(GL_ALPHA_TEST);
+
         for (BufferedMesh mesh : meshes) {
             if (mesh.material != null) ctx.useMaterial(mesh.material);
             mesh.buffer.draw(scene);
@@ -42,7 +55,7 @@ public class GeometryDrawable implements IDrawable {
     }
 
     private void compile() {
-        if(meshes != null) return;
+        if (meshes != null) return;
         meshes = new LinkedList<>();
 
         for (Mesh mesh : model.getMeshes()) {
@@ -100,7 +113,7 @@ public class GeometryDrawable implements IDrawable {
 
     @Override
     public int priority() {
-        return 0;
+        return priority;
     }
 
     private static void vertex(Vertex vertex, ITesselator tes, boolean normals, boolean tangents, boolean uvs) {

@@ -7,8 +7,9 @@ import tk.ivybits.engine.scene.geometry.BoundingBox;
 import tk.ivybits.engine.scene.model.Model;
 
 public class GeometryActor extends AbstractActor {
-    private Model model;
-    private BoundingBox boundingBox;
+    protected Model model;
+    protected BoundingBox boundingBox;
+    protected int priority = Integer.MAX_VALUE;
 
     public GeometryActor(Model model) {
         this.model = model;
@@ -26,6 +27,6 @@ public class GeometryActor extends AbstractActor {
 
     @Override
     public IDrawable createDrawable(IDrawContext context) {
-        return new GeometryDrawable(context, model);
+        return new GeometryDrawable(context, model, priority);
     }
 }

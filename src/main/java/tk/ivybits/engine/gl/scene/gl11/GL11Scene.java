@@ -38,7 +38,7 @@ public class GL11Scene implements IScene {
             @Override
             public void actorAdded(IActor actor) {
                 IDrawable draw = actor.createDrawable(drawContext);
-                tracker.add(new PriorityComparableDrawable(actor, draw, draw.priority()));
+                tracker.add(new PriorityComparableDrawable(actor, draw));
             }
 
             @Override
@@ -97,26 +97,26 @@ public class GL11Scene implements IScene {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : tracker) {
-                if (!entity.draw.isTransparent()) continue;
-                setModelView(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (!entity.drawable.isTransparent()) continue;
+                setModelView(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : tracker) {
-                if (!entity.draw.isTransparent()) continue;
-                setModelView(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (!entity.drawable.isTransparent()) continue;
+                setModelView(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
             glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : tracker) {
-                if (entity.draw.isTransparent()) continue;
-                setModelView(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                if (entity.drawable.isTransparent()) continue;
+                setModelView(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
         } else {
             for (PriorityComparableDrawable entity : tracker) {
-                setModelView(entity.wrapped.getTransform());
-                entity.draw.draw(this);
+                setModelView(entity.actor.getTransform());
+                entity.drawable.draw(this);
             }
         }
     }

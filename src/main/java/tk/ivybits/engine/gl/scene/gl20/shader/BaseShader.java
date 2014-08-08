@@ -3,6 +3,7 @@ package tk.ivybits.engine.gl.scene.gl20.shader;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
+import tk.ivybits.engine.gl.GL;
 import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.Program;
@@ -68,6 +69,7 @@ public class BaseShader implements ISceneChangeListener {
                         .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                         .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
                         .setParameter(GL_GENERATE_MIPMAP, GL_TRUE);
+
                 if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
                     tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
                 put(image, tex);
@@ -152,6 +154,7 @@ public class BaseShader implements ISceneChangeListener {
                 specular.getBlue() / 255F);
         shader.setUniform("u_material.shininess", 128 - material.shininess + 1);
         shader.setUniform("u_material.transparency", material.transparency);
+
         shader.detach();
     }
 

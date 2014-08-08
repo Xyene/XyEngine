@@ -26,5 +26,13 @@ public interface IActor {
 
     IDrawable createDrawable(IDrawContext context);
 
+    float sx();
+
+    float sy();
+
+    float sz();
+
+    void scale(float sx, float sy, float sz);
+
     void rotate(float pitch, float yaw, float roll);
 }

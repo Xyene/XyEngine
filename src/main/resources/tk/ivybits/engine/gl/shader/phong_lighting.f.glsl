@@ -1,4 +1,3 @@
-#version 110
 
 #if  __VERSION__ < 130
 #define out varying
@@ -54,7 +53,8 @@ float spotlight_shadow_factor(int idx)
 void main(void)
 {
     vec3 fragment = vec3(0);
-    vec3 texture = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgb : vec3(0);
+    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgba : vec4(0);
+    vec3 texture = diffuse.rgb;
 
     vec3 specularTerm = u_material.specular;
 
@@ -126,7 +126,7 @@ void main(void)
         #endif
     }
 
-    gl_FragColor = vec4(fragment, u_material.transparency);
+    gl_FragColor = vec4(fragment, u_material.transparency * diffuse.a);
 
     #ifdef FOG
     float depth = gl_FragCoord.z / gl_FragCoord.w;
