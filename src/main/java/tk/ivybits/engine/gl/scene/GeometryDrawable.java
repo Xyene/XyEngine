@@ -35,16 +35,8 @@ public class GeometryDrawable implements IDrawable {
 
         glPushAttrib(GL_CURRENT_BIT | GL_TEXTURE_BIT);
 
-        glClearColor(0, 0, 0, 0);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_DITHER);
         glEnable(GL_BLEND);
-        glDisable(GL_COLOR_MATERIAL);
-        glColor4f(0, 0, 0, 0);
-       // glAlphaFunc(GL_GREATER, 0.0f);
-
-        // Enables/disables
-        glEnable(GL_ALPHA_TEST);
 
         for (BufferedMesh mesh : meshes) {
             if (mesh.material != null) ctx.useMaterial(mesh.material);
