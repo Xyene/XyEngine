@@ -25,7 +25,7 @@ import tk.ivybits.engine.scene.node.impl.GeometryActor;
 import java.io.IOException;
 
 public class MagicCircleActor extends GeometryActor {
-    private float size = 1;
+    private float size = 2;
     private int mod = 1;
 
     public MagicCircleActor() throws IOException {

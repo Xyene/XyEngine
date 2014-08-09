@@ -1,0 +1,16 @@
+<jnlp spec="1.0+" codebase="http://ci.ivybits.tk/job/XyEngine/lastSuccessfulBuild/artifact/target/" href="">
+    <information>
+        <title>Xy Sandbox</title>
+        <vendor>Xyene</vendor>
+        <description>XyEngine Sandbox</description>
+        <offline-allowed/>
+    </information>
+    <resources>
+        <jar href="XyEngine-1.0-SNAPSHOT.jar" main="true"/>
+        <extension name="lwjgl" href="http://lwjgl.org/webstart/2.9.1/extension.jnlp"/>
+    </resources>
+    <security>
+        <all-permissions/>
+    </security>
+    <application-desc main-class="sandbox.Sandbox"/>
+</jnlp>

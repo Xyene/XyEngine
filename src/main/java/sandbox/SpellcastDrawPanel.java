@@ -72,7 +72,7 @@ public class SpellcastDrawPanel extends GamePanel {
                 Color.ORANGE.getGreen() / 255f,
                 Color.ORANGE.getBlue() / 255f,
                 0.5f));
-        graphics.setStroke(new WobbleStroke(8f, 4));
+        graphics.setStroke(new WobbleStroke(8, 6));
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     }

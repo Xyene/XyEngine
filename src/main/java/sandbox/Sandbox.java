@@ -192,11 +192,6 @@ public class Sandbox {
             }
             screenOverlay.doMouseEvent();
         }
-        if (Keyboard.isKeyDown(Keyboard.KEY_O)) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
 
         while (Keyboard.next()) {
             int key = Keyboard.getEventKey();
