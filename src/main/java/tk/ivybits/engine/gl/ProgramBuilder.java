@@ -91,8 +91,8 @@ public class ProgramBuilder {
             glShaderSource(shaderHandle, sources);
 
             glCompileShader(shaderHandle);
-//            final String log = glGetShaderInfoLog(shaderHandle, glGetShaderi(shaderHandle, GL_INFO_LOG_LENGTH));
-//            System.err.println(log);
+            final String log = glGetShaderInfoLog(shaderHandle, glGetShaderi(shaderHandle, GL_INFO_LOG_LENGTH));
+            System.err.println(log);
 
             if (glGetShaderi(shaderHandle, GL_COMPILE_STATUS) == GL_FALSE) {
                 glDeleteShader(shaderHandle);
@@ -104,8 +104,8 @@ public class ProgramBuilder {
         }
         glLinkProgram(handle);
         if (glGetProgrami(handle, GL_LINK_STATUS) == GL_FALSE) {
-//            final String log = glGetShaderInfoLog(handle, glGetShaderi(handle, GL_INFO_LOG_LENGTH));
-//            System.err.println(log);
+            final String log = glGetShaderInfoLog(handle, glGetShaderi(handle, GL_INFO_LOG_LENGTH));
+            System.err.println(log);
 
             glDeleteProgram(handle);
             handle = -1;

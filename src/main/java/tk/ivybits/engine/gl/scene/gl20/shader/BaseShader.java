@@ -83,10 +83,9 @@ public class BaseShader implements ISceneChangeListener {
             Texture tex = super.get(obj);
             BufferedImage image = (BufferedImage)obj;
             if (tex == null) {
-                tex = new Texture(image)
+                tex = new Texture(image, true)
                         .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                        .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-                        .setParameter(GL_GENERATE_MIPMAP, GL_TRUE);
+                        .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
                 if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
                     tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));

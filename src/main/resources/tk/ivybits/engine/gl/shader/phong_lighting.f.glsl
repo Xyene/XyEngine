@@ -1,20 +1,13 @@
-#if  __VERSION__ < 130
-#define out varying
-#define in varying
-#define texture texture2D
-#define textureProj texture2DProj
-#endif
-
 #define MAX_LIGHTS 8
 
-in vec3 v_surfaceNormal;
-in vec3 v_vertexPosition;
-in vec2 v_UV;
+varying vec3 v_surfaceNormal;
+varying vec3 v_vertexPosition;
+varying vec2 v_UV;
 #ifdef OBJECT_SHADOWS
-in vec4 v_lightSpacePos[MAX_LIGHTS];
+varying vec4 v_lightSpacePos[MAX_LIGHTS];
 #endif
 #ifdef NORMAL_MAPPING
-in mat3 v_TBN;
+varying mat3 v_TBN;
 #endif
 
 uniform Material u_material;
@@ -51,8 +44,8 @@ float spotlight_shadow_factor(int idx)
 
 void main(void)
 {
-    vec3 fragment = vec3(0);
-    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgba : vec4(0);
+    vec3 fragment = vec3(0.0);
+    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgba : vec4(0.0);
     vec3 texture = diffuse.rgb;
 
     vec3 specularTerm = u_material.specular;
@@ -74,9 +67,9 @@ void main(void)
         vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
 
         vec3 ambient = u_material.ambient * lightSource.ambient;
-        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0);
+        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0.0);
         vec3 specular = specularTerm * lightSource.specular *
-            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0), u_material.shininess);
+            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0.0), u_material.shininess);
 
         fragment += (ambient + (diffuse * texture) + specular) * lightSource.intensity;
     }
@@ -88,9 +81,9 @@ void main(void)
         vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
 
         vec3 ambient = u_material.ambient * lightSource.ambient;
-        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0);
+        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0.0);
         vec3 specular = specularTerm * lightSource.specular *
-            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0), u_material.shininess);
+            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0.0), u_material.shininess);
 
         fragment += (ambient + (diffuse * texture) + specular) * lightSource.intensity;
     }
@@ -102,19 +95,19 @@ void main(void)
         vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
 
         float cosTheta = dot(-incidentRay, spotDirection);
-        float falloffArea = cos(radians(30));
+        float falloffArea = cos(radians(30.0));
         float shadedArea = lightSource.cutoff - falloffArea;
 
-        vec3 color = vec3(0);
+        vec3 color = vec3(0.0);
         if(cosTheta > shadedArea) {
-            float falloff = max((cosTheta - falloffArea) / shadedArea, 0);
+            float falloff = max((cosTheta - falloffArea) / shadedArea, 0.0);
             vec3 ambient = u_material.ambient *
                 lightSource.ambient;
             vec3 diffuse = u_material.diffuse *
-                max(dot(normalMap, incidentRay), 0) *
+                max(dot(normalMap, incidentRay), 0.0) *
                 lightSource.diffuse;
             vec3 specular = specularTerm *
-                pow(max(dot(refractedRay, normalize(-v_vertexPosition)), 0), u_material.shininess) *
+                pow(max(dot(refractedRay, normalize(-v_vertexPosition)), 0.0), u_material.shininess) *
                 lightSource.specular;
             color += (falloff * (ambient + ((diffuse * texture) + specular) * lightSource.intensity));
        }
