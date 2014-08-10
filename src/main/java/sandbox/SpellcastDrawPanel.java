@@ -44,6 +44,7 @@ public class SpellcastDrawPanel extends GamePanel {
             public void mouseDragged(MouseEvent e) {
                 int x = e.getX();
                 int y = e.getY();
+                //double m = Math.sqrt((x - _x) * (x - _x) + (y - _y) * (y - _y));
                 graphics.drawLine(_x, _y, x, y);
                 _x = x;
                 _y = y;
@@ -68,12 +69,11 @@ public class SpellcastDrawPanel extends GamePanel {
         graphics.setBackground(new Color(0, 0, 0, 0));
         graphics.clearRect(0, 0, getWidth(), getHeight());
         graphics.setColor(new Color(
-                Color.ORANGE.getRed() / 255f,
-                Color.ORANGE.getGreen() / 255f,
-                Color.ORANGE.getBlue() / 255f,
+                0,
+                1,
+                0,
                 0.5f));
         graphics.setStroke(new WobbleStroke(8, 6));
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
     }
 }

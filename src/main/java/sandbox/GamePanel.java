@@ -28,8 +28,12 @@ public class GamePanel extends JPanel {
     public void paintComponent(Graphics _g) {
         Insets insets = getBorder().getBorderInsets(this);
         Graphics2D g = (Graphics2D) _g;
-        g.setClip(new RoundRectangle2D.Float(insets.left, insets.top, getWidth() - insets.right, getHeight() - insets.bottom, 20, 20));
-        g.setBackground(new Color(0, 0, 0, 0.25f));
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        RoundRectangle2D clip = new RoundRectangle2D.Float(insets.left, insets.top, getWidth() - insets.right, getHeight() - insets.bottom, 20, 20);
+        g.setBackground(new Color(0, 0, 0, 0));
         g.clearRect(0, 0, getWidth(), getHeight());
+        g.setColor(new Color(0, 0, 0, 0.25f));
+        g.fill(clip);
+        g.setClip(clip);
     }
 }

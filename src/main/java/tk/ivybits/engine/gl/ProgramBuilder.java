@@ -79,7 +79,6 @@ public class ProgramBuilder {
             String[] sources = new String[value.size()];
             for (int i = 0; i < value.size(); i++) {
                 String source = value.get(i);
-                source = source.trim();
                 if (source.startsWith("#version")) {
                     int idx = source.indexOf('\n');
                     source = source.substring(0, idx + 1) + header + source.substring(idx + 1);

@@ -182,6 +182,8 @@ public class Sandbox {
         System.out.println(camera);
     }
 
+    static SpellcastDrawPanel spell;
+
     private static void input() throws IOException {
         while (Mouse.next()) {
             if (Mouse.getEventButtonState()) {
@@ -208,7 +210,13 @@ public class Sandbox {
                     case Keyboard.KEY_LCONTROL:
                     case Keyboard.KEY_RCONTROL:
                         Mouse.setGrabbed(false);
-                        onScreenUI.add(new SpellcastDrawPanel(), BorderLayout.CENTER);
+                        if (spell != null) {
+                            onScreenUI.remove(spell);
+                            spell = null;
+                        } else {
+                            spell = new SpellcastDrawPanel();
+                            onScreenUI.add(spell, BorderLayout.CENTER);
+                        }
                         onScreenUI.revalidate();
                         screenOverlay.markDirty();
                         break;
@@ -408,7 +416,6 @@ public class Sandbox {
 
         onScreenUI.add(opts, BorderLayout.EAST);
 
-        opts.setBackground(new Color(0, 0, 0, 0));
         opts.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
