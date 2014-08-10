@@ -18,6 +18,7 @@
 
 package sandbox;
 
+import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
@@ -25,6 +26,7 @@ import org.lwjgl.opengl.DisplayMode;
 import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
+import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.FPSCamera;
@@ -44,6 +46,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static java.awt.Color.*;
@@ -69,6 +72,8 @@ public class Sandbox {
             }
         });
         setup();
+
+        System.out.println(Thread.currentThread().getName());
         glDebugMessageCallback(new KHRDebugCallback(new KHRDebugCallback.Handler() {
             @Override
             public void handleMessage(int i, int i2, int i3, int i4, String s) {
@@ -76,7 +81,8 @@ public class Sandbox {
                     throw new OpenGLException(s);
                 } catch (OpenGLException e) {
                     e.printStackTrace();
-                }
+                }  //throw new OpenGLException(s);
+                // Sys.alert("block", "block");
             }
         }));
 
@@ -129,6 +135,7 @@ public class Sandbox {
         timer.start();
 
         long frame = 0;
+        int c=0;
         while (!Display.isCloseRequested()) {
             frame++;
             timer.update();
@@ -143,15 +150,15 @@ public class Sandbox {
             input();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glLoadIdentity();
+
             scene.draw();
 
             glEnable(GL_TEXTURE_2D);
 
             ImmediateProjection.toOrthographicProjection();
 
+            //new ArrayList<>(Texture.ALL).get(c).bind();
             screenOverlay.bind();
-
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
             glVertex2f(0, 0);
@@ -162,8 +169,8 @@ public class Sandbox {
             glTexCoord2f(1, 0);
             glVertex2f(Display.getWidth(), 0);
             glEnd();
-
-            screenOverlay.unbind();
+            screenOverlay.bind();
+            //new ArrayList<>(Texture.ALL).get(c).unbind();
 
             ImmediateProjection.toFrustrumProjection();
 
@@ -171,6 +178,9 @@ public class Sandbox {
                 float fps = timer.fps();
                 Display.setTitle(String.format("Xy Sandbox | %.1f (%.2fms/frame), %d/%d objects drawn", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 frame = 0;
+                c ++;
+                c %= Texture.ALL.size();
+                System.out.println(c);
             }
 
             Display.update();
@@ -256,7 +266,7 @@ public class Sandbox {
     }
 
     private static void setup() {
-        System.out.print("Unpacking natives... ");
+        System.out.println("Unpacking natives... ");
         Natives.unpack();
         System.out.print("Done.\n");
         try {
@@ -339,7 +349,7 @@ public class Sandbox {
 
         scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
 
-        // UNCOMMENT THIS LINE FOR MESA scene.getDrawContext().setEnabled(IDrawContext.ANTIALIASING, false);
+        scene.getDrawContext().setEnabled(ANTIALIASING, false);
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
             JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
             msaa.addActionListener(new AbstractAction() {

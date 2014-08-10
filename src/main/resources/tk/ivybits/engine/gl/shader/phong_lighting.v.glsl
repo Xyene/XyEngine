@@ -1,27 +1,22 @@
 
-#if  __VERSION__ < 130
-#define out varying
-#define in attribute
-#endif
-
 #define MAX_LIGHTS 8
 
-out vec3 v_surfaceNormal;
-out vec3 v_vertexPosition;
-out vec2 v_UV;
+varying vec3 v_surfaceNormal;
+varying vec3 v_vertexPosition;
+varying vec2 v_UV;
 #ifdef NORMAL_MAPPING
-out mat3 v_TBN;
+varying mat3 v_TBN;
 #endif
 #ifdef OBJECT_SHADOWS
-out vec4 v_lightSpacePos[MAX_LIGHTS];
+varying vec4 v_lightSpacePos[MAX_LIGHTS];
 #endif
 
-in vec3 a_Vertex;
-in vec3 a_Normal;
+attribute vec3 a_Vertex;
+attribute vec3 a_Normal;
 #ifdef NORMAL_MAPPING
-in vec3 a_Tangent;
+attribute vec3 a_Tangent;
 #endif
-in vec2 a_UV;
+attribute vec2 a_UV;
 
 #ifdef OBJECT_SHADOWS
 uniform int u_lightMatrixCount;
