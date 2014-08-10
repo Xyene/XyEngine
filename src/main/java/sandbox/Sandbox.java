@@ -135,7 +135,6 @@ public class Sandbox {
         timer.start();
 
         long frame = 0;
-        int c=0;
         while (!Display.isCloseRequested()) {
             frame++;
             timer.update();
@@ -157,7 +156,6 @@ public class Sandbox {
 
             ImmediateProjection.toOrthographicProjection();
 
-            //new ArrayList<>(Texture.ALL).get(c).bind();
             screenOverlay.bind();
             glBegin(GL_QUADS);
             glTexCoord2f(0, 0);
@@ -170,7 +168,6 @@ public class Sandbox {
             glVertex2f(Display.getWidth(), 0);
             glEnd();
             screenOverlay.bind();
-            //new ArrayList<>(Texture.ALL).get(c).unbind();
 
             ImmediateProjection.toFrustrumProjection();
 
@@ -178,9 +175,6 @@ public class Sandbox {
                 float fps = timer.fps();
                 Display.setTitle(String.format("Xy Sandbox | %.1f (%.2fms/frame), %d/%d objects drawn", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 frame = 0;
-                c ++;
-                c %= Texture.ALL.size();
-                System.out.println(c);
             }
 
             Display.update();
