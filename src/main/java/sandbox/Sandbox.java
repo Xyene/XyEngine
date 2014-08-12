@@ -18,14 +18,12 @@
 
 package sandbox;
 
-import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
 import org.lwjgl.opengl.DisplayMode;
-import tk.ivybits.engine.gl.ImmediateProjection;
-import tk.ivybits.engine.gl.scene.SkyBox;
-import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
+import tk.ivybits.engine.gl.scene.Skybox;
+import tk.ivybits.engine.gl.scene.StaticEnvironmentMap;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.gl.ui.UITexture;
@@ -47,8 +45,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
@@ -74,7 +70,6 @@ public class Sandbox {
         });
         setup();
 
-        System.out.println(Thread.currentThread().getName());
         glDebugMessageCallback(new KHRDebugCallback(new KHRDebugCallback.Handler() {
             @Override
             public void handleMessage(int i, int i2, int i3, int i4, String s) {
@@ -90,36 +85,34 @@ public class Sandbox {
 
         ISceneGraph graph = new DefaultSceneGraph();
 
-        // Create a scene graph
-        if (GLContext.getCapabilities().OpenGL20)
-            scene = new GL20Scene(Display.getWidth(), Display.getHeight(), graph);
-        else
-            scene = new GL11Scene(Display.getWidth(), Display.getHeight(), graph);
+        scene = new GL20Scene(Display.getWidth(), Display.getHeight(), graph);
+
         ISceneNode root = graph.getRoot();
 
         setupUI();
 
         System.out.print("Reading models... ");
 
-        IActor circle = root.track(new MagicCircleActor());
+        MagicCircleActor circle = root.track(new MagicCircleActor());
         circle.position(0, 0.1f, 0);
-        circle.rotate(0, 0, 0);
-
-        IActor ground = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
+        GeometryActor ground = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
         ground.position(0, 0, 0);
-
-        IActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder2.obj")));
+        GeometryActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder2.obj")));
         ship.position(0, -2.5f, 10);
-        ship.rotate(0, 0, 0);
 
-        IActor skybox = root.track(new SkyBox(
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/xpos.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/xneg.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/ypos.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/yneg.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/zpos.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/zneg.png"))
+        Skybox skybox = root.track(new Skybox(
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/left.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/right.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/top.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/bottom.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/front.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/back.png"))
         ));
+        skybox.position(0, -25, 0);
+
+
+        scene.setEnvironmentMap(new StaticEnvironmentMap(skybox.getEnvironmentMap()));
+
 
         System.out.print("Done.\n");
 
@@ -158,7 +151,7 @@ public class Sandbox {
                 screenOverlay.update();
             input();
 
-            skybox.position(camera.x(), camera.y(), camera.z());
+            skybox.position(camera.x(), camera.y() - 25, camera.z());
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -173,7 +166,7 @@ public class Sandbox {
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
 
-           // new ArrayList<>(Texture.ALL).get(c).bind();
+            // new ArrayList<>(Texture.ALL).get(c).bind();
             screenOverlay.bind();
             glBegin(GL_TRIANGLE_FAN);
             glTexCoord2f(0, 0);
@@ -185,7 +178,7 @@ public class Sandbox {
             glTexCoord2f(1, 0);
             glVertex2f(1, 0);
             glEnd();
-           // new ArrayList<>(Texture.ALL).get(c).unbind();
+            // new ArrayList<>(Texture.ALL).get(c).unbind();
             screenOverlay.unbind();
 
             if (frame == 100) {
@@ -230,11 +223,11 @@ public class Sandbox {
                         speed /= 2f;
                         break;
                     case Keyboard.KEY_Y:
-                      scene.getSceneGraph().getRoot().createSpotLight()
-                              .setPosition(camera.x(), camera.y(), camera.z())
-                              .setRotation(camera.pitch(), camera.yaw())
-                              .setDiffuseColor(Color.GREEN)
-                              .setIntensity(2);
+                        scene.getSceneGraph().getRoot().createSpotLight()
+                                .setPosition(camera.x(), camera.y(), camera.z())
+                                .setRotation(camera.pitch(), camera.yaw())
+                                .setDiffuseColor(Color.GREEN)
+                                .setIntensity(2);
                         break;
                     case Keyboard.KEY_LCONTROL:
                     case Keyboard.KEY_RCONTROL:
@@ -373,7 +366,7 @@ public class Sandbox {
 
         scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
 
-        scene.getDrawContext().setEnabled(ANTIALIASING, false);
+        // scene.getDrawContext().setEnabled(ANTIALIASING, false);
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
             JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
             msaa.addActionListener(new AbstractAction() {
@@ -428,12 +421,12 @@ public class Sandbox {
                 }
             });
         }
-        if (scene.getDrawContext().isSupported(OBJECT_SHADOWS)) {
-            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Shadows ", scene.getDrawContext().isEnabled(OBJECT_SHADOWS))));
+        if (scene.getDrawContext().isSupported(REFLECTIONS)) {
+            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Reflections ", scene.getDrawContext().isEnabled(REFLECTIONS))));
             alpha.addActionListener(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    scene.getDrawContext().setEnabled(OBJECT_SHADOWS, !scene.getDrawContext().isEnabled(OBJECT_SHADOWS));
+                    scene.getDrawContext().setEnabled(REFLECTIONS, !scene.getDrawContext().isEnabled(REFLECTIONS));
                 }
             });
         }

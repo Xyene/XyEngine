@@ -23,6 +23,10 @@ import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
+import tk.ivybits.engine.scene.IDrawContext;
+import tk.ivybits.engine.scene.IDrawable;
+import tk.ivybits.engine.scene.IScene;
+import tk.ivybits.engine.scene.geometry.ITesselator;
 
 import java.awt.*;
 
@@ -35,10 +39,12 @@ public class BloomEffect {
 
     private FrameBuffer[] swap;
     private FrameBuffer[] blur;
+    private final IScene scene;
     private int width;
     private int height;
     private final int lod;
     private final float reductionFactor;
+//    private IDrawable quad;
 
     private FrameBuffer createBuffer(int filter, int width, int height) {
         FrameBuffer bloom = new FrameBuffer(width, height);
@@ -51,7 +57,8 @@ public class BloomEffect {
         return bloom;
     }
 
-    public BloomEffect(int width, int height, int lod, float reductionFactor) {
+    public BloomEffect(IScene scene, int width, int height, int lod, float reductionFactor) {
+        this.scene = scene;
         this.width = width;
         this.height = height;
         this.lod = lod;
@@ -61,6 +68,18 @@ public class BloomEffect {
         blur = new FrameBuffer[lod];
 
         create();
+
+//        ITesselator tess = scene.getDrawContext().createTesselator(ITesselator.UV_ATTR, GL_TRIANGLE_FAN);
+//        tess.texture(0, 0);
+//        tess.vertex(0, 0,0);
+//        tess.texture(0, 1);
+//        tess.vertex(0, 0, 1);
+//        tess.texture(1, 1);
+//        tess.vertex(1, 0,1);
+//        tess.texture(1, 0);
+//        tess.vertex(1, 0,0);
+//
+//        quad = tess.create();
 
         thresholdShader = Program.builder()
                 .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl")
@@ -145,6 +164,7 @@ public class BloomEffect {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
+//        quad.draw(scene);
         glBegin(GL_TRIANGLE_FAN);
         glTexCoord2f(0, 0);
         glVertex2f(0, 0);
@@ -161,10 +181,8 @@ public class BloomEffect {
         glClearColor(0, 0, 0, 0);
         blur[0].bind().clear(GL_COLOR_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
-
         thresholdShader.attach();
-        input.getTexture().bind();
+        input.getTexture().bind(0);
         drawDeviceQuad(blur[0]);
         input.getTexture().unbind();
         thresholdShader.detach();
@@ -175,7 +193,7 @@ public class BloomEffect {
         for (int i = 1; i < lod; i++) {
             blur[i].bind();
             drawDeviceQuad(blur[i]);
-            blur[i].bind();
+            blur[i].unbind();
         }
         blur[0].getTexture().unbind();
 
@@ -195,7 +213,7 @@ public class BloomEffect {
 
             hblur.attach();
 
-            swap[i].getTexture().bind();
+            swap[i].getTexture().bind(0);
             drawDeviceQuad(blur[i]);
             swap[i].getTexture().unbind();
             blur[i].bind();
@@ -208,14 +226,14 @@ public class BloomEffect {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         // Enable additive blending to blend downscaled bloom buffers
-        input.getTexture().bind();
+        input.getTexture().bind(0);
         drawDeviceQuad(output);
-        input.getTexture().bind();
+        input.getTexture().unbind();
 
         for (int i = 0; i < lod; i++) {
-            blur[i].getTexture().bind();
+            blur[i].getTexture().bind(0);
             drawDeviceQuad(output);
-            blur[i].getTexture().bind();
+            blur[i].getTexture().unbind();
         }
 
         glDisable(GL_BLEND);

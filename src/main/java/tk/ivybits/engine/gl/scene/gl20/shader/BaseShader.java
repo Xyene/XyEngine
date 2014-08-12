@@ -21,10 +21,12 @@ package tk.ivybits.engine.gl.scene.gl20.shader;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.gl.GL;
 import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.Program;
+import tk.ivybits.engine.gl.texture.CubeTexture;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.IActor;
@@ -63,7 +65,8 @@ public class BaseShader implements ISceneChangeListener {
             "NORMAL_MAPPING",
             "SPECULAR_MAPPING",
             "OBJECT_SHADOWS",
-            "FOG"
+            "FOG",
+            "REFLECTIONS"
     };
 
     {
@@ -96,6 +99,8 @@ public class BaseShader implements ISceneChangeListener {
             return tex;
         }
     };
+    private Texture environmentMap;
+    private Vector3f eyePosition;
 
     private void setupHandles() {
         if (!needsScenePush) {
@@ -238,7 +243,8 @@ public class BaseShader implements ISceneChangeListener {
                 scene.getDrawContext().isEnabled(NORMAL_MAPS),
                 scene.getDrawContext().isEnabled(SPECULAR_MAPS),
                 scene.getDrawContext().isEnabled(OBJECT_SHADOWS),
-                scene.getDrawContext().isEnabled(FOG)
+                scene.getDrawContext().isEnabled(FOG),
+                scene.getDrawContext().isEnabled(REFLECTIONS)
         );
         shader = shaders.get(identifier);
         if (shader == null) {
@@ -435,5 +441,24 @@ public class BaseShader implements ISceneChangeListener {
     @Override
     public void actorRemoved(IActor actor) {
 
+    }
+
+    public void setEnvironmentMap(CubeTexture environmentMap) {
+        this.environmentMap = environmentMap;
+        getProgram().attach();
+        setupHandles();
+        if (shader.hasUniform("u_envMap")) {
+            environmentMap.bind(7);
+            shader.setUniform("u_envMap", 7);
+        }
+        shader.detach();
+    }
+
+    public void setEyePosition(Vector3f eyePosition) {
+        this.eyePosition = eyePosition;
+        getProgram().attach();
+        setupHandles();
+        shader.setUniform("u_eye", eyePosition);
+        shader.detach();
     }
 }

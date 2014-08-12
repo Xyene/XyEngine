@@ -90,7 +90,7 @@ public class GL20Tesselator implements ITesselator {
         private final int handle;
         private final int indexCount;
         private int stride;
-        private Program lastShader = null;
+        private int lastShader = 0;
         public int[] locations = new int[VERTEX_ATTRIBUTES.length];
         public int[] offsets;
 
@@ -120,11 +120,11 @@ public class GL20Tesselator implements ITesselator {
         public void draw(IScene scene) {
             glBindBuffer(GL_ARRAY_BUFFER, handle);
             // Update for new shader
-            if (true || drawContext.parent.currentGeometryShader.getProgram() != lastShader) {
-                lastShader = drawContext.parent.currentGeometryShader.getProgram();
+            int currentShader = glGetInteger(GL_CURRENT_PROGRAM);
+            if (currentShader != lastShader) {
+                lastShader = currentShader;
                 for (int i = 0, vertex_attributesLength = VERTEX_ATTRIBUTES.length; i < vertex_attributesLength; i++) {
-                    BaseShader shader = drawContext.parent.currentGeometryShader;
-                    int location = glGetAttribLocation(glGetInteger(GL_CURRENT_PROGRAM), VERTEX_ATTRIBUTES[i]);
+                    int location = glGetAttribLocation(currentShader, VERTEX_ATTRIBUTES[i]);
                     //System.out.println(VERTEX_ATTRIBUTES[i] +"-." + location);
                     locations[i] = location;
                     if (location > -1) {

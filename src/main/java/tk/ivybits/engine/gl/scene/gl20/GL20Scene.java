@@ -19,7 +19,9 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.gl.ImmediateProjection;
+import tk.ivybits.engine.gl.scene.IEnvironmentMap;
 import tk.ivybits.engine.gl.scene.PriorityComparableDrawable;
 import tk.ivybits.engine.gl.scene.gl20.aa.MSAAFBO;
 import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
@@ -60,8 +62,8 @@ public class GL20Scene implements IScene {
     private MSAAFBO msaaBuffer;
     private Frustum frustum = new Frustum();
 
-    private Matrix4f viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
     public int drawn = 0;
+    private IEnvironmentMap envMap;
 
     public GL20Scene(int viewWidth, int viewHeight, ISceneGraph sceneGraph) {
         this.viewWidth = viewWidth;
@@ -153,14 +155,14 @@ public class GL20Scene implements IScene {
             glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
             glLoadIdentity();
 
-            rawGeometryShader.setProjectionTransform(projectionMatrix);
+            rawGeometryShader.setProjectionTransform(getProjection().getProjectionTransform());
 
             rawGeometryShader.getProgram().attach();
 
             camera.setRotation(light.pitch(), light.yaw(), 0);
             camera.setPosition(light.x(), light.y(), light.z());
 
-            shadowMapBuffers.put(fbo, viewMatrix);
+            shadowMapBuffers.put(fbo, getProjection().getViewTransform());
             glEnable(GL_CULL_FACE);
             glCullFace(GL_FRONT); // Avoid self-shadowing
             for (PriorityComparableDrawable entity : tracker) {
@@ -194,12 +196,14 @@ public class GL20Scene implements IScene {
             for (PriorityComparableDrawable entity : visible) {
                 if (!entity.drawable.isTransparent()) continue;
                 currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
                 entity.drawable.draw(this);
             }
             glCullFace(GL_BACK);
             for (PriorityComparableDrawable entity : visible) {
                 if (!entity.drawable.isTransparent()) continue;
                 currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
                 entity.drawable.draw(this);
                 drawn++;
             }
@@ -207,11 +211,13 @@ public class GL20Scene implements IScene {
             for (PriorityComparableDrawable entity : visible) {
                 if (entity.drawable.isTransparent()) continue;
                 currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
                 entity.drawable.draw(this);
             }
         } else {
             for (PriorityComparableDrawable entity : visible) {
                 currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
                 entity.drawable.draw(this);
             }
         }
@@ -225,12 +231,11 @@ public class GL20Scene implements IScene {
 
     @Override
     public void draw() {
-        if(timer == null) {
+        if (timer == null) {
             timer = new FrameTimer();
             timer.start();
-        }
-        else
-        timer.update();
+        } else
+            timer.update();
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         if (drawContext.isEnabled(OBJECT_SHADOWS)) {
             glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -262,7 +267,7 @@ public class GL20Scene implements IScene {
 
         boolean bloom = drawContext.isEnabled(BLOOM);
         if (bloom && bloomEffect == null) {
-            bloomEffect = new BloomEffect(viewWidth, viewHeight, 2, 0.6f);
+            bloomEffect = new BloomEffect(this, viewWidth, viewHeight, 2, 0.6f);
         }
         if (!bloom && bloomEffect != null) {
             bloomEffect.destroy();
@@ -317,27 +322,35 @@ public class GL20Scene implements IScene {
         glPopAttrib();
     }
 
+    private Projection projection = new Projection() {
+        @Override
+        public void setViewTransform(Matrix4f viewMatrix) {
+            super.setViewTransform(viewMatrix);
+            currentGeometryShader.setViewTransform(viewMatrix);
+            frustum.setTransform(projectionMatrix, viewMatrix);
+        }
+
+        @Override
+        public void setProjectionTransform(Matrix4f projectionMatrix) {
+            super.setProjectionTransform(projectionMatrix);
+            currentGeometryShader.setProjectionTransform(projectionMatrix);
+            frustum.setTransform(projectionMatrix, viewMatrix);
+        }
+
+        @Override
+        public void setEyePosition(Vector3f eye) {
+            super.setEyePosition(eye);
+            currentGeometryShader.setEyePosition(eye);
+        }
+    };
+
     @Override
-    public void setViewTransform(Matrix4f viewMatrix) {
-        this.viewMatrix = viewMatrix;
-        currentGeometryShader.setViewTransform(viewMatrix);
-        frustum.setTransform(projectionMatrix, viewMatrix);
+    public Projection getProjection() {
+        return projection;
     }
 
     @Override
-    public Matrix4f getViewMatrix() {
-        return viewMatrix;
-    }
-
-    @Override
-    public void setProjectionTransform(Matrix4f projectionMatrix) {
-        this.projectionMatrix = projectionMatrix;
-        currentGeometryShader.setProjectionTransform(projectionMatrix);
-        frustum.setTransform(projectionMatrix, viewMatrix);
-    }
-
-    @Override
-    public Matrix4f getProjectionTransform() {
-        return projectionMatrix;
+    public void setEnvironmentMap(IEnvironmentMap environmentMap) {
+        this.envMap = environmentMap;
     }
 }

@@ -31,13 +31,14 @@ public class MagicCircleActor extends GeometryActor {
     public MagicCircleActor() throws IOException {
         super(ModelIO.readSystem("tk/ivybits/engine/game/model/magic-circle-1.obj"));
         priority = 0;
+        scale(2, 2, 2);
     }
 
     @Override
     public void update(float delta) {
         size += delta / 5000 * mod;
         if(size > 2 || size < 1) mod *= -1;
-        scale(size, size, size);
+        // scale(size, size, size);
         // Prevent locking > 2 and < 1
         size = Math.min(size, 2);
         size = Math.max(size, 1);

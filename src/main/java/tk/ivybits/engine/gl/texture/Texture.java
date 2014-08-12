@@ -42,6 +42,12 @@ public class Texture {
     private boolean bound = false;
     public static final Set<Texture> ALL = Collections.newSetFromMap(new WeakHashMap<Texture, Boolean>());
 
+    public Texture(int target) {
+        this.target = target;
+        handle = glGenTextures();
+        ALL.add(this);
+    }
+
     public Texture(int target, int format, int width, int height) {
         this.target = target;
         this.format = format;
@@ -107,14 +113,23 @@ public class Texture {
     }
 
     public int width() {
+        if (width <= 0 || height <= 0) throw new UnsupportedOperationException();
         return width;
     }
 
     public int height() {
+        if (height <= 0) throw new UnsupportedOperationException();
         return height;
     }
 
     public Texture bind() {
+        glBindTexture(target, handle);
+        bound = true;
+        return this;
+    }
+
+    public Texture bind(int unit) {
+        glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(target, handle);
         bound = true;
         return this;
@@ -135,12 +150,14 @@ public class Texture {
     }
 
     public Texture resize(int width, int height) {
+        if (width <= 0 || height <= 0) throw new UnsupportedOperationException();
         this.width = width;
         this.height = height;
         return setData(GL_UNSIGNED_BYTE, null);
     }
 
     public Texture setData(int type, Buffer buffer) {
+        if (width <= 0 || height <= 0 || format <= 0) throw new UnsupportedOperationException();
         if (buffer == null)
             glTexImage2D(handle, target, 0, format, width, height, 0, format, type, (ByteBuffer) null);
         else if (buffer instanceof ByteBuffer)

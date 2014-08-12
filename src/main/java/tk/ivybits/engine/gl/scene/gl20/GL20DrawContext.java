@@ -41,7 +41,8 @@ public class GL20DrawContext implements IDrawContext {
                         && getCapabilities().GL_EXT_framebuffer_multisample
                         && getCapabilities().GL_ARB_texture_multisample
                         && getCapabilities().GL_EXT_framebuffer_blit,    // ANTIALIASING
-                getCapabilities().GL_EXT_framebuffer_object    // bloom
+                getCapabilities().GL_EXT_framebuffer_object,    // bloom
+                true // Reflections
         };
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);

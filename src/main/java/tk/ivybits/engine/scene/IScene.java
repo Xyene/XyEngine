@@ -19,6 +19,10 @@
 package tk.ivybits.engine.scene;
 
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
+import tk.ivybits.engine.gl.scene.IEnvironmentMap;
+import tk.ivybits.engine.gl.scene.StaticEnvironmentMap;
+import tk.ivybits.engine.gl.scene.gl20.Projection;
 import tk.ivybits.engine.scene.node.ISceneGraph;
 
 public interface IScene {
@@ -30,11 +34,7 @@ public interface IScene {
 
     void draw();
 
-    void setViewTransform(Matrix4f viewMatrix);
+    Projection getProjection();
 
-    Matrix4f getViewMatrix();
-
-    void setProjectionTransform(Matrix4f projectionMatrix);
-
-    Matrix4f getProjectionTransform();
+    void setEnvironmentMap(IEnvironmentMap environmentMap);
 }

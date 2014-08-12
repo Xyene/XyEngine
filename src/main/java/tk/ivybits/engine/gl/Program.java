@@ -46,7 +46,6 @@ public class Program {
             loc = glGetUniformLocation(handle, name);
             detach();
             uniforms.put(name, loc);
-            System.out.println(name + "->" + loc);
         }
         return loc;
     }

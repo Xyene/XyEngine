@@ -57,7 +57,8 @@ public class BasicCamera implements ICamera {
         Matrix4f.rotate((float) toRadians(yaw), new Vector3f(0, 1, 0), viewMatrix, viewMatrix);
         Matrix4f.rotate((float) toRadians(roll), new Vector3f(0, 0, 1), viewMatrix, viewMatrix);
         Matrix4f.translate(new Vector3f(-x, -y, -z), viewMatrix, viewMatrix);
-        scene.setViewTransform(viewMatrix);
+        scene.getProjection().setViewTransform(viewMatrix);
+        scene.getProjection().setEyePosition(new Vector3f(x, y, z));
     }
 
     protected void updateProjection() {
@@ -72,7 +73,7 @@ public class BasicCamera implements ICamera {
         projectionMatrix.m23 = -1;
         projectionMatrix.m32 = -((2 * zNear * zFar) / frustrumLength);
         projectionMatrix.m33 = 0;
-        scene.setProjectionTransform(projectionMatrix);
+        scene.getProjection().setProjectionTransform(projectionMatrix);
     }
 
     /**
@@ -136,7 +137,7 @@ public class BasicCamera implements ICamera {
     @Override
     public BasicCamera pushMatrix() {
         viewMatrixStack.push(new Matrix4f());
-        scene.setViewTransform(viewMatrixStack.peek());
+        scene.getProjection().setViewTransform(viewMatrixStack.peek());
         return this;
     }
 
@@ -146,7 +147,7 @@ public class BasicCamera implements ICamera {
     @Override
     public BasicCamera popMatrix() {
         viewMatrixStack.pop();
-        scene.setViewTransform(viewMatrixStack.peek());
+        scene.getProjection().setViewTransform(viewMatrixStack.peek());
         return this;
     }
 

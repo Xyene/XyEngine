@@ -23,7 +23,7 @@ import tk.ivybits.engine.scene.model.Material;
 
 public interface IDrawContext {
     public static enum Capability {
-        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM
+        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS
     }
 
     void useMaterial(Material material);

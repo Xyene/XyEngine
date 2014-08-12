@@ -45,7 +45,7 @@ public interface ISceneNode {
 
     IDirectionalLight createDirectionalLight();
 
-    IActor track(IActor actor);
+    <T extends IActor> T track(T actor);
 
     void destroy(ISpotLight light);
 

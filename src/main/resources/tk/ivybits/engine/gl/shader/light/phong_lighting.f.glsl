@@ -27,6 +27,12 @@ uniform int u_lightMatrixCount;
 uniform sampler2D u_shadowMap[MAX_LIGHTS];
 #endif
 
+
+#ifdef REFLECTIONS
+uniform samplerCube u_envMap;
+uniform vec3 u_eye;
+#endif
+
 #ifdef OBJECT_SHADOWS
 float spotlight_shadow_factor(int idx)
 {
@@ -119,6 +125,12 @@ void main(void)
     }
 
     gl_FragColor = vec4(fragment, u_material.transparency * diffuse.a);
+
+    #ifdef REFLECTIONS
+    float reflFactor = 0.5;
+    vec3 reflectedColor = textureCube(u_envMap, reflect(normalize(v_vertexPosition - u_eye), normalMap)).rgb;
+    gl_FragColor =  vec4(gl_FragColor.rgb + reflectedColor * reflFactor, gl_FragColor.a);
+    #endif
 
     #ifdef FOG
     float depth = gl_FragCoord.z / gl_FragCoord.w;
