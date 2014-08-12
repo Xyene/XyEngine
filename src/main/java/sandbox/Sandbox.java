@@ -27,6 +27,8 @@ import tk.ivybits.engine.gl.scene.StaticEnvironmentMap;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.gl.ui.UITexture;
+import tk.ivybits.engine.io.res.IResourceFinder;
+import tk.ivybits.engine.io.res.URLResource;
 import tk.ivybits.engine.scene.*;
 import tk.ivybits.engine.scene.camera.FPSCamera;
 import tk.ivybits.engine.io.model.ModelIO;
@@ -60,6 +62,7 @@ public class Sandbox {
     private static UITexture screenOverlay;
 
     public static void main(String[] args) throws Exception {
+        ImageIO.setUseCache(false);
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable throwable) {
@@ -95,24 +98,22 @@ public class Sandbox {
 
         MagicCircleActor circle = root.track(new MagicCircleActor());
         circle.position(0, 0.1f, 0);
-        GeometryActor ground = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/ground3.obj")));
+        GeometryActor ground = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/ground3.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
         ground.position(0, 0, 0);
-        GeometryActor ship = root.track(new GeometryActor(ModelIO.readSystem("tk/ivybits/engine/game/model/cylinder2.obj")));
+        GeometryActor ship = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/cylinder2.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
         ship.position(0, -2.5f, 10);
 
         Skybox skybox = root.track(new Skybox(
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/left.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/right.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/top.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/bottom.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/front.png")),
-                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/back.png"))
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/left.png"),
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/right.png"),
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/top.png"),
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/bottom.png"),
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/front.png"),
+                URLResource.getResource("/tk/ivybits/engine/game/skybox/back.png")
         ));
         skybox.position(0, -25, 0);
 
-
         scene.setEnvironmentMap(new StaticEnvironmentMap(skybox.getEnvironmentMap()));
-
 
         System.out.print("Done.\n");
 
@@ -181,13 +182,18 @@ public class Sandbox {
             // new ArrayList<>(Texture.ALL).get(c).unbind();
             screenOverlay.unbind();
 
-            if (frame == 100) {
+            c++;
+
+            if (frame % 100 == 0) {
                 float fps = timer.fps();
                 Display.setTitle(String.format("Xy Sandbox | %.1f (%.2fms/frame), %d/%d objects drawn", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
-                frame = 0;
-                c++;
-                c %= Texture.ALL.size();
             }
+
+//            if(frame == 1000) {
+//                System.out.println("GC");
+//                Runtime.getRuntime().gc();
+//                frame = 0;
+//            }
 
             Display.update();
             // Display.sync(60);

@@ -18,6 +18,7 @@
 
 package tk.ivybits.engine.io.model;
 
+import tk.ivybits.engine.io.res.IResourceFinder;
 import tk.ivybits.engine.scene.model.Model;
 
 import java.io.File;
@@ -38,21 +39,22 @@ public class ModelIO {
         return keys;
     }
 
-    public static Model read(File in) throws IOException {
-        String suffix = in.getName();
+    public static Model read(String path, IResourceFinder finder) throws IOException {
+        String suffix = path;
         suffix = suffix.substring(suffix.lastIndexOf(".") + 1).toUpperCase();
         for (IModelReader decoder : sReaders)
-            if (decoder.getFileType().equals(suffix))
-                return decoder.load(in);
+            if (decoder.getFileType().equals(suffix)) {
+                return new StreamedModel(path, finder);
+            }
         throw new IllegalArgumentException("unsupported format: " + suffix);
     }
 
-    public static Model readSystem(String in) throws IOException {
-        String suffix = in;
+    static Model _read(String path, IResourceFinder finder) throws IOException {
+        String suffix = path;
         suffix = suffix.substring(suffix.lastIndexOf(".") + 1).toUpperCase();
         for (IModelReader decoder : sReaders)
             if (decoder.getFileType().equals(suffix))
-                return decoder.loadSystem(in);
+                return decoder.load(path, finder);
         throw new IllegalArgumentException("unsupported format: " + suffix);
     }
 }

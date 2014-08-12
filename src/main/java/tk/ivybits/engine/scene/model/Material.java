@@ -18,15 +18,17 @@
 
 package tk.ivybits.engine.scene.model;
 
+import tk.ivybits.engine.io.res.IResource;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class Material {
-    public BufferedImage ambientTexture;
-    public BufferedImage diffuseTexture;
-    public BufferedImage specularTexture;
-    public BufferedImage alphaTexture;
-    public BufferedImage bumpMap;
+    public IResource ambientTexture;
+    public IResource diffuseTexture;
+    public IResource specularTexture;
+    public IResource alphaTexture;
+    public IResource bumpMap;
     public Color ambientColor = Color.BLACK;
     public Color diffuseColor = Color.WHITE;
     public Color specularColor = Color.WHITE;

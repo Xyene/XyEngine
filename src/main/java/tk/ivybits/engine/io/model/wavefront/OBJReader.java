@@ -21,12 +21,12 @@ package tk.ivybits.engine.io.model.wavefront;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import tk.ivybits.engine.io.model.IModelReader;
+import tk.ivybits.engine.io.res.IResource;
+import tk.ivybits.engine.io.res.IResourceFinder;
 import tk.ivybits.engine.scene.model.*;
 import tk.ivybits.engine.util.TangentSpace;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,21 +58,13 @@ public class OBJReader implements IModelReader {
             TEXTURE_TRANSPARENCY = "map_d",
             TEXTURE_BUMP_MAP = "map_bump";
 
-    public Model load(File in) throws IOException {
-        return load(in.getAbsolutePath(), RESOURCE_FINDER_FILE);
-    }
-
-    public Model loadSystem(String in) throws IOException {
-        return load(in, RESOURCE_FINDER_PACKAGED_RESOURCE);
-    }
-
-    public Model load(String in, ResourceFinder finder) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.open(in)));
+    public Model load(String in, IResourceFinder finder) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.find(in).openStream()));
 
         ArrayList<Vector3f> V = new ArrayList<>();
         ArrayList<Vector3f> VN = new ArrayList<>();
         ArrayList<Vector2f> VT = new ArrayList<>();
-        Model model = new Model();
+        Model model = new Model(in);
         Material currentMaterial = null;
         HashMap<String, Material> materials = new HashMap<>();
         boolean tangent = false;
@@ -134,7 +126,7 @@ public class OBJReader implements IModelReader {
                     currentMesh = new Mesh(currentMaterial);
                     break;
                 case MATERIAL_FILE:
-                    materials = loadMaterials(finder.parent(in) + concatTokens(tokens), finder);
+                    materials = loadMaterials(finder.getParentOf(in) + concatTokens(tokens), finder);
                     break;
             }
         }
@@ -154,8 +146,8 @@ public class OBJReader implements IModelReader {
         return "OBJ";
     }
 
-    private static HashMap<String, Material> loadMaterials(String in, ResourceFinder finder) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.open(in)));
+    private static HashMap<String, Material> loadMaterials(String in, IResourceFinder finder) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(finder.find(in).openStream()));
         HashMap<String, Material> materials = new HashMap<>();
         Material currentMaterial = null;
 
@@ -198,8 +190,7 @@ public class OBJReader implements IModelReader {
                     String spath = concatTokens(tokens);
                     if (spath.trim().isEmpty())
                         continue;
-                    InputStream imgFile = finder.open(finder.parent(in) + spath);
-                    BufferedImage img = ImageIO.read(imgFile);
+                    IResource img = finder.find(finder.getParentOf(in) + spath);
 
                     switch (type) {
                         case TEXTURE_AMBIENT:

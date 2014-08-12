@@ -68,7 +68,8 @@ public class GeometryDrawable implements IDrawable {
         if (meshes != null) return;
         meshes = new LinkedList<>();
 
-        for (Mesh mesh : model.getMeshes()) {
+        List<Mesh> modelMeshes = model.getMeshes();
+        for (Mesh mesh : modelMeshes) {
             Material material = mesh.getMaterial();
             List<Face> faces = mesh.getFaces();
 

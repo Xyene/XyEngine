@@ -22,21 +22,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Model {
-    private List<Mesh> meshes;
+    protected final List<Mesh> meshes;
+    protected final String name;
 
     public Model() {
         this(new ArrayList<Mesh>());
     }
 
-    public Model(List<Mesh> faces) {
-        this.meshes = faces;
+    public Model(String name) {
+        this(name, new ArrayList<Mesh>());
+    }
+
+    public Model(List<Mesh> meshes) {
+        this(null, meshes);
+    }
+
+    public Model(String name, List<Mesh> meshes) {
+        this.meshes = meshes;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<Mesh> getMeshes() {
         return meshes;
     }
 
-    public void setMeshes(List<Mesh> faces) {
-        this.meshes = faces;
+    @Override
+    public String toString() {
+        return getName();
     }
 }

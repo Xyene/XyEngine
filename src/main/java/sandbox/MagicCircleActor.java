@@ -19,6 +19,7 @@
 package sandbox;
 
 import tk.ivybits.engine.io.model.ModelIO;
+import tk.ivybits.engine.io.res.IResourceFinder;
 import tk.ivybits.engine.scene.model.Model;
 import tk.ivybits.engine.scene.node.impl.GeometryActor;
 
@@ -29,7 +30,7 @@ public class MagicCircleActor extends GeometryActor {
     private int mod = 1;
 
     public MagicCircleActor() throws IOException {
-        super(ModelIO.readSystem("tk/ivybits/engine/game/model/magic-circle-1.obj"));
+        super(ModelIO.read("/tk/ivybits/engine/game/model/magic-circle-1.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE));
         priority = 0;
         scale(2, 2, 2);
     }

@@ -20,22 +20,15 @@ package tk.ivybits.engine.io.model.md2;
 
 import tk.ivybits.engine.io.LittleEndianInputStream;
 import tk.ivybits.engine.io.model.IModelReader;
+import tk.ivybits.engine.io.res.IResourceFinder;
 import tk.ivybits.engine.scene.model.Model;
 
 import java.io.*;
 
 public class MD2Reader implements IModelReader {
-    public Model load(File in) throws IOException {
-        return load(in.getAbsolutePath(), RESOURCE_FINDER_FILE);
-    }
-
-    public Model loadSystem(String in) throws IOException {
-        return load(in, RESOURCE_FINDER_PACKAGED_RESOURCE);
-    }
-
     @Override
-    public Model load(String source, ResourceFinder finder) throws IOException {
-        byte[] buffer = readBytes(finder.open(source));
+    public Model load(String source, IResourceFinder finder) throws IOException {
+        byte[] buffer = readBytes(finder.find(source).openStream());
 
         MD2Header header = readHeader(buffer);
         float[] texCoords = loadTexCoords(header, buffer);

@@ -29,14 +29,17 @@ import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.CubeTexture;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
+import tk.ivybits.engine.io.res.IResource;
 import tk.ivybits.engine.scene.IActor;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.event.ISceneChangeListener;
 import tk.ivybits.engine.scene.model.Material;
 import tk.ivybits.engine.scene.node.*;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.List;
@@ -80,12 +83,18 @@ public class BaseShader implements ISceneChangeListener {
     private List<ISpotLight> spotLights = new ArrayList<>();
     private List<IPointLight> pointLights = new ArrayList<>();
     private List<IDirectionalLight> dirLights = new ArrayList<>();
-    private final HashMap<BufferedImage, Texture> textureCache = new HashMap<BufferedImage, Texture>() {
+    private final HashMap<IResource, Texture> textureCache = new HashMap<IResource, Texture>() {
         @Override
         public Texture get(Object obj) {
             Texture tex = super.get(obj);
-            BufferedImage image = (BufferedImage) obj;
             if (tex == null) {
+                IResource res = (IResource) obj;
+                BufferedImage image = null;
+                try {
+                    image = ImageIO.read(res.openStream());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 tex = new Texture(image)
                         .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                         .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
@@ -94,12 +103,12 @@ public class BaseShader implements ISceneChangeListener {
                         .setParameter(GL_TEXTURE_MAX_LEVEL, 8);
                 if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
                     tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
-                put(image, tex);
+                put(res, tex);
             }
             return tex;
         }
     };
-    private Texture environmentMap;
+    private CubeTexture environmentMap;
     private Vector3f eyePosition;
 
     private void setupHandles() {
