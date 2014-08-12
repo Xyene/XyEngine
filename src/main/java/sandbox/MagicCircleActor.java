@@ -38,6 +38,9 @@ public class MagicCircleActor extends GeometryActor {
         size += delta / 5000 * mod;
         if(size > 2 || size < 1) mod *= -1;
         scale(size, size, size);
+        // Prevent locking > 2 and < 1
+        size = Math.min(size, 2);
+        size = Math.max(size, 1);
         rotate(pitch, yaw + delta / 50, roll);
     }
 }

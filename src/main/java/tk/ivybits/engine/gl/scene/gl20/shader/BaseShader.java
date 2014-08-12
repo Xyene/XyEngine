@@ -81,12 +81,14 @@ public class BaseShader implements ISceneChangeListener {
         @Override
         public Texture get(Object obj) {
             Texture tex = super.get(obj);
-            BufferedImage image = (BufferedImage)obj;
+            BufferedImage image = (BufferedImage) obj;
             if (tex == null) {
-                tex = new Texture(image, true)
+                tex = new Texture(image)
                         .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                        .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
+                        .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+                        .setParameter(GL_GENERATE_MIPMAP, GL_TRUE)
+                        .setParameter(GL_TEXTURE_BASE_LEVEL, 0)
+                        .setParameter(GL_TEXTURE_MAX_LEVEL, 8);
                 if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
                     tex.setParameter(GL_TEXTURE_MAX_ANISOTROPY_EXT, glGetInteger(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
                 put(image, tex);
@@ -122,7 +124,6 @@ public class BaseShader implements ISceneChangeListener {
             shader.setUniform("u_material.hasDiffuse", 1);
             if (shader.hasUniform("u_material.diffuseMap")) {
                 glActiveTexture(GL_TEXTURE0 + texture);
-                glEnable(GL_TEXTURE_2D);
                 shader.setUniform("u_material.diffuseMap", (texture++));
                 textureCache.get(material.diffuseTexture).bind();
             }
@@ -134,7 +135,6 @@ public class BaseShader implements ISceneChangeListener {
                 shader.setUniform("u_material.hasSpecular", 1);
                 if (shader.hasUniform("u_material.specularMap")) {
                     glActiveTexture(GL_TEXTURE0 + texture);
-                    glEnable(GL_TEXTURE_2D);
                     shader.setUniform("u_material.specularMap", (texture++));
                     textureCache.get(material.specularTexture).bind();
                 }
@@ -146,7 +146,6 @@ public class BaseShader implements ISceneChangeListener {
                 shader.setUniform("u_material.hasNormal", 1);
                 if (shader.hasUniform("u_material.normalMap")) {
                     glActiveTexture(GL_TEXTURE0 + texture);
-                    glEnable(GL_TEXTURE_2D);
                     shader.setUniform("u_material.normalMap", texture);
                 }
                 textureCache.get(material.bumpMap).bind();
@@ -424,7 +423,6 @@ public class BaseShader implements ISceneChangeListener {
                 shader.setUniform("u_fog.fogNear", fog.getFogNear());
                 shader.setUniform("u_fog.fogFar", fog.getFogFar());
             }
-
             shader.detach();
         }
     }

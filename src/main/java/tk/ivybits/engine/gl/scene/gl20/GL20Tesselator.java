@@ -61,7 +61,7 @@ public class GL20Tesselator implements ITesselator {
 
     @Override
     public void normal(float x, float y, float z) {
-        if (normals == null) throw new IllegalStateException("buffer not initialized for normal inputs");
+        if (normals == null) return;
         normals.add(x);
         normals.add(y);
         normals.add(z);
@@ -69,14 +69,14 @@ public class GL20Tesselator implements ITesselator {
 
     @Override
     public void texture(float u, float v) {
-        if (textures == null) throw new IllegalStateException("buffer not initialized for texture inputs");
+        if (textures == null) return;
         textures.add(u);
         textures.add(v);
     }
 
     @Override
     public void tangent(float x, float y, float z) {
-        if (tangents == null) throw new IllegalStateException("buffer not initialized for tangent inputs");
+        if (tangents == null) return;
         tangents.add(x);
         tangents.add(y);
         tangents.add(z);
@@ -120,12 +120,12 @@ public class GL20Tesselator implements ITesselator {
         public void draw(IScene scene) {
             glBindBuffer(GL_ARRAY_BUFFER, handle);
             // Update for new shader
-            if (drawContext.parent.currentGeometryShader.getProgram() != lastShader) {
+            if (true || drawContext.parent.currentGeometryShader.getProgram() != lastShader) {
                 lastShader = drawContext.parent.currentGeometryShader.getProgram();
                 for (int i = 0, vertex_attributesLength = VERTEX_ATTRIBUTES.length; i < vertex_attributesLength; i++) {
                     BaseShader shader = drawContext.parent.currentGeometryShader;
-                    int location = shader.getProgram().getAttributeLocation(VERTEX_ATTRIBUTES[i]);
-
+                    int location = glGetAttribLocation(glGetInteger(GL_CURRENT_PROGRAM), VERTEX_ATTRIBUTES[i]);
+                    //System.out.println(VERTEX_ATTRIBUTES[i] +"-." + location);
                     locations[i] = location;
                     if (location > -1) {
                         glVertexAttribPointer(

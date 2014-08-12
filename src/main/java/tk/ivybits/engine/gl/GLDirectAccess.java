@@ -28,7 +28,7 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureParameteriEXT(texture, target, key, value);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexParameteri(target, key, value);
             glBindTexture(target, pre);
@@ -43,7 +43,7 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
             glBindTexture(target, pre);
@@ -54,7 +54,7 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
             glBindTexture(target, pre);
@@ -65,7 +65,7 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
             glBindTexture(target, pre);
@@ -76,7 +76,7 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
             glBindTexture(target, pre);
@@ -87,10 +87,18 @@ class GLDirectAccess {
         if (GLContext.getCapabilities().GL_EXT_direct_state_access) {
             EXTDirectStateAccess.glTextureImage2DEXT(texture, target, level, internalformat, width, height, border, format, type, pixels);
         } else {
-            int pre = glGetInteger(GL_TEXTURE_BINDING_2D);
+            int pre = glGetInteger(binding(target));
             glBindTexture(target, texture);
             GL.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
             glBindTexture(target, pre);
+        }
+    }
+
+    private static int binding(int target) {
+        switch(target) {
+            case GL_TEXTURE_2D: return GL_TEXTURE_BINDING_2D;
+            case GL_TEXTURE_CUBE_MAP: return GL_TEXTURE_BINDING_CUBE_MAP;
+            default: throw new UnsupportedOperationException(); // TODO
         }
     }
 }

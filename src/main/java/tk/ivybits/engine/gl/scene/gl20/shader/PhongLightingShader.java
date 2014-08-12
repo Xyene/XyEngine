@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PhongLightingShader extends BaseShader {
-    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.f.glsl";
-    private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/phong_lighting.v.glsl";
-    private static final String BASE_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/lighting.glsl";
+    private static final String FRAGMENT_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/light/phong_lighting.f.glsl";
+    private static final String VERTEX_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/light/phong_lighting.v.glsl";
+    private static final String BASE_SHADER_LOCATION = "tk/ivybits/engine/gl/shader/light/lighting.glsl";
     private static final String VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE, BASE_SHADER_SOURCE;
 
     static {

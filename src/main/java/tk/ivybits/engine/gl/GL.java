@@ -23,6 +23,7 @@ import org.lwjgl.PointerWrapper;
 import org.lwjgl.opengl.*;
 
 import java.nio.*;
+import java.util.Arrays;
 
 public class GL extends GLDirectAccess implements GLConstant {
     // Shadow texture state for faster GLDirectAccess
@@ -403,7 +404,7 @@ public class GL extends GLDirectAccess implements GLConstant {
     }
 
     public static void glBlendFunc(int a, int b) {
-        GL11.glBlendFunc(a, b);
+            GL11.glBlendFunc(a, b);
     }
 
     public static void glClearDepth(double a) {

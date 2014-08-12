@@ -18,6 +18,7 @@
 
 package tk.ivybits.engine.gl.texture;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -73,14 +74,24 @@ public class FrameBuffer {
         return height;
     }
 
-    public void bind() {
+    public FrameBuffer bind() {
         bound = true;
         glBindFramebuffer(GL_FRAMEBUFFER, handle);
+        return this;
     }
 
-    public void unbind() {
+    public FrameBuffer unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         bound = false;
+        return this;
+    }
+
+    public FrameBuffer clear(int flags) {
+        boolean b = bound;
+        if(!b) bind();
+        glClear(flags);
+        if(!b) unbind();
+        return this;
     }
 
     public int id() {

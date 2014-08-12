@@ -18,10 +18,13 @@
 
 package tk.ivybits.engine.gl.scene.gl20.bloom;
 
+import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
+
+import java.awt.*;
 
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.ProgramType.*;
@@ -40,10 +43,10 @@ public class BloomEffect {
     private FrameBuffer createBuffer(int filter, int width, int height) {
         FrameBuffer bloom = new FrameBuffer(width, height);
         bloom.attach(new Texture(GL_TEXTURE_2D, GL_RGB, width, height)
-                .setParameter(GL_TEXTURE_MAG_FILTER, filter)
-                .setParameter(GL_TEXTURE_MIN_FILTER, filter)
-                .setParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-                .setParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+                        .setParameter(GL_TEXTURE_MAG_FILTER, filter)
+                        .setParameter(GL_TEXTURE_MIN_FILTER, filter)
+                        .setParameter(GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+                        .setParameter(GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         );
         return bloom;
     }
@@ -135,35 +138,31 @@ public class BloomEffect {
     }
 
     private void drawDeviceQuad(FrameBuffer fbo) {
-        int viewWidth = fbo.width();
-        int viewHeight = fbo.height();
-
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glViewport(0, 0, viewWidth, viewHeight);
-        glOrtho(0, viewWidth, 0, viewHeight, -1, 1);
+        glViewport(0, 0, fbo.width(), fbo.height());
+        glOrtho(0, 1, 0, 1, -1, 1);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_FAN);
         glTexCoord2f(0, 0);
         glVertex2f(0, 0);
         glTexCoord2f(0, 1);
-        glVertex2f(0, viewHeight);
+        glVertex2f(0, 1);
         glTexCoord2f(1, 1);
-        glVertex2f(viewWidth, viewHeight);
+        glVertex2f(1, 1);
         glTexCoord2f(1, 0);
-        glVertex2f(viewWidth, 0);
+        glVertex2f(1, 0);
         glEnd();
     }
 
     public void process() {
-        blur[0].bind();
         glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        blur[0].bind().clear(GL_COLOR_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
+
         thresholdShader.attach();
         input.getTexture().bind();
         drawDeviceQuad(blur[0]);
@@ -175,17 +174,13 @@ public class BloomEffect {
         blur[0].getTexture().bind();
         for (int i = 1; i < lod; i++) {
             blur[i].bind();
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
             drawDeviceQuad(blur[i]);
             blur[i].bind();
         }
         blur[0].getTexture().unbind();
 
         for (int i = 0; i < lod; i++) {
-            swap[i].bind();
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
+            swap[i].bind().clear(GL_COLOR_BUFFER_BIT);
 
             vblur.attach();
 
@@ -196,9 +191,7 @@ public class BloomEffect {
 
             vblur.detach();
 
-            blur[i].bind();
-            glClearColor(0, 0, 0, 0);
-            glClear(GL_COLOR_BUFFER_BIT);
+            blur[i].bind().clear(GL_COLOR_BUFFER_BIT);
 
             hblur.attach();
 
@@ -210,13 +203,11 @@ public class BloomEffect {
             hblur.detach();
         }
 
-        output.bind();
-        glClearColor(0, 0, 0, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        output.bind().clear(GL_COLOR_BUFFER_BIT);
 
         glEnable(GL_BLEND);
-        // Enable additive blending to blend downscaled bloom buffers
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        // Enable additive blending to blend downscaled bloom buffers
         input.getTexture().bind();
         drawDeviceQuad(output);
         input.getTexture().bind();

@@ -308,7 +308,6 @@ public class GL20Scene implements IScene {
             glTexCoord2f(1, 0);
             glVertex2f(viewWidth, 0);
             glEnd();
-            ImmediateProjection.toFrustrumProjection();
 
             bloomEffect.getOutputBuffer().unbind();
 

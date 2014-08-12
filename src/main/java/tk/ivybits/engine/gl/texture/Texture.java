@@ -52,12 +52,17 @@ public class Texture {
         ALL.add(this);
     }
 
-    public Texture(BufferedImage in, boolean mipmap) {
-        target = GL_TEXTURE_2D;
+    public Texture(BufferedImage in) {
+        this(GL_TEXTURE_2D, in);
+    }
+
+    public Texture(int target, BufferedImage in) {
+        this.target = target;
         handle = glGenTextures();
         byte[] data;
-        int srcPixelFormat = in.getColorModel().hasAlpha() ? GL_RGBA : GL_RGB;
+
         boolean alpha = in.getColorModel().hasAlpha();
+        int srcPixelFormat = alpha ? GL_RGBA : GL_RGB;
 
         WritableRaster raster;
         BufferedImage texImage;
@@ -65,7 +70,7 @@ public class Texture {
         width = _get2Fold(in.getWidth());
         height = _get2Fold(in.getHeight());
 
-        if (in.getColorModel().hasAlpha()) {
+        if (alpha) {
             raster = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
             texImage = new BufferedImage(glAlphaColorModel, raster, false, new Hashtable());
         } else {
@@ -85,13 +90,10 @@ public class Texture {
         nativeBuffer.put(data, 0, data.length);
         nativeBuffer.flip();
 
-        if (mipmap) {
-            glBindTexture(GL_TEXTURE_2D, handle);
-            gluBuild2DMipmaps(target, this.format = alpha ? 4 : 3, width, height, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        } else {
-            glTexImage2D(handle, target, 0, this.format = alpha ? GL_RGBA : GL_RGB, width, height, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
-        }
+        // TODO: DSA would be much better, except that it seems to fail where target=GL_TEXTURE_CUBE_MAP
+        glBindTexture(target, handle);
+        glTexImage2D(target, 0, this.format = alpha ? GL_RGBA : GL_RGB, width, height, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
+        glBindTexture(target, 0);
         ALL.add(this);
     }
 

@@ -24,6 +24,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.*;
 import org.lwjgl.opengl.DisplayMode;
 import tk.ivybits.engine.gl.ImmediateProjection;
+import tk.ivybits.engine.gl.scene.SkyBox;
 import tk.ivybits.engine.gl.scene.gl11.GL11Scene;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
 import tk.ivybits.engine.gl.texture.Texture;
@@ -81,8 +82,7 @@ public class Sandbox {
                     throw new OpenGLException(s);
                 } catch (OpenGLException e) {
                     e.printStackTrace();
-                }  //throw new OpenGLException(s);
-                // Sys.alert("block", "block");
+                }
             }
         }));
 
@@ -112,6 +112,15 @@ public class Sandbox {
         ship.position(0, -2.5f, 10);
         ship.rotate(0, 0, 0);
 
+        IActor skybox = root.track(new SkyBox(
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/xpos.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/xneg.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/ypos.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/yneg.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/zpos.png")),
+                ImageIO.read(ClassLoader.getSystemResourceAsStream("tk/ivybits/engine/game/skybox/zneg.png"))
+        ));
+
         System.out.print("Done.\n");
 
         root.createDirectionalLight()
@@ -135,6 +144,7 @@ public class Sandbox {
         timer.start();
 
         long frame = 0;
+        int c = 0;
         while (!Display.isCloseRequested()) {
             frame++;
             timer.update();
@@ -148,33 +158,42 @@ public class Sandbox {
                 screenOverlay.update();
             input();
 
+            skybox.position(camera.x(), camera.y(), camera.z());
+
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             scene.draw();
 
             glEnable(GL_TEXTURE_2D);
 
-            ImmediateProjection.toOrthographicProjection();
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glViewport(0, 0, Display.getWidth(), Display.getHeight());
+            glOrtho(0, 1, 0, 1, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
 
+           // new ArrayList<>(Texture.ALL).get(c).bind();
             screenOverlay.bind();
-            glBegin(GL_QUADS);
+            glBegin(GL_TRIANGLE_FAN);
             glTexCoord2f(0, 0);
             glVertex2f(0, 0);
             glTexCoord2f(0, 1);
-            glVertex2f(0, Display.getHeight());
+            glVertex2f(0, 1);
             glTexCoord2f(1, 1);
-            glVertex2f(Display.getWidth(), Display.getHeight());
+            glVertex2f(1, 1);
             glTexCoord2f(1, 0);
-            glVertex2f(Display.getWidth(), 0);
+            glVertex2f(1, 0);
             glEnd();
-            screenOverlay.bind();
-
-            ImmediateProjection.toFrustrumProjection();
+           // new ArrayList<>(Texture.ALL).get(c).unbind();
+            screenOverlay.unbind();
 
             if (frame == 100) {
                 float fps = timer.fps();
                 Display.setTitle(String.format("Xy Sandbox | %.1f (%.2fms/frame), %d/%d objects drawn", fps, 1000 / fps, ((GL20Scene) scene).drawn, root.getActors().size()));
                 frame = 0;
+                c++;
+                c %= Texture.ALL.size();
             }
 
             Display.update();
@@ -183,7 +202,6 @@ public class Sandbox {
 
         screenOverlay.destroy();
         Display.destroy();
-        System.out.println(camera);
     }
 
     static SpellcastDrawPanel spell;
@@ -211,6 +229,13 @@ public class Sandbox {
                     case Keyboard.KEY_SUBTRACT:
                         speed /= 2f;
                         break;
+                    case Keyboard.KEY_Y:
+                      scene.getSceneGraph().getRoot().createSpotLight()
+                              .setPosition(camera.x(), camera.y(), camera.z())
+                              .setRotation(camera.pitch(), camera.yaw())
+                              .setDiffuseColor(Color.GREEN)
+                              .setIntensity(2);
+                        break;
                     case Keyboard.KEY_LCONTROL:
                     case Keyboard.KEY_RCONTROL:
                         Mouse.setGrabbed(false);
@@ -229,8 +254,6 @@ public class Sandbox {
         }
 
         if (Mouse.isGrabbed()) {
-            //camera.processKeyboard(speed, timer.getDelta() * (16 * speed));
-
             float delta = timer.getDelta() * (16 * speed);
 
             final float MAX_LOOK_UP = 90;
@@ -291,7 +314,6 @@ public class Sandbox {
 
         // glClearColor(0.4f, 0.6f, 0.9f, 0f);
         glClearColor(1, 1, 1, 0f);
-        glClearDepth(1.0);
 
         System.out.printf("OpenGL %s\n\t%s\n", glGetString(GL_VERSION), glGetString(GL_VENDOR));
         System.out.println(glGetInteger(GL_MAX_LIGHTS) + " lights supported");
