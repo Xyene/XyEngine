@@ -47,6 +47,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 import static java.awt.Color.*;
 import static org.lwjgl.input.Keyboard.*;
@@ -367,7 +368,7 @@ public class Sandbox {
 
         scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
 
-       // scene.getDrawContext().setEnabled(BLOOM, false);
+        // scene.getDrawContext().setEnabled(BLOOM, false);
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
             JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
             msaa.addActionListener(new AbstractAction() {
@@ -376,6 +377,32 @@ public class Sandbox {
                     scene.getDrawContext().setEnabled(ANTIALIASING, !scene.getDrawContext().isEnabled(ANTIALIASING));
                 }
             });
+            TitledBorder border = BorderFactory.createTitledBorder("Samples");
+            border.setTitleColor(Color.GREEN);
+
+            List<Integer> sizes = scene.getDrawContext().getOption(Key.AA_SAMPLE_SIZES);
+            JPanel container = new JPanel(new GridLayout(sizes.size(), 1));
+            container.setBackground(new Color(0, 0, 0, 0));
+            container.setBorder(border);
+
+            ButtonGroup group = new ButtonGroup();
+
+            for (final Integer i : sizes) {
+                final JRadioButton button = new JRadioButton(i + "");
+                if(i == scene.getDrawContext().getOption(Key.AA_SAMPLE_COUNT))
+                    button.setSelected(true);
+                button.addActionListener(new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        scene.getDrawContext().setOption(Key.AA_SAMPLE_COUNT, i);
+                    }
+                });
+                button.setForeground(Color.GREEN);
+                group.add(button);
+                container.add(button);
+            }
+
+            opts.add(container);
         }
         if (scene.getDrawContext().isSupported(BLOOM)) {
             JCheckBox bloom = ((JCheckBox) opts.add(new JCheckBox("Bloom ", scene.getDrawContext().isEnabled(BLOOM))));
@@ -391,11 +418,11 @@ public class Sandbox {
             exposure.setBorder(border);
             exposure.setMaximum(10);
             exposure.setMinimum(1);
-            exposure.setValue((int) ((float)scene.getDrawContext().<Float>getOption(Key.HDR_BLOOM_EXPOSURE)));
+            exposure.setValue((int) ((float) scene.getDrawContext().<Float>getOption(Key.HDR_BLOOM_EXPOSURE)));
             exposure.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    scene.getDrawContext().setOption(Key.HDR_BLOOM_EXPOSURE, (float)exposure.getValue());
+                    scene.getDrawContext().setOption(Key.HDR_BLOOM_EXPOSURE, (float) exposure.getValue());
                 }
             });
             final JSlider factor = ((JSlider) opts.add(new JSlider()));
@@ -417,11 +444,11 @@ public class Sandbox {
             bright.setBorder(border);
             bright.setMaximum(10);
             bright.setMinimum(1);
-            bright.setValue((int) (float)scene.getDrawContext().getOption(Key.HDR_BLOOM_CAP));
+            bright.setValue((int) (float) scene.getDrawContext().getOption(Key.HDR_BLOOM_CAP));
             bright.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    scene.getDrawContext().setOption(Key.HDR_BLOOM_CAP, (float)bright.getValue());
+                    scene.getDrawContext().setOption(Key.HDR_BLOOM_CAP, (float) bright.getValue());
                 }
             });
         }
@@ -469,7 +496,7 @@ public class Sandbox {
                     scene.getDrawContext().setEnabled(REFLECTIONS, !scene.getDrawContext().isEnabled(REFLECTIONS));
                 }
             });
-            final JSlider refl = ((JSlider)opts.add(new JSlider()));
+            final JSlider refl = ((JSlider) opts.add(new JSlider()));
             TitledBorder border = BorderFactory.createTitledBorder("Opaqueness %");
             border.setTitleColor(Color.GREEN);
             refl.setBorder(border);

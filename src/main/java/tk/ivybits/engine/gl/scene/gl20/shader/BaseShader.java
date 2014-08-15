@@ -26,7 +26,7 @@ import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.CubeTexture;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.io.res.IResource;
 import tk.ivybits.engine.scene.IActor;
@@ -53,7 +53,7 @@ import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 public class BaseShader implements ISceneChangeListener {
     private final Map<ProgramType, List<String>> sources;
     private final IScene scene;
-    private HashMap<FrameBuffer, Matrix4f> shadowMapFBO;
+    private HashMap<Framebuffer, Matrix4f> shadowMapFBO;
 
     private Matrix4f modelMatrix = new Matrix4f(), viewMatrix = new Matrix4f(), projectionMatrix = new Matrix4f();
 
@@ -125,7 +125,7 @@ public class BaseShader implements ISceneChangeListener {
         if(environmentMap != null) setEnvironmentMap(environmentMap);
     }
 
-    public BaseShader(Map<ProgramType, List<String>> sources, IScene scene, HashMap<FrameBuffer, Matrix4f> shadowMapFBO) {
+    public BaseShader(Map<ProgramType, List<String>> sources, IScene scene, HashMap<Framebuffer, Matrix4f> shadowMapFBO) {
         this.sources = sources;
         this.scene = scene;
         this.shadowMapFBO = shadowMapFBO;
@@ -238,7 +238,7 @@ public class BaseShader implements ISceneChangeListener {
             shader.setUniform("u_lightMatrixCount", shadowMapFBO.size());
             if (shader.hasUniform("u_shadowMap[0]")) {
                 int n = 0;
-                for (FrameBuffer map : shadowMapFBO.keySet()) {
+                for (Framebuffer map : shadowMapFBO.keySet()) {
                     glActiveTexture(GL_TEXTURE3 + n);
                     glEnable(GL_TEXTURE_2D);
                     shader.setUniform("u_shadowMap[" + n + "]", 3 + n);

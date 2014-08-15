@@ -21,7 +21,7 @@ package tk.ivybits.engine.gl.scene.gl20.shader;
 import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramType;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.io.IO;
 
@@ -46,7 +46,7 @@ public class PhongLightingShader extends BaseShader {
         }
     }
 
-    public PhongLightingShader(IScene scene, HashMap<FrameBuffer, Matrix4f> shadowMapFBO) {
+    public PhongLightingShader(IScene scene, HashMap<Framebuffer, Matrix4f> shadowMapFBO) {
         super(new HashMap<ProgramType, List<String>>() {{
             put(ProgramType.VERTEX_SHADER, Arrays.asList(VERTEX_SHADER_SOURCE));
             put(ProgramType.FRAGMENT_SHADER, Arrays.asList(BASE_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE));

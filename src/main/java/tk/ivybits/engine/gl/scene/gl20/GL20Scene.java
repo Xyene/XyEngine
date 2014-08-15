@@ -28,7 +28,7 @@ import tk.ivybits.engine.gl.scene.gl20.bloom.BloomEffect;
 import tk.ivybits.engine.gl.scene.gl20.shader.BaseShader;
 import tk.ivybits.engine.gl.scene.gl20.shader.PhongLightingShader;
 import tk.ivybits.engine.gl.scene.gl20.shader.RawRenderShader;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.*;
@@ -53,7 +53,7 @@ public class GL20Scene implements IScene {
     private int viewWidth;
     private int viewHeight;
     private RawRenderShader rawGeometryShader;
-    private HashMap<FrameBuffer, Matrix4f> shadowMapBuffers = new HashMap<>();
+    private HashMap<Framebuffer, Matrix4f> shadowMapBuffers = new HashMap<>();
     /**
      * Reference for GL20Tesselator - vertex attribute offsets
      */
@@ -110,7 +110,7 @@ public class GL20Scene implements IScene {
 
     @Override
     public void setViewportSize(int width, int height) {
-        for (FrameBuffer fbo : shadowMapBuffers.keySet()) fbo.resize(width, height);
+        for (Framebuffer fbo : shadowMapBuffers.keySet()) fbo.resize(width, height);
         if (msaaBuffer != null) msaaBuffer.resize(width, height);
         if (bloomEffect != null) bloomEffect.resize(width, height);
         camera.setAspectRatio(width / (float) height);
@@ -128,28 +128,28 @@ public class GL20Scene implements IScene {
         int numLights = spotLights.size();
         if (shadowMapBuffers.size() < numLights) {
             for (int n = shadowMapBuffers.size(); n < numLights; n++) {
-                FrameBuffer self;
+                Framebuffer self;
                 shadowMapBuffers.put(
-                        self = new FrameBuffer(viewWidth, viewHeight)
+                        self = new Framebuffer(viewWidth, viewHeight)
                                 .attach(RenderBuffer.newDepthBuffer(viewWidth, viewHeight))
                                 .attach(new Texture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT, viewWidth, viewHeight)),
                         new Matrix4f()
                 );
             }
         } else if (shadowMapBuffers.size() > numLights) {
-            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
+            Iterator<Map.Entry<Framebuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
             for (int n = 0; n < shadowMapBuffers.size(); n++) {
                 iterator.next();
                 iterator.remove();
             }
         }
 
-        Iterator<FrameBuffer> maps = shadowMapBuffers.keySet().iterator();
+        Iterator<Framebuffer> maps = shadowMapBuffers.keySet().iterator();
         for (int n = 0; n < numLights; n++) {
             camera.pushMatrix();
             ISpotLight light = spotLights.get(n);
 
-            FrameBuffer fbo = maps.next();
+            Framebuffer fbo = maps.next();
             fbo.bind();
 
             glClear(GL_DEPTH_BUFFER_BIT); // Clear only depth buffer
@@ -247,7 +247,7 @@ public class GL20Scene implements IScene {
             generateShadowMaps();
             glPopAttrib();
         } else if (shadowMapBuffers.size() > 0) {
-            Iterator<Map.Entry<FrameBuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
+            Iterator<Map.Entry<Framebuffer, Matrix4f>> iterator = shadowMapBuffers.entrySet().iterator();
             for (int n = 0; n < shadowMapBuffers.size(); n++) {
                 iterator.next();
                 iterator.remove();
@@ -257,7 +257,7 @@ public class GL20Scene implements IScene {
         boolean antialiasing = drawContext.isEnabled(ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
-            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 8);
+            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, getDrawContext().getOption(Key.AA_SAMPLE_COUNT));
             glEnable(GL_MULTISAMPLE);
             glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         } else if (!antialiasing && msaaBuffer != null) {
@@ -267,6 +267,8 @@ public class GL20Scene implements IScene {
             glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         }
         if (antialiasing) {
+            if(msaaBuffer.getSamples() != getDrawContext().getOption(Key.AA_SAMPLE_COUNT))
+                msaaBuffer.setSamples(getDrawContext().getOption(Key.AA_SAMPLE_COUNT));
             msaaBuffer.bindFramebuffer();
         }
 

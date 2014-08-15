@@ -18,7 +18,7 @@
 
 package tk.ivybits.engine.gl.scene.gl20.aa;
 
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 
 import static tk.ivybits.engine.gl.GL.*;
 
@@ -34,6 +34,10 @@ public class MSAAFBO {
         this.height = height;
         this.samples = samples;
 
+        create();
+    }
+
+    private void create() {
         fbo = glGenFramebuffers();
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
@@ -60,7 +64,7 @@ public class MSAAFBO {
         blit(0);
     }
 
-    public void blit(FrameBuffer where) {
+    public void blit(Framebuffer where) {
         blit(where.id());
     }
 
@@ -101,7 +105,9 @@ public class MSAAFBO {
 
     public void setSamples(int samples) {
         this.samples = samples;
-        updateAttachments();
+        System.out.println(samples);
+        destroy();
+        create();
     }
 
     public void resize(int width, int height) {

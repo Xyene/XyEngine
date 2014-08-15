@@ -22,9 +22,13 @@ import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.Material;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import static org.lwjgl.opengl.GLContext.getCapabilities;
+import static tk.ivybits.engine.gl.GL.*;
 
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
@@ -50,6 +54,16 @@ public class GL20DrawContext implements IDrawContext {
         settings.put(Capability.Key.HDR_BLOOM_EXPOSURE, 2f);
         settings.put(Capability.Key.HDR_BLOOM_FACTOR, 0.5f);
         settings.put(Capability.Key.HDR_BLOOM_CAP, 5f);
+
+        settings.put(Capability.Key.AA_SAMPLE_COUNT, glGetInteger(GL_MAX_SAMPLES) / 2);
+
+        List<Integer> sizes = new ArrayList<>();
+        int size = 1;
+        while(size < glGetInteger(GL_MAX_SAMPLES)) {
+            sizes.add( size *= 2);
+        }
+        settings.put(Capability.Key.AA_SAMPLE_SIZES, sizes);
+
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);
     }

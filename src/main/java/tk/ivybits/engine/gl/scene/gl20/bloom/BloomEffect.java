@@ -19,24 +19,22 @@
 package tk.ivybits.engine.gl.scene.gl20.bloom;
 
 import tk.ivybits.engine.gl.Program;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
-import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IScene;
 
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.ProgramType.*;
-import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
 import static tk.ivybits.engine.scene.IDrawContext.Capability.Key.*;
 
 public class BloomEffect {
     private final Program toneMap;
-    private FrameBuffer input, output;
+    private Framebuffer input, output;
     public Program thresholdShader, vblur, hblur;
 
-    private FrameBuffer[] swap;
-    private FrameBuffer[] blur;
+    private Framebuffer[] swap;
+    private Framebuffer[] blur;
     private final IScene scene;
     private int width;
     private int height;
@@ -44,8 +42,8 @@ public class BloomEffect {
     private final float reductionFactor;
 //    private IDrawable quad;
 
-    private FrameBuffer createBuffer(int filter, int width, int height) {
-        FrameBuffer bloom = new FrameBuffer(width, height);
+    private Framebuffer createBuffer(int filter, int width, int height) {
+        Framebuffer bloom = new Framebuffer(width, height);
         bloom.attach(new Texture(GL_TEXTURE_2D, GL_RGB, width, height)
                         .setParameter(GL_TEXTURE_MAG_FILTER, filter)
                         .setParameter(GL_TEXTURE_MIN_FILTER, filter)
@@ -62,8 +60,8 @@ public class BloomEffect {
         this.lod = lod;
         this.reductionFactor = reductionFactor;
 
-        swap = new FrameBuffer[lod];
-        blur = new FrameBuffer[lod];
+        swap = new Framebuffer[lod];
+        blur = new Framebuffer[lod];
 
         create();
 
@@ -150,7 +148,7 @@ public class BloomEffect {
         hblur.destroy();
     }
 
-    public FrameBuffer getInputBuffer() {
+    public Framebuffer getInputBuffer() {
         return input;
     }
 
@@ -158,7 +156,7 @@ public class BloomEffect {
         return output.getTexture();
     }
 
-    private void drawDeviceQuad(FrameBuffer fbo) {
+    private void drawDeviceQuad(Framebuffer fbo) {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glViewport(0, 0, fbo.width(), fbo.height());

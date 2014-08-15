@@ -21,6 +21,8 @@ package tk.ivybits.engine.scene;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.Material;
 
+import java.util.List;
+
 public interface IDrawContext {
     public static enum Capability {
         NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS;
@@ -29,6 +31,9 @@ public interface IDrawContext {
             public static final Key<Float> HDR_BLOOM_EXPOSURE = new Key<>();
             public static final Key<Float> HDR_BLOOM_FACTOR = new Key<>();
             public static final Key<Float> HDR_BLOOM_CAP = new Key<>();
+
+            public static final Key<Integer> AA_SAMPLE_COUNT = new Key<>();
+            public static final Key<List<Integer>> AA_SAMPLE_SIZES = new Key<>();
         }
     }
 

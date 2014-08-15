@@ -4,7 +4,7 @@ import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.Matrix4f;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.scene.gl20.shader.BaseShader;
-import tk.ivybits.engine.gl.texture.FrameBuffer;
+import tk.ivybits.engine.gl.texture.Framebuffer;
 import tk.ivybits.engine.io.IO;
 import tk.ivybits.engine.scene.IScene;
 
@@ -32,6 +32,6 @@ class SkyboxShader extends BaseShader {
         super(new HashMap<ProgramType, List<String>>() {{
             put(ProgramType.VERTEX_SHADER, Arrays.asList(VERTEX_SHADER_SOURCE));
             put(ProgramType.FRAGMENT_SHADER, Arrays.asList(FRAGMENT_SHADER_SOURCE));
-        }}, scene, new HashMap<FrameBuffer, Matrix4f>());
+        }}, scene, new HashMap<Framebuffer, Matrix4f>());
     }
 }
