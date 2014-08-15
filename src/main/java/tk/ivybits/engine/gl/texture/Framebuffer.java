@@ -18,13 +18,12 @@
 
 package tk.ivybits.engine.gl.texture;
 
-import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
 import static tk.ivybits.engine.gl.GL.*;
 
-public class FrameBuffer {
+public class Framebuffer {
     private int width;
     private int height;
     private int handle;
@@ -32,7 +31,7 @@ public class FrameBuffer {
     private Texture colorBuffer;
     private boolean bound = false;
 
-    public FrameBuffer(int width, int height) {
+    public Framebuffer(int width, int height) {
         this.width = width;
         this.height = height;
         handle = glGenFramebuffers();
@@ -44,7 +43,7 @@ public class FrameBuffer {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    public FrameBuffer attach(RenderBuffer buffer) {
+    public Framebuffer attach(RenderBuffer buffer) {
         boolean b = bound;
         if (!b) bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, buffer.target(), GL_RENDERBUFFER, buffer.id());
@@ -53,7 +52,7 @@ public class FrameBuffer {
         return this;
     }
 
-    public FrameBuffer attach(Texture buffer) {
+    public Framebuffer attach(Texture buffer) {
         boolean b = bound;
         if (!b) bind();
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, buffer.target(), buffer.id(), 0);
@@ -74,19 +73,19 @@ public class FrameBuffer {
         return height;
     }
 
-    public FrameBuffer bind() {
+    public Framebuffer bind() {
         bound = true;
         glBindFramebuffer(GL_FRAMEBUFFER, handle);
         return this;
     }
 
-    public FrameBuffer unbind() {
+    public Framebuffer unbind() {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         bound = false;
         return this;
     }
 
-    public FrameBuffer clear(int flags) {
+    public Framebuffer clear(int flags) {
         boolean b = bound;
         if(!b) bind();
         glClear(flags);
@@ -130,7 +129,7 @@ public class FrameBuffer {
         blit(0);
     }
 
-    public void blit(FrameBuffer other) {
+    public void blit(Framebuffer other) {
         blit(other.id());
     }
 
