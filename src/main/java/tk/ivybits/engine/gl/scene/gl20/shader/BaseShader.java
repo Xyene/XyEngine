@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix3f;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
-import tk.ivybits.engine.gl.GL;
 import tk.ivybits.engine.gl.ProgramBuilder;
 import tk.ivybits.engine.gl.ProgramType;
 import tk.ivybits.engine.gl.Program;
@@ -83,7 +82,7 @@ public class BaseShader implements ISceneChangeListener {
     private List<ISpotLight> spotLights = new ArrayList<>();
     private List<IPointLight> pointLights = new ArrayList<>();
     private List<IDirectionalLight> dirLights = new ArrayList<>();
-    private final HashMap<IResource, Texture> textureCache = new HashMap<IResource, Texture>() {
+    private final WeakHashMap<IResource, Texture> textureCache = new WeakHashMap<IResource, Texture>() {
         @Override
         public Texture get(Object obj) {
             Texture tex = super.get(obj);
@@ -111,6 +110,7 @@ public class BaseShader implements ISceneChangeListener {
     private CubeTexture environmentMap;
     private Vector3f eyePosition;
 
+
     private void setupHandles() {
         if (!needsScenePush) {
             return;
@@ -121,6 +121,8 @@ public class BaseShader implements ISceneChangeListener {
         updateLights();
         fogUpdated(scene.getSceneGraph().getAtmosphere().getFog());
         setProjection();
+        if(eyePosition != null) setEyePosition(eyePosition);
+        if(environmentMap != null) setEnvironmentMap(environmentMap);
     }
 
     public BaseShader(Map<ProgramType, List<String>> sources, IScene scene, HashMap<FrameBuffer, Matrix4f> shadowMapFBO) {
@@ -135,36 +137,33 @@ public class BaseShader implements ISceneChangeListener {
 
         int texture = 0;
         if (material.diffuseTexture != null) {
-            shader.setUniform("u_material.hasDiffuse", 1);
+            shader.setUniform("u_material.hasDiffuse", true);
             if (shader.hasUniform("u_material.diffuseMap")) {
-                glActiveTexture(GL_TEXTURE0 + texture);
-                shader.setUniform("u_material.diffuseMap", (texture++));
-                textureCache.get(material.diffuseTexture).bind();
+                shader.setUniform("u_material.diffuseMap", texture);
+                textureCache.get(material.diffuseTexture).bind(texture++);
             }
         } else {
-            shader.setUniform("u_material.hasDiffuse", 0);
+            shader.setUniform("u_material.hasDiffuse", false);
         }
         if (scene.getDrawContext().isEnabled(SPECULAR_MAPS))
             if (material.specularTexture != null) {
-                shader.setUniform("u_material.hasSpecular", 1);
+                shader.setUniform("u_material.hasSpecular", true);
                 if (shader.hasUniform("u_material.specularMap")) {
-                    glActiveTexture(GL_TEXTURE0 + texture);
-                    shader.setUniform("u_material.specularMap", (texture++));
-                    textureCache.get(material.specularTexture).bind();
+                    shader.setUniform("u_material.specularMap", texture);
+                    textureCache.get(material.specularTexture).bind(texture++);
                 }
             } else {
-                shader.setUniform("u_material.hasSpecular", 0);
+                shader.setUniform("u_material.hasSpecular", false);
             }
         if (scene.getDrawContext().isEnabled(NORMAL_MAPS))
             if (material.bumpMap != null) {
-                shader.setUniform("u_material.hasNormal", 1);
+                shader.setUniform("u_material.hasNormal", true);
                 if (shader.hasUniform("u_material.normalMap")) {
-                    glActiveTexture(GL_TEXTURE0 + texture);
                     shader.setUniform("u_material.normalMap", texture);
+                    textureCache.get(material.bumpMap).bind(texture++);
                 }
-                textureCache.get(material.bumpMap).bind();
             } else {
-                shader.setUniform("u_material.hasNormal", 0);
+                shader.setUniform("u_material.hasNormal", false);
             }
 
         Color ambient = material.ambientColor;
@@ -183,7 +182,12 @@ public class BaseShader implements ISceneChangeListener {
                 specular.getGreen() / 255F,
                 specular.getBlue() / 255F);
         shader.setUniform("u_material.shininess", 128 - material.shininess + 1);
-        shader.setUniform("u_material.transparency", material.transparency);
+        shader.setUniform("u_material.opaqueness", material.opaqueness);
+
+        if (scene.getDrawContext().isEnabled(REFLECTIONS)) {
+            shader.setUniform("u_material.reflectivity", material.reflectivity);
+            shader.setUniform("u_material.refractionIndex", material.refractionIndex);
+        }
 
         shader.detach();
     }

@@ -33,7 +33,6 @@ public class GeometryDrawable implements IDrawable {
     private final int priority;
     private final IDrawContext ctx;
     private List<BufferedMesh> meshes;
-    private boolean transparent;
 
     public GeometryDrawable(IDrawContext with, Model model, int priority) {
         this.ctx = with;
@@ -44,7 +43,11 @@ public class GeometryDrawable implements IDrawable {
     @Override
     public boolean isTransparent() {
         compile();
-        return transparent;
+        // Unfortunately this has to be done here in case the Material object was updated
+        for (BufferedMesh mesh : meshes)
+            if (mesh.material.opaqueness < 1)
+                return true;
+        return false;
     }
 
     @Override
@@ -75,17 +78,15 @@ public class GeometryDrawable implements IDrawable {
 
             boolean normals = mesh.hasNormals(), uvs = mesh.hasUVs(), tangents = mesh.hasTangents();
 
-            transparent = transparent || material.transparency != 0;
-
             int flag = 0;
             if (normals) {
-                flag |= ITesselator.NORMAL_ATTR;
+                flag |= ITesselator.NORMAL_BUFFER;
             }
             if (uvs) {
-                flag |= ITesselator.UV_ATTR;
+                flag |= ITesselator.UV_BUFFER;
             }
             if (tangents) {
-                flag |= ITesselator.TANGENT_ATTR;
+                flag |= ITesselator.TANGENT_BUFFER;
             }
 
             ITesselator buffer = ctx.createTesselator(flag, GL_TRIANGLES);
@@ -105,7 +106,7 @@ public class GeometryDrawable implements IDrawable {
             }
 
             BufferedMesh bmesh = new BufferedMesh();
-            bmesh.buffer = buffer.create();
+            bmesh.buffer = buffer.createDrawable();
             bmesh.material = material;
             meshes.add(bmesh);
         }
@@ -128,26 +129,26 @@ public class GeometryDrawable implements IDrawable {
     }
 
     private static void vertex(Vertex vertex, ITesselator tes, boolean normals, boolean tangents, boolean uvs) {
-        tes.vertex(vertex.pos.x, vertex.pos.y, vertex.pos.z);
+        tes.pushVertex(vertex.pos.x, vertex.pos.y, vertex.pos.z);
         if (normals) {
             if (vertex.normal != null) {
-                tes.normal(vertex.normal.x, vertex.normal.y, vertex.normal.z);
+                tes.pushNormal(vertex.normal.x, vertex.normal.y, vertex.normal.z);
             } else {
-                tes.normal(0, 0, 0);
+                tes.pushNormal(0, 0, 0);
             }
         }
         if (uvs) {
             if (vertex.uv != null) {
-                tes.texture(vertex.uv.x, vertex.uv.y);
+                tes.pushTexCoord(vertex.uv.x, vertex.uv.y);
             } else {
-                tes.texture(0, 0);
+                tes.pushTexCoord(0, 0);
             }
         }
         if (tangents) {
             if (vertex.tangent != null) {
-                tes.tangent(vertex.tangent.x, vertex.tangent.y, vertex.tangent.z);
+                tes.pushTangent(vertex.tangent.x, vertex.tangent.y, vertex.tangent.z);
             } else {
-                tes.tangent(0, 0, 0);
+                tes.pushTangent(0, 0, 0);
             }
         }
     }

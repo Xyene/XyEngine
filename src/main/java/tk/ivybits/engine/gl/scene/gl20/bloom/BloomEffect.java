@@ -18,22 +18,20 @@
 
 package tk.ivybits.engine.gl.scene.gl20.bloom;
 
-import tk.ivybits.engine.gl.ImmediateProjection;
 import tk.ivybits.engine.gl.Program;
 import tk.ivybits.engine.gl.texture.FrameBuffer;
 import tk.ivybits.engine.gl.texture.RenderBuffer;
 import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.scene.IDrawContext;
-import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
-import tk.ivybits.engine.scene.geometry.ITesselator;
-
-import java.awt.*;
 
 import static tk.ivybits.engine.gl.GL.*;
 import static tk.ivybits.engine.gl.ProgramType.*;
+import static tk.ivybits.engine.scene.IDrawContext.Capability.*;
+import static tk.ivybits.engine.scene.IDrawContext.Capability.Key.*;
 
 public class BloomEffect {
+    private final Program toneMap;
     private FrameBuffer input, output;
     public Program thresholdShader, vblur, hblur;
 
@@ -69,7 +67,7 @@ public class BloomEffect {
 
         create();
 
-//        ITesselator tess = scene.getDrawContext().createTesselator(ITesselator.UV_ATTR, GL_TRIANGLE_FAN);
+//        ITesselator tess = scene.getDrawContext().createTesselator(ITesselator.UV_BUFFER, GL_TRIANGLE_FAN);
 //        tess.texture(0, 0);
 //        tess.vertex(0, 0,0);
 //        tess.texture(0, 1);
@@ -82,8 +80,8 @@ public class BloomEffect {
 //        quad = tess.create();
 
         thresholdShader = Program.builder()
-                .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.f.glsl")
-                .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/bloom_threshold.v.glsl")
+                .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/threshold.f.glsl")
+                .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/threshold.v.glsl")
                 .build();
 
         vblur = Program.builder()
@@ -96,6 +94,10 @@ public class BloomEffect {
                 .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/blur.v.glsl")
                 .define("HORIZONTAL")
                 .build();
+        toneMap = Program.builder()
+                .loadPackagedShader(FRAGMENT_SHADER, "tk/ivybits/engine/gl/shader/bloom/tone_map.f.glsl")
+                .loadPackagedShader(VERTEX_SHADER, "tk/ivybits/engine/gl/shader/bloom/tone_map.v.glsl")
+                .build();
     }
 
     /**
@@ -107,10 +109,10 @@ public class BloomEffect {
 
         int cwidth = width, cheight = height;
         for (int i = 0; i < lod; i++) {
-            cwidth *= reductionFactor;
-            cheight *= reductionFactor;
             blur[i] = createBuffer(GL_LINEAR, cwidth, cheight);
             swap[i] = createBuffer(GL_LINEAR, cwidth, cheight);
+            cwidth *= reductionFactor;
+            cheight *= reductionFactor;
         }
     }
 
@@ -189,7 +191,7 @@ public class BloomEffect {
 
         blur[0].unbind();
 
-        blur[0].getTexture().bind();
+        blur[0].getTexture().bind(0);
         for (int i = 1; i < lod; i++) {
             blur[i].bind();
             drawDeviceQuad(blur[i]);
@@ -202,10 +204,10 @@ public class BloomEffect {
 
             vblur.attach();
 
-            blur[i].getTexture().bind();
+            blur[i].getTexture().bind(0);
             drawDeviceQuad(swap[i]);
             blur[i].getTexture().unbind();
-            swap[i].bind();
+            swap[i].unbind();
 
             vblur.detach();
 
@@ -216,27 +218,42 @@ public class BloomEffect {
             swap[i].getTexture().bind(0);
             drawDeviceQuad(blur[i]);
             swap[i].getTexture().unbind();
-            blur[i].bind();
+            blur[i].unbind();
 
             hblur.detach();
         }
 
-        output.bind().clear(GL_COLOR_BUFFER_BIT);
-
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        // Enable additive blending to blend downscaled bloom buffers
-        input.getTexture().bind(0);
-        drawDeviceQuad(output);
-        input.getTexture().unbind();
+        blur[0].bind();
 
-        for (int i = 0; i < lod; i++) {
+        for (int i = 1; i < lod; i++) {
             blur[i].getTexture().bind(0);
-            drawDeviceQuad(output);
+            drawDeviceQuad(blur[0]);
             blur[i].getTexture().unbind();
         }
 
+        blur[0].unbind();
         glDisable(GL_BLEND);
+
+        toneMap.attach();
+        output.bind().clear(GL_COLOR_BUFFER_BIT);
+
+        toneMap.setUniform("u_exposure", scene.getDrawContext().getOption(HDR_BLOOM_EXPOSURE));
+        toneMap.setUniform("u_maxBrightness", scene.getDrawContext().getOption(HDR_BLOOM_CAP));
+        toneMap.setUniform("u_bloomFactor", scene.getDrawContext().getOption(HDR_BLOOM_FACTOR));
+
+        toneMap.setUniform("u_scene", 0);
+        toneMap.setUniform("u_bloom", 1);
+
+        input.getTexture().bind(0);
+        blur[0].getTexture().bind(1);
+        drawDeviceQuad(output);
+
+        input.getTexture().unbind();
+        blur[0].getTexture().unbind();
+
         output.unbind();
+        toneMap.detach();
     }
 }

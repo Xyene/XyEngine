@@ -1,7 +1,7 @@
 struct SpotLight {
     vec3 position;
     vec3 direction;
-    float cutoff;
+    float cutoff; // cosd(light cutoff)
     float intensity;
     vec3 ambient;
     vec3 diffuse;
@@ -39,7 +39,11 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
-    float transparency;
+    float opaqueness;
+#ifdef REFLECTIONS
+    float reflectivity;
+    float refractionIndex;
+#endif
 };
 
 #ifdef FOG

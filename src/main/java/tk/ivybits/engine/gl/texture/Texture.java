@@ -122,21 +122,29 @@ public class Texture {
         return height;
     }
 
+    /**
+     * Binds this texture to unit 0.
+     *
+     * @return This Texture instance.
+     */
     public Texture bind() {
-        glBindTexture(target, handle);
-        bound = true;
-        return this;
+        return bind(0);
     }
 
+    private int texUnit;
+
     public Texture bind(int unit) {
-        glActiveTexture(GL_TEXTURE0 + unit);
+        glActiveTexture(texUnit = (GL_TEXTURE0 + unit));
         glBindTexture(target, handle);
         bound = true;
         return this;
     }
 
     public Texture unbind() {
+        int active = glGetInteger(GL_ACTIVE_TEXTURE);
+        glActiveTexture(texUnit);
         glBindTexture(target, 0);
+        glActiveTexture(active);
         bound = false;
         return this;
     }

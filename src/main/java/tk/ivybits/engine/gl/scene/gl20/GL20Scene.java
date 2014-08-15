@@ -191,7 +191,16 @@ public class GL20Scene implements IScene {
         }
 
         if (drawContext.isEnabled(ALPHA_TESTING)) {
+            glDisable(GL_CULL_FACE);
+            for (PriorityComparableDrawable entity : visible) {
+                if (entity.drawable.isTransparent()) continue;
+                currentGeometryShader.setModelTransform(entity.actor.getTransform());
+                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
+                entity.drawable.draw(this);
+            }
+
             glEnable(GL_CULL_FACE);
+
             glCullFace(GL_FRONT);
             for (PriorityComparableDrawable entity : visible) {
                 if (!entity.drawable.isTransparent()) continue;
@@ -207,14 +216,10 @@ public class GL20Scene implements IScene {
                 entity.drawable.draw(this);
                 drawn++;
             }
+
             glDisable(GL_CULL_FACE);
-            for (PriorityComparableDrawable entity : visible) {
-                if (entity.drawable.isTransparent()) continue;
-                currentGeometryShader.setModelTransform(entity.actor.getTransform());
-                currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
-                entity.drawable.draw(this);
-            }
         } else {
+            glDisable(GL_CULL_FACE);
             for (PriorityComparableDrawable entity : visible) {
                 currentGeometryShader.setModelTransform(entity.actor.getTransform());
                 currentGeometryShader.setEnvironmentMap(envMap.getFor(this, entity.actor));
@@ -252,7 +257,7 @@ public class GL20Scene implements IScene {
         boolean antialiasing = drawContext.isEnabled(ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
-            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 4);
+            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, 8);
             glEnable(GL_MULTISAMPLE);
             glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         } else if (!antialiasing && msaaBuffer != null) {
@@ -267,7 +272,7 @@ public class GL20Scene implements IScene {
 
         boolean bloom = drawContext.isEnabled(BLOOM);
         if (bloom && bloomEffect == null) {
-            bloomEffect = new BloomEffect(this, viewWidth, viewHeight, 2, 0.6f);
+            bloomEffect = new BloomEffect(this, viewWidth, viewHeight, 4, 0.5f);
         }
         if (!bloom && bloomEffect != null) {
             bloomEffect.destroy();
@@ -280,6 +285,7 @@ public class GL20Scene implements IScene {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
+
         _draw();
 
         if (antialiasing) {
@@ -300,7 +306,7 @@ public class GL20Scene implements IScene {
 
             glDisable(GL_DEPTH_TEST);
 
-            bloomEffect.getOutputBuffer().bind();
+            bloomEffect.getOutputBuffer().bind(0);
 
             ImmediateProjection.toOrthographicProjection(0, 0, viewWidth, viewHeight);
             glBegin(GL_QUADS);

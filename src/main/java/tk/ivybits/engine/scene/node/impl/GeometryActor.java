@@ -22,15 +22,25 @@ import tk.ivybits.engine.gl.scene.GeometryDrawable;
 import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.geometry.BoundingBox;
+import tk.ivybits.engine.scene.model.Material;
+import tk.ivybits.engine.scene.model.Mesh;
 import tk.ivybits.engine.scene.model.Model;
+
+import java.util.*;
 
 public class GeometryActor extends AbstractActor {
     protected Model model;
+    protected List<Material> materials;
     protected BoundingBox boundingBox;
     protected int priority = Integer.MAX_VALUE;
 
     public GeometryActor(Model model) {
         this.model = model;
+        List<Mesh> meshes = model.getMeshes();
+        Set<Material> mats = new HashSet<>(meshes.size());
+        for(Mesh mesh : meshes)
+            mats.add(mesh.getMaterial());
+        materials = new ArrayList<>(mats);
     }
 
     @Override
@@ -46,5 +56,9 @@ public class GeometryActor extends AbstractActor {
     @Override
     public IDrawable createDrawable(IDrawContext context) {
         return new GeometryDrawable(context, model, priority);
+    }
+
+    public List<Material> getMaterials() {
+        return Collections.unmodifiableList(materials);
     }
 }

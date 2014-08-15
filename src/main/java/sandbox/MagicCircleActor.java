@@ -38,7 +38,7 @@ public class MagicCircleActor extends GeometryActor {
     @Override
     public void update(float delta) {
         size += delta / 5000 * mod;
-        if(size > 2 || size < 1) mod *= -1;
+        if (size > 2 || size < 1) mod *= -1;
         // scale(size, size, size);
         // Prevent locking > 2 and < 1
         size = Math.min(size, 2);

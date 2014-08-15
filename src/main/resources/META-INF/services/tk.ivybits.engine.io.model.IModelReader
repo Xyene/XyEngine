@@ -16,5 +16,5 @@
 # <http://www.gnu.org/licenses/>.
 #
 
-tk.ivybits.engine.io.model.wavefront.OBJReader
+tk.ivybits.engine.io.model.wavefront.WavefrontReader
 tk.ivybits.engine.io.model.md2.MD2Reader

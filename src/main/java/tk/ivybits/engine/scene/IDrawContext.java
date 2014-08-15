@@ -23,14 +23,24 @@ import tk.ivybits.engine.scene.model.Material;
 
 public interface IDrawContext {
     public static enum Capability {
-        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS
+        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS;
+
+        public static class Key<T> {
+            public static final Key<Float> HDR_BLOOM_EXPOSURE = new Key<>();
+            public static final Key<Float> HDR_BLOOM_FACTOR = new Key<>();
+            public static final Key<Float> HDR_BLOOM_CAP = new Key<>();
+        }
     }
 
     void useMaterial(Material material);
 
     ITesselator createTesselator(int flags, int type);
 
-    <T> boolean isSupported(Capability cap);
+    boolean isSupported(Capability cap);
+
+    <T> T getOption(Capability.Key<T> key);
+
+    <T> void setOption(Capability.Key<T> key, T value);
 
     void setEnabled(Capability cap, boolean flag);
 

@@ -22,12 +22,15 @@ import tk.ivybits.engine.scene.IDrawContext;
 import tk.ivybits.engine.scene.geometry.ITesselator;
 import tk.ivybits.engine.scene.model.Material;
 
+import java.util.HashMap;
+
 import static org.lwjgl.opengl.GLContext.getCapabilities;
 
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
     private final boolean[] caps;
     private final boolean[] enabled;
+    private final HashMap<Capability.Key, Object> settings = new HashMap<>();
 
     public GL20DrawContext(GL20Scene parent) {
         this.parent = parent;
@@ -44,6 +47,9 @@ public class GL20DrawContext implements IDrawContext {
                 getCapabilities().GL_EXT_framebuffer_object,    // bloom
                 true // Reflections
         };
+        settings.put(Capability.Key.HDR_BLOOM_EXPOSURE, 2f);
+        settings.put(Capability.Key.HDR_BLOOM_FACTOR, 0.5f);
+        settings.put(Capability.Key.HDR_BLOOM_CAP, 5f);
         enabled = new boolean[caps.length];
         System.arraycopy(caps, 0, enabled, 0, caps.length);
     }
@@ -60,8 +66,18 @@ public class GL20DrawContext implements IDrawContext {
     }
 
     @Override
-    public <T> boolean isSupported(Capability id) {
+    public boolean isSupported(Capability id) {
         return caps[id.ordinal()];
+    }
+
+    @Override
+    public <T> T getOption(Capability.Key<T> key) {
+        return (T) settings.get(key);
+    }
+
+    @Override
+    public <T> void setOption(Capability.Key<T> key, T value) {
+        settings.put(key, value);
     }
 
     @Override

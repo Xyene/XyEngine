@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 
-public class OBJReader implements IModelReader {
+public class WavefrontReader implements IModelReader {
     protected static final String
             VERTEX = "v",
             NORMAL = "vn",
@@ -180,7 +180,7 @@ public class OBJReader implements IModelReader {
                     break;
                 case COLOR_TRANSPARENCY_1:
                 case COLOR_TRANSPARENCY_2:
-                    if (currentMaterial != null) currentMaterial.transparency = parseFloat(tokens.nextToken());
+                    if (currentMaterial != null) currentMaterial.opaqueness = parseFloat(tokens.nextToken());
                     break;
                 case TEXTURE_AMBIENT:
                 case TEXTURE_DIFFUSE:

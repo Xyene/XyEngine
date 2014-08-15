@@ -1,13 +1,13 @@
 #define MAX_LIGHTS 8
 
-varying vec3 v_surfaceNormal;
-varying vec3 v_vertexPosition;
-varying vec2 v_UV;
+varying vec3 v_normal;
+varying vec3 v_vertex;
+varying vec2 v_uv;
 #ifdef OBJECT_SHADOWS
 varying vec4 v_lightSpacePos[MAX_LIGHTS];
 #endif
 #ifdef NORMAL_MAPPING
-varying mat3 v_TBN;
+varying mat3 v_tangentMatrix;
 #endif
 
 uniform Material u_material;
@@ -27,109 +27,102 @@ uniform int u_lightMatrixCount;
 uniform sampler2D u_shadowMap[MAX_LIGHTS];
 #endif
 
-
 #ifdef REFLECTIONS
 uniform samplerCube u_envMap;
 uniform vec3 u_eye;
 #endif
 
-#ifdef OBJECT_SHADOWS
-float spotlight_shadow_factor(int idx)
-{
-    float visibility = 1.0;
-    /*float bias = 0.005;
-    vec4 shadowCoord = v_lightSpacePos[idx];
-    if(shadowCoord.w > 0) {
-        if (textureProj(u_shadowMap[idx], shadowCoord.xyw).z < (shadowCoord.z - bias) / shadowCoord.w){
-            visibility = 0;
-        }
-    }*/
-    return visibility;
-}
-#endif
-
 void main(void)
 {
     vec3 fragment = vec3(0.0);
-    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_UV).rgba : vec4(0.0);
+    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_uv) : vec4(0.0);
     vec3 texture = diffuse.rgb;
 
     vec3 specularTerm = u_material.specular;
 
     #ifdef SPECULAR_MAPPING
-    specularTerm *= texture2D(u_material.specularMap, v_UV).rgb;
+    specularTerm *= texture2D(u_material.specularMap, v_uv).rgb;
     #endif
 
     #ifdef NORMAL_MAPPING
-    vec3 normalMap = u_material.hasNormal ? normalize(v_TBN * (texture2D(u_material.normalMap, v_UV).rgb * 2.0 - 1.0)) : v_surfaceNormal;
+    vec3 N = u_material.hasNormal ? normalize(v_tangentMatrix * (texture2D(u_material.normalMap, v_uv).rgb * 2.0 - 1.0)) : v_normal;
     #else
-    vec3 normalMap = v_surfaceNormal;
+    vec3 N = v_normal;
     #endif
 
-    for(int idx = 0; idx < u_dirLightCount; idx++) {
-        DirectionalLight lightSource = u_dirLights[idx];
+    for(int idx = 0; idx < u_dirLightCount; idx++)
+    {
+        DirectionalLight light = u_dirLights[idx];
 
-        vec3 incidentRay = normalize(lightSource.direction);
-        vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
+        vec3 I = normalize(light.direction);
+        vec3 R = normalize(-reflect(I, N));
 
-        vec3 ambient = u_material.ambient * lightSource.ambient;
-        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0.0);
-        vec3 specular = specularTerm * lightSource.specular *
-            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0.0), u_material.shininess);
+        vec3 ambient = u_material.ambient * light.ambient;
+        vec3 diffuse = u_material.diffuse * light.diffuse * max(dot(N, I), 0.0);
+        vec3 specular = specularTerm * light.specular * pow(max(dot(normalize(-v_vertex), R), 0.0), u_material.shininess);
 
-        fragment += (ambient + (diffuse * texture) + specular) * lightSource.intensity;
+        fragment += (ambient + (diffuse * texture) + specular) * light.intensity;
     }
 
-    for(int idx = 0; idx < u_pointLightCount; idx++) {
-        PointLight lightSource = u_pointLights[idx];
+    for(int idx = 0; idx < u_pointLightCount; idx++)
+    {
+        PointLight light = u_pointLights[idx];
 
-        vec3 incidentRay = normalize(lightSource.position - v_vertexPosition);
-        vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
+        vec3 I = normalize(light.position - v_vertex);
+        vec3 R = normalize(-reflect(I, N));
 
-        vec3 ambient = u_material.ambient * lightSource.ambient;
-        vec3 diffuse = u_material.diffuse * lightSource.diffuse * max(dot(normalMap, incidentRay), 0.0);
-        vec3 specular = specularTerm * lightSource.specular *
-            pow(max(dot(normalize(-v_vertexPosition), refractedRay), 0.0), u_material.shininess);
+        vec3 ambient = u_material.ambient * light.ambient;
+        vec3 diffuse = u_material.diffuse * light.diffuse * max(dot(N, I), 0.0);
+        vec3 specular = specularTerm * light.specular * pow(max(dot(normalize(-v_vertex), R), 0.0), u_material.shininess);
 
-        fragment += (ambient + (diffuse * texture) + specular) * lightSource.intensity;
+        fragment += (ambient + (diffuse * texture) + specular) * light.intensity;
     }
 
     for(int idx = 0; idx < u_spotLightCount; idx++) {
-        SpotLight lightSource = u_spotLights[idx];
-        vec3 incidentRay = normalize(lightSource.position - v_vertexPosition);
-        vec3 spotDirection = normalize(lightSource.direction);
-        vec3 refractedRay = normalize(-reflect(incidentRay, normalMap));
+        SpotLight light = u_spotLights[idx];
+        vec3 I = normalize(light.position - v_vertex);
+        vec3 spotDirection = normalize(light.direction);
+        vec3 R = normalize(-reflect(I, N));
 
-        float cosTheta = dot(-incidentRay, spotDirection);
-        float falloffArea = cos(radians(30.0));
-        float shadedArea = lightSource.cutoff - falloffArea;
+        float theta = dot(-I, spotDirection);
+        float falloffArea = 0.886; // cosd(30)
+        float shadedArea = light.cutoff - falloffArea;
 
-        vec3 color = vec3(0.0);
-        if(cosTheta > shadedArea) {
-            float falloff = max((cosTheta - falloffArea) / shadedArea, 0.0);
-            vec3 ambient = u_material.ambient *
-                lightSource.ambient;
-            vec3 diffuse = u_material.diffuse *
-                max(dot(normalMap, incidentRay), 0.0) *
-                lightSource.diffuse;
-            vec3 specular = specularTerm *
-                pow(max(dot(refractedRay, normalize(-v_vertexPosition)), 0.0), u_material.shininess) *
-                lightSource.specular;
-            color += (falloff * (ambient + ((diffuse * texture) + specular) * lightSource.intensity));
-       }
+        if(theta <= shadedArea) continue;
+
+        float falloff = max((theta - falloffArea) / shadedArea, 0.0);
+        vec3 ambient = u_material.ambient * light.ambient;
+        vec3 diffuse = u_material.diffuse * max(dot(N, I), 0.0) * light.diffuse;
+        vec3 specular = specularTerm  * light.specular * pow(max(dot(normalize(-v_vertex), R), 0.0), u_material.shininess);
+
+        vec3 color = (falloff * (ambient + ((diffuse * texture) + specular) * light.intensity));
+
         #ifdef OBJECT_SHADOWS
-        fragment += color * spotlight_shadow_factor(idx);
-        #else
-        fragment += color;
+        color *= 1.0; // TODO
         #endif
+
+        fragment += color;
     }
 
-    gl_FragColor = vec4(fragment, u_material.transparency * diffuse.a);
+    gl_FragColor = vec4(fragment, u_material.opaqueness * diffuse.a);
 
     #ifdef REFLECTIONS
-    float reflFactor = 0.5;
-    vec3 reflectedColor = textureCube(u_envMap, reflect(normalize(v_vertexPosition - u_eye), normalMap)).rgb;
-    gl_FragColor =  vec4(gl_FragColor.rgb + reflectedColor * reflFactor, gl_FragColor.a);
+    if(u_material.reflectivity > 0)
+    {
+        vec3 I = normalize(v_vertex - u_eye);
+        vec3 R = reflect(I, N);
+
+        vec3 refractedColor = vec3(
+			// Chromatic dispersion
+			textureCube(u_envMap, refract(I, N, u_material.refractionIndex + 0.000)).r,
+			textureCube(u_envMap, refract(I, N, u_material.refractionIndex + 0.008)).g,
+			textureCube(u_envMap, refract(I, N, u_material.refractionIndex + 0.016)).b
+		);
+        vec3 reflectedColor = textureCube(u_envMap, R).rgb;
+
+        float fresnel = 1.0 * pow(1.0 + dot(I, N), 4.0);
+        gl_FragColor.rgb += mix(refractedColor, reflectedColor, 1.0 - fresnel * (1.0 - u_material.opaqueness)) * u_material.reflectivity;
+    }
     #endif
 
     #ifdef FOG

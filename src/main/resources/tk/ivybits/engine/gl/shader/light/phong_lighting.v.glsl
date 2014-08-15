@@ -1,22 +1,22 @@
 
 #define MAX_LIGHTS 8
 
-varying vec3 v_surfaceNormal;
-varying vec3 v_vertexPosition;
-varying vec2 v_UV;
+varying vec3 v_normal;
+varying vec3 v_vertex;
+varying vec2 v_uv;
 #ifdef NORMAL_MAPPING
-varying mat3 v_TBN;
+varying mat3 v_tangentMatrix;
 #endif
 #ifdef OBJECT_SHADOWS
 varying vec4 v_lightSpacePos[MAX_LIGHTS];
 #endif
 
-attribute vec3 a_Vertex;
-attribute vec3 a_Normal;
+attribute vec3 a_vertex;
+attribute vec3 a_normal;
 #ifdef NORMAL_MAPPING
-attribute vec3 a_Tangent;
+attribute vec3 a_tangent;
 #endif
-attribute vec2 a_UV;
+attribute vec2 a_uv;
 
 #ifdef OBJECT_SHADOWS
 uniform int u_lightMatrixCount;
@@ -29,9 +29,9 @@ uniform mat4 u_mvpMatrix;
 
 void main(void)  
 {
-    //vec3 v = a_Vertex;
+    //vec3 v = a_vertex;
     //v.y = sin(v.x) + sin(v.z);
-    vec4 hVertex = vec4(a_Vertex, 1.0);
+    vec4 hVertex = vec4(a_vertex, 1.0);
 
     gl_Position = u_mvpMatrix * hVertex;
     #ifdef OBJECT_SHADOWS
@@ -46,16 +46,16 @@ void main(void)
     }
     #endif
 
-    v_surfaceNormal = normalize(u_normalMatrix * a_Normal);
-    v_vertexPosition = vec3(u_modelMatrix * hVertex);
+    v_normal = normalize(u_normalMatrix * a_normal);
+    v_vertex = vec3(u_modelMatrix * hVertex);
 
-    v_UV = a_UV;
+    v_uv = a_uv;
 
     #ifdef NORMAL_MAPPING
-    vec3 tangent = normalize((u_normalMatrix * a_Tangent).xyz);
-    tangent = normalize(tangent - dot(tangent, v_surfaceNormal) * v_surfaceNormal);
-    vec3 bitangent = cross(tangent, v_surfaceNormal);
-    v_TBN = mat3(tangent, bitangent, v_surfaceNormal);
+    vec3 tangent = normalize((u_normalMatrix * a_tangent).xyz);
+    tangent = normalize(tangent - dot(tangent, v_normal) * v_normal);
+    vec3 bitangent = cross(tangent, v_normal);
+    v_tangentMatrix = mat3(tangent, bitangent, v_normal);
     #endif
 }
           

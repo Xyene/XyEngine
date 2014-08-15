@@ -25,7 +25,6 @@ import org.lwjgl.opengl.DisplayMode;
 import tk.ivybits.engine.gl.scene.Skybox;
 import tk.ivybits.engine.gl.scene.StaticEnvironmentMap;
 import tk.ivybits.engine.gl.scene.gl20.GL20Scene;
-import tk.ivybits.engine.gl.texture.Texture;
 import tk.ivybits.engine.gl.ui.UITexture;
 import tk.ivybits.engine.io.res.IResourceFinder;
 import tk.ivybits.engine.io.res.URLResource;
@@ -41,6 +40,7 @@ import tk.ivybits.engine.util.Natives;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -60,6 +60,7 @@ public class Sandbox {
     private static IScene scene;
     private static FPSCamera camera;
     private static UITexture screenOverlay;
+    private static GeometryActor cylinder;
 
     public static void main(String[] args) throws Exception {
         ImageIO.setUseCache(false);
@@ -98,10 +99,12 @@ public class Sandbox {
 
         MagicCircleActor circle = root.track(new MagicCircleActor());
         circle.position(0, 0.1f, 0);
-        GeometryActor ground = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/ground3.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
+        GeometryActor ground = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/ground.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
         ground.position(0, 0, 0);
-        GeometryActor ship = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/cylinder2.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
-        ship.position(0, -2.5f, 10);
+        cylinder = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/cylinder.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
+        cylinder.position(0, -2.5f, 10);
+        cylinder.getMaterials().get(0).reflectivity = 1f;
+        cylinder.getMaterials().get(0).opaqueness = 1f;
 
         Skybox skybox = root.track(new Skybox(
                 URLResource.getResource("/tk/ivybits/engine/game/skybox/left.png"),
@@ -207,6 +210,9 @@ public class Sandbox {
 
     private static void input() throws IOException {
         while (Mouse.next()) {
+            if (Mouse.isGrabbed() && Mouse.getEventDWheel() != 0) {
+                camera.setFieldOfView(camera.getFieldOfView() + Mouse.getEventDWheel() / 60);
+            }
             if (Mouse.getEventButtonState()) {
                 if (Mouse.getEventButton() == 0 && screenOverlay.getColor(Mouse.getEventX(), Mouse.getEventY()).getAlpha() == 0)
                     Mouse.setGrabbed(true);
@@ -301,7 +307,7 @@ public class Sandbox {
             //Display.setVSyncEnabled(true);
 
             // Display.setFullscreen(true);
-            Display.create(new PixelFormat(), new ContextAttribs().withDebug(true));
+            Display.create(new PixelFormat().withSRGB(true), new ContextAttribs().withDebug(true));
             Keyboard.create();
             Mouse.create();
             System.out.print("Done.\n");
@@ -324,6 +330,7 @@ public class Sandbox {
         System.out.println("Assembly shaders supported? " + GLContext.getCapabilities().GL_ARB_shader_objects);
 
         System.out.println("(3.0) max samples: " + glGetInteger(GL_MAX_SAMPLES));
+        System.out.println("Accumulation buffer bits (red): " + glGetInteger(GL_ACCUM_RED_BITS));
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -353,26 +360,14 @@ public class Sandbox {
                 return box;
             }
         };
+        TitledBorder optsBorder = BorderFactory.createTitledBorder("Settings");
+        optsBorder.setTitleColor(Color.GREEN);
         opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
         opts.setBackground(new Color(0, 0, 0, 0));
 
-        final HealthBarPanel healthBar = new HealthBarPanel();
-
-        onScreenUI.add(healthBar, BorderLayout.NORTH);
-
-        final JSlider bar = new JSlider();
-        bar.setMaximum(100);
-        bar.setValue(100);
-        bar.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                healthBar.setHealth(bar.getValue());
-            }
-        });
-
         scene.getDrawContext().setEnabled(OBJECT_SHADOWS, false);
 
-        // scene.getDrawContext().setEnabled(ANTIALIASING, false);
+       // scene.getDrawContext().setEnabled(BLOOM, false);
         if (scene.getDrawContext().isSupported(ANTIALIASING)) {
             JCheckBox msaa = ((JCheckBox) opts.add(new JCheckBox("MSAA ", scene.getDrawContext().isEnabled(ANTIALIASING))));
             msaa.addActionListener(new AbstractAction() {
@@ -388,6 +383,45 @@ public class Sandbox {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     scene.getDrawContext().setEnabled(BLOOM, !scene.getDrawContext().isEnabled(BLOOM));
+                }
+            });
+            final JSlider exposure = ((JSlider) opts.add(new JSlider()));
+            TitledBorder border = BorderFactory.createTitledBorder("Exposure");
+            border.setTitleColor(Color.GREEN);
+            exposure.setBorder(border);
+            exposure.setMaximum(10);
+            exposure.setMinimum(1);
+            exposure.setValue((int) ((float)scene.getDrawContext().<Float>getOption(Key.HDR_BLOOM_EXPOSURE)));
+            exposure.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    scene.getDrawContext().setOption(Key.HDR_BLOOM_EXPOSURE, (float)exposure.getValue());
+                }
+            });
+            final JSlider factor = ((JSlider) opts.add(new JSlider()));
+            border = BorderFactory.createTitledBorder("Factor");
+            border.setTitleColor(Color.GREEN);
+            factor.setBorder(border);
+            factor.setMaximum(100);
+            factor.setMinimum(0);
+            factor.setValue((int) (scene.getDrawContext().<Float>getOption(Key.HDR_BLOOM_FACTOR) * 20));
+            factor.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    scene.getDrawContext().setOption(Key.HDR_BLOOM_FACTOR, factor.getValue() / 20f);
+                }
+            });
+            final JSlider bright = ((JSlider) opts.add(new JSlider()));
+            border = BorderFactory.createTitledBorder("Max");
+            border.setTitleColor(Color.GREEN);
+            bright.setBorder(border);
+            bright.setMaximum(10);
+            bright.setMinimum(1);
+            bright.setValue((int) (float)scene.getDrawContext().getOption(Key.HDR_BLOOM_CAP));
+            bright.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    scene.getDrawContext().setOption(Key.HDR_BLOOM_CAP, (float)bright.getValue());
                 }
             });
         }
@@ -428,22 +462,34 @@ public class Sandbox {
             });
         }
         if (scene.getDrawContext().isSupported(REFLECTIONS)) {
-            JCheckBox alpha = ((JCheckBox) opts.add(new JCheckBox("Reflections ", scene.getDrawContext().isEnabled(REFLECTIONS))));
-            alpha.addActionListener(new AbstractAction() {
+            JCheckBox reflect = ((JCheckBox) opts.add(new JCheckBox("Reflections ", scene.getDrawContext().isEnabled(REFLECTIONS))));
+            reflect.addActionListener(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     scene.getDrawContext().setEnabled(REFLECTIONS, !scene.getDrawContext().isEnabled(REFLECTIONS));
                 }
             });
+            final JSlider refl = ((JSlider)opts.add(new JSlider()));
+            TitledBorder border = BorderFactory.createTitledBorder("Opaqueness %");
+            border.setTitleColor(Color.GREEN);
+            refl.setBorder(border);
+            refl.setMaximum(100);
+            refl.setMinimum(0);
+            refl.setValue(100);
+            refl.addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    cylinder.getMaterials().get(0).opaqueness = refl.getValue() / 100f;
+                }
+            });
         }
-
-        opts.add(bar);
 
         onScreenUI.add(opts, BorderLayout.EAST);
 
         opts.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         onScreenUI.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        opts.setBorder(optsBorder);
 
         screenOverlay = new UITexture(Display.getWidth(), Display.getHeight(), onScreenUI);
     }

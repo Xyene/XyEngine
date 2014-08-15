@@ -21,19 +21,19 @@ package tk.ivybits.engine.scene.geometry;
 import tk.ivybits.engine.scene.IDrawable;
 
 public interface ITesselator {
-    int NORMAL_ATTR = 0x1,
-            UV_ATTR = 0x2,
-            TANGENT_ATTR = 0x4;
+    int NORMAL_BUFFER = 0x1,
+            UV_BUFFER = 0x2,
+            TANGENT_BUFFER = 0x4;
 
-    int getType();
+    int getBufferFlags();
 
-    void vertex(float x, float y, float z);
+    void pushVertex(float x, float y, float z);
 
-    void normal(float x, float y, float z);
+    void pushNormal(float x, float y, float z);
 
-    void texture(float u, float v);
+    void pushTexCoord(float u, float v);
 
-    void tangent(float x, float y, float z);
+    void pushTangent(float x, float y, float z);
 
-    IDrawable create();
+    IDrawable createDrawable();
 }

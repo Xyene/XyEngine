@@ -1,6 +1,6 @@
 # Blender v2.69 (sub 0) OBJ File: ''
 # www.blender.org
-mtllib ground3.mtl
+mtllib ground.mtl
 o ground.000_ground.012
 v 8.500000 -0.000001 3.500000
 v 9.500000 -0.000001 3.500000

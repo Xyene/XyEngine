@@ -19,22 +19,26 @@
 package tk.ivybits.engine.scene.model;
 
 import tk.ivybits.engine.io.res.IResource;
+import tk.ivybits.engine.util.ToString;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
+
+import static tk.ivybits.engine.util.ToString.Printable;
 
 public class Material {
-    public IResource ambientTexture;
-    public IResource diffuseTexture;
-    public IResource specularTexture;
-    public IResource alphaTexture;
-    public IResource bumpMap;
-    public Color ambientColor = Color.BLACK;
-    public Color diffuseColor = Color.WHITE;
-    public Color specularColor = Color.WHITE;
-    public float shininess;
-    public float transparency = 1;
-    public String name;
+    public @Printable IResource ambientTexture;
+    public @Printable IResource diffuseTexture;
+    public @Printable IResource specularTexture;
+    public @Printable IResource alphaTexture;
+    public @Printable IResource bumpMap;
+    public @Printable Color ambientColor = Color.BLACK;
+    public @Printable Color diffuseColor = Color.WHITE;
+    public @Printable Color specularColor = Color.WHITE;
+    public @Printable float shininess;
+    public @Printable float opaqueness = 1;
+    public @Printable float reflectivity = 0;
+    public @Printable float refractionIndex = 1;
+    public @Printable String name;
 
     public Material(String name) {
         this.name = name;
@@ -42,17 +46,6 @@ public class Material {
 
     @Override
     public String toString() {
-        return "Material{" +
-                "ambientTexture=" + ambientTexture +
-                ", diffuseTexture=" + diffuseTexture +
-                ", specularTexture=" + specularTexture +
-                ", alphaTexture=" + alphaTexture +
-                ", ambientColor=" + ambientColor +
-                ", diffuseColor=" + diffuseColor +
-                ", specularColor=" + specularColor +
-                ", shininess=" + shininess +
-                ", transparency=" + transparency +
-                ", name='" + name + '\'' +
-                '}';
+        return ToString.toString(this);
     }
 }

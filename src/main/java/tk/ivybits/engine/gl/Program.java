@@ -21,12 +21,15 @@ package tk.ivybits.engine.gl;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.OpenGLException;
 import org.lwjgl.util.vector.*;
+import tk.ivybits.engine.gl.texture.Texture;
 
+import java.awt.*;
 import java.lang.ref.WeakReference;
 import java.nio.FloatBuffer;
 import java.util.*;
 
 import static tk.ivybits.engine.gl.GL.*;
+import static tk.ivybits.engine.gl.GL.glUniformMatrix2;
 
 public class Program {
     private final int handle;
@@ -71,80 +74,156 @@ public class Program {
 
     private FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
-    public void setUniform(String handle, Object... objs) {
-        setUniform(getUniformLocation(handle), objs);
+    public void setUniform(String handle, Matrix2f matrix) {
+        attach();
+        matrixBuffer.clear();
+        matrix.store(matrixBuffer);
+        matrixBuffer.flip();
+        glUniformMatrix2(getUniformLocation(handle), false, matrixBuffer);
+        detach();
     }
 
-    public void setUniform(int handle, Object... objs) {
-        if (handle < 0)
-            return;
+    public void setUniform(String handle, Matrix3f matrix) {
         attach();
-        if (objs.length == 1) {
-            Object obj = objs[0];
-            if (obj instanceof Matrix2f || obj instanceof Matrix3f || obj instanceof Matrix4f) {
-                matrixBuffer.clear();
-                ((Matrix) obj).store(matrixBuffer);
-                matrixBuffer.flip();
-            }
-            if (obj instanceof Matrix2f)
-                glUniformMatrix2(handle, false, matrixBuffer);
-            else if (obj instanceof Matrix3f)
-                glUniformMatrix3(handle, false, matrixBuffer);
-            else if (obj instanceof Matrix4f)
-                glUniformMatrix4(handle, false, matrixBuffer);
-            else if (obj instanceof Boolean)
-                glUniform1i(handle, ((boolean) obj) ? 1 : 0);
-            else if (obj instanceof Vector2f)
-                glUniform2f(handle, ((Vector2f) obj).x, ((Vector2f) obj).y);
-            else if (obj instanceof Vector3f)
-                glUniform3f(handle, ((Vector3f) obj).x, ((Vector3f) obj).y, ((Vector3f) obj).z);
-            else if (obj instanceof Vector4f)
-                glUniform4f(handle, ((Vector4f) obj).x, ((Vector4f) obj).y, ((Vector4f) obj).z, ((Vector4f) obj).w);
-            else if (obj instanceof Float)
-                glUniform1f(handle, (Float) obj);
-            else if (obj instanceof Integer)
-                glUniform1i(handle, (Integer) obj);
-            else {
-                detach();
-                throw new UnsupportedOperationException("cannot perform automatic type conversion on object of type " + obj.getClass().getSimpleName());
-            }
-            detach();
-            return;
+        matrixBuffer.clear();
+        matrix.store(matrixBuffer);
+        matrixBuffer.flip();
+        glUniformMatrix3(getUniformLocation(handle), false, matrixBuffer);
+        detach();
+    }
+
+    public void setUniform(String handle, Matrix4f matrix) {
+        attach();
+        matrixBuffer.clear();
+        matrix.store(matrixBuffer);
+        matrixBuffer.flip();
+        glUniformMatrix4(getUniformLocation(handle), false, matrixBuffer);
+        detach();
+    }
+
+    public void setUniform(String handle, Vector2f vec) {
+        attach();
+        glUniform2f(getUniformLocation(handle), vec.x, vec.y);
+        detach();
+    }
+
+    public void setUniform(String handle, Vector3f vec) {
+        attach();
+        glUniform3f(getUniformLocation(handle), vec.x, vec.y, vec.z);
+        detach();
+    }
+
+    public void setUniform(String handle, Vector4f vec) {
+        attach();
+        glUniform4f(getUniformLocation(handle), vec.x, vec.y, vec.z, vec.w);
+        detach();
+    }
+
+    public void setUniform(String handle, Number n) {
+        if (n instanceof Float)
+            setUniform(handle, (float) n);
+        else if (n instanceof Double)
+            setUniform(handle, (double) n);
+        else if (n instanceof Integer)
+            setUniform(handle, (int) n);
+        else if (n instanceof Short)
+            setUniform(handle, (short) n);
+        else
+            throw new UnsupportedOperationException();
+    }
+
+    public void setUniform(String handle, boolean b) {
+        attach();
+        glUniform1i(getUniformLocation(handle), b ? 1 : 0);
+        detach();
+    }
+
+    public void setUniform(String handle, int i) {
+        attach();
+        glUniform1i(getUniformLocation(handle), i);
+        detach();
+    }
+
+    public void setUniform(String handle, float f) {
+        attach();
+        glUniform1f(getUniformLocation(handle), f);
+        detach();
+    }
+
+    public void setUniform(String handle, double d) {
+        attach();
+        glUniform1d(getUniformLocation(handle), d);
+        detach();
+    }
+
+    public void setUniform(String handle, Texture texture) {
+        attach();
+        glUniform1i(getUniformLocation(handle), texture.id());
+        detach();
+    }
+
+    public void setUniform(String handle, int... ints) {
+        attach();
+        int id = getUniformLocation(handle);
+        switch (ints.length) {
+            case 1:
+                glUniform1i(id, ints[0]);
+                break;
+            case 2:
+                glUniform2i(id, ints[0], ints[1]);
+                break;
+            case 3:
+                glUniform3i(id, ints[0], ints[1], ints[2]);
+                break;
+            case 4:
+                glUniform4i(id, ints[0], ints[1], ints[2], ints[3]);
+                break;
+            default:
+                throw new UnsupportedOperationException();
         }
-        Class type = ensureConstantTypes(objs);
-        if (type == Float.class) {
-            switch (objs.length) {
-                case 2:
-                    glUniform2f(handle, (float) objs[0], (float) objs[1]);
-                    break;
-                case 3:
-                    glUniform3f(handle, (float) objs[0], (float) objs[1], (float) objs[2]);
-                    break;
-                case 4:
-                    glUniform4f(handle, (float) objs[0], (float) objs[1], (float) objs[2], (float) objs[3]);
-                    break;
-                default:
-                    detach();
-                    throw new UnsupportedOperationException("can only convert float arrays of length 2, 3, or 4");
-            }
-        } else if (type == Integer.class) {
-            switch (objs.length) {
-                case 2:
-                    glUniform2i(handle, (int) objs[0], (int) objs[1]);
-                    break;
-                case 3:
-                    glUniform3i(handle, (int) objs[0], (int) objs[1], (int) objs[2]);
-                    break;
-                case 4:
-                    glUniform4i(handle, (int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]);
-                    break;
-                default:
-                    detach();
-                    throw new UnsupportedOperationException("can only convert int arrays of length 2, 3, or 4");
-            }
-        } else {
-            detach();
-            throw new UnsupportedOperationException("cannot perform automatic type conversion on array of type " + type.getSimpleName());
+        detach();
+    }
+
+    public void setUniform(String handle, float... floats) {
+        attach();
+        int id = getUniformLocation(handle);
+        switch (floats.length) {
+            case 1:
+                glUniform1f(id, floats[0]);
+                break;
+            case 2:
+                glUniform2f(id, floats[0], floats[1]);
+                break;
+            case 3:
+                glUniform3f(id, floats[0], floats[1], floats[2]);
+                break;
+            case 4:
+                glUniform4f(id, floats[0], floats[1], floats[2], floats[3]);
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+        detach();
+    }
+
+    public void setUniform(String handle, double... doubles) {
+        attach();
+        int id = getUniformLocation(handle);
+        switch (doubles.length) {
+            case 1:
+                glUniform1d(id, doubles[0]);
+                break;
+            case 2:
+                glUniform2d(id, doubles[0], doubles[1]);
+                break;
+            case 3:
+                glUniform3d(id, doubles[0], doubles[1], doubles[2]);
+                break;
+            case 4:
+                glUniform4d(id, doubles[0], doubles[1], doubles[2], doubles[3]);
+                break;
+            default:
+                throw new UnsupportedOperationException();
         }
         detach();
     }

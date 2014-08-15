@@ -19,8 +19,6 @@
 package tk.ivybits.engine.gl.scene.gl20;
 
 import org.lwjgl.BufferUtils;
-import tk.ivybits.engine.gl.Program;
-import tk.ivybits.engine.gl.scene.gl20.shader.BaseShader;
 import tk.ivybits.engine.scene.IDrawable;
 import tk.ivybits.engine.scene.IScene;
 import tk.ivybits.engine.scene.geometry.ITesselator;
@@ -42,25 +40,25 @@ public class GL20Tesselator implements ITesselator {
         this.flags = flags;
         this.primitiveType = primitiveType;
         vertices = new FloatArrayList();
-        if ((flags & NORMAL_ATTR) > 0) normals = new FloatArrayList();
-        if ((flags & TANGENT_ATTR) > 0) tangents = new FloatArrayList();
-        if ((flags & UV_ATTR) > 0) textures = new FloatArrayList();
+        if ((flags & NORMAL_BUFFER) > 0) normals = new FloatArrayList();
+        if ((flags & TANGENT_BUFFER) > 0) tangents = new FloatArrayList();
+        if ((flags & UV_BUFFER) > 0) textures = new FloatArrayList();
     }
 
     @Override
-    public int getType() {
+    public int getBufferFlags() {
         return flags;
     }
 
     @Override
-    public void vertex(float x, float y, float z) {
+    public void pushVertex(float x, float y, float z) {
         vertices.add(x);
         vertices.add(y);
         vertices.add(z);
     }
 
     @Override
-    public void normal(float x, float y, float z) {
+    public void pushNormal(float x, float y, float z) {
         if (normals == null) return;
         normals.add(x);
         normals.add(y);
@@ -68,21 +66,21 @@ public class GL20Tesselator implements ITesselator {
     }
 
     @Override
-    public void texture(float u, float v) {
+    public void pushTexCoord(float u, float v) {
         if (textures == null) return;
         textures.add(u);
         textures.add(v);
     }
 
     @Override
-    public void tangent(float x, float y, float z) {
+    public void pushTangent(float x, float y, float z) {
         if (tangents == null) return;
         tangents.add(x);
         tangents.add(y);
         tangents.add(z);
     }
 
-    private static final String[] VERTEX_ATTRIBUTES = {"a_Vertex", "a_Normal", "a_UV", "a_Tangent"};
+    private static final String[] VERTEX_ATTRIBUTES = {"a_vertex", "a_normal", "a_uv", "a_tangent"};
     private static final int[] VERTEX_ATTRIBUTE_SIZES = {3, 3, 2, 3};
     private static final int[] VERTEX_ATTRIBUTE_TYPES = {GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT};
 
@@ -161,7 +159,7 @@ public class GL20Tesselator implements ITesselator {
     }
 
     @Override
-    public IDrawable create() {
+    public IDrawable createDrawable() {
         int indexSize = 3;
         int[] offsets = new int[VERTEX_ATTRIBUTES.length];
         int stride = 0;
