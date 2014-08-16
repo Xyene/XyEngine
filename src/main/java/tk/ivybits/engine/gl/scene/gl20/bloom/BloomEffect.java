@@ -40,6 +40,7 @@ public class BloomEffect {
     private int height;
     private final int lod;
     private final float reductionFactor;
+    private boolean LINEAR_BUFFER_SUPPORTED;
 //    private IDrawable quad;
 
     private Framebuffer createBuffer(int filter, int width, int height) {
@@ -62,6 +63,13 @@ public class BloomEffect {
 
         swap = new Framebuffer[lod];
         blur = new Framebuffer[lod];
+
+        try {
+            createBuffer(GL_LINEAR, 1, 1).destroy();
+            LINEAR_BUFFER_SUPPORTED = true;
+        } catch (Exception e) {
+            LINEAR_BUFFER_SUPPORTED = false;
+        }
 
         create();
 
@@ -107,8 +115,8 @@ public class BloomEffect {
 
         int cwidth = width, cheight = height;
         for (int i = 0; i < lod; i++) {
-            blur[i] = createBuffer(GL_LINEAR, cwidth, cheight);
-            swap[i] = createBuffer(GL_LINEAR, cwidth, cheight);
+            blur[i] = createBuffer(LINEAR_BUFFER_SUPPORTED ? GL_LINEAR : GL_NEAREST, cwidth, cheight);
+            swap[i] = createBuffer(LINEAR_BUFFER_SUPPORTED ? GL_LINEAR : GL_NEAREST, cwidth, cheight);
             cwidth *= reductionFactor;
             cheight *= reductionFactor;
         }
@@ -225,7 +233,8 @@ public class BloomEffect {
         }
         blur[0].unbind();
 
-        for (int i = 0; i != 6; i++) {
+        // Nearest-neighbour buffer needs more passes
+        for (int i = 0; i != (LINEAR_BUFFER_SUPPORTED ? 3 : 12); i++) {
             swap[0].bind().clear(GL_COLOR_BUFFER_BIT);
             hblur.attach();
 
@@ -235,7 +244,6 @@ public class BloomEffect {
 
             hblur.detach();
             swap[0].unbind();
-
 
             blur[0].bind().clear(GL_COLOR_BUFFER_BIT);
             vblur.attach();
