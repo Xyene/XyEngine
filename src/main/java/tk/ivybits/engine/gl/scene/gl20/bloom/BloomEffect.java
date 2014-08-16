@@ -199,39 +199,55 @@ public class BloomEffect {
 
         for (int i = 0; i < lod; i++) {
             swap[i].bind().clear(GL_COLOR_BUFFER_BIT);
-
             vblur.attach();
-
             blur[i].getTexture().bind(0);
             drawDeviceQuad(swap[i]);
             blur[i].getTexture().unbind();
             swap[i].unbind();
-
             vblur.detach();
 
             blur[i].bind().clear(GL_COLOR_BUFFER_BIT);
-
             hblur.attach();
-
             swap[i].getTexture().bind(0);
             drawDeviceQuad(blur[i]);
             swap[i].getTexture().unbind();
             blur[i].unbind();
-
             hblur.detach();
         }
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE);
         blur[0].bind();
-
         for (int i = 1; i < lod; i++) {
             blur[i].getTexture().bind(0);
             drawDeviceQuad(blur[0]);
             blur[i].getTexture().unbind();
         }
-
         blur[0].unbind();
+
+        for (int i = 0; i != 6; i++) {
+            swap[0].bind().clear(GL_COLOR_BUFFER_BIT);
+            hblur.attach();
+
+            blur[0].getTexture().bind(0);
+            drawDeviceQuad(blur[0]);
+            blur[0].getTexture().unbind();
+
+            hblur.detach();
+            swap[0].unbind();
+
+
+            blur[0].bind().clear(GL_COLOR_BUFFER_BIT);
+            vblur.attach();
+
+            swap[0].getTexture().bind(0);
+            drawDeviceQuad(blur[0]);
+            swap[0].getTexture().unbind();
+
+            vblur.detach();
+            blur[0].unbind();
+        }
+
         glDisable(GL_BLEND);
 
         toneMap.attach();
