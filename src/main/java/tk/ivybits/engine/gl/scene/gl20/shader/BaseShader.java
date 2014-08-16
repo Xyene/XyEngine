@@ -461,8 +461,8 @@ public class BaseShader implements ISceneChangeListener {
         getProgram().attach();
         setupHandles();
         if (shader.hasUniform("u_envMap")) {
-            environmentMap.bind(7);
-            shader.setUniform("u_envMap", 7);
+            environmentMap.bind(3);
+            shader.setUniform("u_envMap", 3);
         }
         shader.detach();
     }

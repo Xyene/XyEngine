@@ -32,7 +32,7 @@ import static tk.ivybits.engine.gl.GL.*;
 
 public class GL20DrawContext implements IDrawContext {
     final GL20Scene parent;
-    private final boolean[] caps;
+    final boolean[] caps;
     private final boolean[] enabled;
     private final HashMap<Capability.Key, Object> settings = new HashMap<>();
 

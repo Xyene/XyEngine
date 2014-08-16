@@ -257,7 +257,15 @@ public class GL20Scene implements IScene {
         boolean antialiasing = drawContext.isEnabled(ANTIALIASING);
 
         if (antialiasing && msaaBuffer == null) {
-            msaaBuffer = new MSAAFBO(viewWidth, viewHeight, getDrawContext().getOption(Key.AA_SAMPLE_COUNT));
+            try {
+                msaaBuffer = new MSAAFBO(viewWidth, viewHeight, getDrawContext().getOption(Key.AA_SAMPLE_COUNT));
+            } catch (Exception e) {
+                e.printStackTrace();
+                antialiasing = false;
+                msaaBuffer = null;
+                drawContext.setEnabled(ANTIALIASING, false);
+                drawContext.caps[ANTIALIASING.ordinal()] = false;
+            }
             glEnable(GL_MULTISAMPLE);
             glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         } else if (!antialiasing && msaaBuffer != null) {
@@ -267,14 +275,22 @@ public class GL20Scene implements IScene {
             glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         }
         if (antialiasing) {
-            if(msaaBuffer.getSamples() != getDrawContext().getOption(Key.AA_SAMPLE_COUNT))
+            if (msaaBuffer.getSamples() != getDrawContext().getOption(Key.AA_SAMPLE_COUNT))
                 msaaBuffer.setSamples(getDrawContext().getOption(Key.AA_SAMPLE_COUNT));
             msaaBuffer.bindFramebuffer();
         }
 
         boolean bloom = drawContext.isEnabled(BLOOM);
         if (bloom && bloomEffect == null) {
-            bloomEffect = new BloomEffect(this, viewWidth, viewHeight, 4, 0.5f);
+            try {
+                bloomEffect = new BloomEffect(this, viewWidth, viewHeight, 4, 0.5f);
+            } catch (Exception e) {
+                e.printStackTrace();
+                bloomEffect = null;
+                bloom = false;
+                drawContext.setEnabled(BLOOM, false);
+                drawContext.caps[BLOOM.ordinal()] = false;
+            }
         }
         if (!bloom && bloomEffect != null) {
             bloomEffect.destroy();
