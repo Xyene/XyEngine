@@ -232,9 +232,10 @@ public class BloomEffect {
             blur[i].getTexture().unbind();
         }
         blur[0].unbind();
+        glDisable(GL_BLEND);
 
         // Nearest-neighbour buffer needs more passes
-        for (int i = 0; i != (LINEAR_BUFFER_SUPPORTED ? 3 : 12); i++) {
+        for (int i = 0; i != (LINEAR_BUFFER_SUPPORTED ? 1 : 12); i++) {
             swap[0].bind().clear(GL_COLOR_BUFFER_BIT);
             hblur.attach();
 
@@ -256,7 +257,6 @@ public class BloomEffect {
             blur[0].unbind();
         }
 
-        glDisable(GL_BLEND);
 
         toneMap.attach();
         output.bind().clear(GL_COLOR_BUFFER_BIT);
