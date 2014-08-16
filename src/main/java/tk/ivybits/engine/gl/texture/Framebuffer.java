@@ -38,6 +38,7 @@ public class Framebuffer {
         resize(width, height);
         int status;
         if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             throw new IllegalStateException(String.format("failed to create framebuffer: 0x%04X\n", status));
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

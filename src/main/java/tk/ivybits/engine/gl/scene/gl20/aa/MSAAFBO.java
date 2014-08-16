@@ -46,6 +46,7 @@ public class MSAAFBO {
 
         int status;
         if ((status = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
             throw new IllegalStateException(String.format("failed to create framebuffer: 0x%04X", status));
         }
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
