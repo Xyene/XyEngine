@@ -4,7 +4,7 @@
 varying vec3 v_normal;
 varying vec3 v_vertex;
 varying vec2 v_uv;
-#ifdef NORMAL_MAPPING
+#if defined(NORMAL_MAPPING) || defined(PARALLAX_MAPPING)
 varying mat3 v_tangentMatrix;
 #endif
 #ifdef OBJECT_SHADOWS
@@ -13,7 +13,7 @@ varying vec4 v_lightSpacePos[MAX_LIGHTS];
 
 attribute vec3 a_vertex;
 attribute vec3 a_normal;
-#ifdef NORMAL_MAPPING
+#if defined(NORMAL_MAPPING) || defined(PARALLAX_MAPPING)
 attribute vec3 a_tangent;
 #endif
 attribute vec2 a_uv;
@@ -29,7 +29,9 @@ uniform mat4 u_mvpMatrix;
 
 uniform vec3 u_eye;
 
-varying vec3 tangent_eyeVec;
+#ifdef PARALLAX_MAPPING
+varying vec3 v_ray;
+#endif
 
 void main(void)  
 {
@@ -53,12 +55,13 @@ void main(void)
 
     v_uv = a_uv;
 
-    #ifdef NORMAL_MAPPING
+    #if defined(NORMAL_MAPPING) || defined(PARALLAX_MAPPING)
     vec3 tangent = normalize(u_normalMatrix * a_tangent);
     v_tangentMatrix = mat3(tangent, cross(tangent, v_normal), v_normal);
 
-    tangent_eyeVec = u_eye - hVertex.xyz;
-    tangent_eyeVec *= v_tangentMatrix;
+    #ifdef PARALLAX_MAPPING
+    v_ray = (u_eye - hVertex.xyz) * v_tangentMatrix;
+    #endif
     #endif
 }
           

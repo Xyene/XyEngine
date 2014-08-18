@@ -6,7 +6,7 @@ varying vec2 v_uv;
 #ifdef OBJECT_SHADOWS
 varying vec4 v_lightSpacePos[MAX_LIGHTS];
 #endif
-#ifdef NORMAL_MAPPING
+#if defined(NORMAL_MAPPING) || defined(PARALLAX_MAPPING)
 varying mat3 v_tangentMatrix;
 #endif
 
@@ -32,8 +32,9 @@ uniform samplerCube u_envMap;
 uniform vec3 u_eye;
 #endif
 
-
-varying vec3 tangent_eyeVec;
+#ifdef PARALLAX_MAPPING
+varying vec3 v_ray;
+#endif
 
 void main(void)
 {
@@ -44,19 +45,18 @@ void main(void)
     #ifdef PARALLAX_MAPPING
     if(u_material.hasHeight)
     {
-        vec2 scaleBias = vec2(0.04, -0.03);
-        float height = dot(texture2D(u_material.heightMap, uv).rgb, vec3(1.0)) / 3.0 * scaleBias.x + scaleBias.y;
-        uv = uv + normalize(tangent_eyeVec).xy * height;
+        float height = texture2D(u_material.heightMap, uv).r * 0.04 - 0.03;
+        uv += normalize(v_ray).xy * height;
     }
     #endif
 
-    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, uv) : vec4(0.0);
+    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, uv) : vec4(0.0, 0.0, 0.0, 1.0);
     vec3 texture = diffuse.rgb;
 
     vec3 specularTerm = u_material.specular;
 
     #ifdef SPECULAR_MAPPING
-    specularTerm *= texture2D(u_material.specularMap, uv).rgb;
+    if(u_material.hasSpecular) specularTerm *= texture2D(u_material.specularMap, uv).rgb;
     #endif
 
     #ifdef NORMAL_MAPPING

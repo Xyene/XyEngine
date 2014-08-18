@@ -61,7 +61,7 @@ public class Sandbox {
     private static IScene scene;
     private static FPSCamera camera;
     private static UITexture screenOverlay;
-    private static GeometryActor cylinder;
+    private static GeometryActor sphere;
 
     public static void main(String[] args) throws Exception {
         ImageIO.setUseCache(false);
@@ -98,14 +98,15 @@ public class Sandbox {
 
         System.out.print("Reading models... ");
 
-        MagicCircleActor circle = root.track(new MagicCircleActor());
-        circle.position(0, 0.1f, 0);
         GeometryActor ground = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/ground.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
         ground.position(0, 0, 0);
-        cylinder = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/cylinder.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
-        cylinder.position(0, -2.5f, 10);
-        cylinder.getMaterials().get(0).reflectivity = 1f;
-        cylinder.getMaterials().get(0).opaqueness = 1f;
+
+        sphere = root.track(new GeometryActor(ModelIO.read("/tk/ivybits/engine/game/model/sphere.obj", IResourceFinder.RESOURCE_FINDER_RESOURCE)));
+        sphere.position(0, 1.5f, 0);
+        sphere.scale(1.5f, 1.5f, 1.5f);
+        sphere.getMaterials().get(0).reflectivity = 1f;
+        sphere.getMaterials().get(0).opaqueness = 0.75f;
+
         ground.getMaterials().get(0).heightMap = URLResource.getResource("/tk/ivybits/engine/game/model/ground-disp.png");
 
         Skybox skybox = root.track(new Skybox(
@@ -514,11 +515,11 @@ public class Sandbox {
             refl.setBorder(border);
             refl.setMaximum(100);
             refl.setMinimum(0);
-            refl.setValue(100);
+            refl.setValue(75);
             refl.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    cylinder.getMaterials().get(0).opaqueness = refl.getValue() / 100f;
+                    sphere.getMaterials().get(0).opaqueness = refl.getValue() / 100f;
                 }
             });
         }
