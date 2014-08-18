@@ -13,12 +13,12 @@ public class CubeTexture extends Texture {
         bind();
 
         faces = new Texture[]{
-                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_X, xpos),
-                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, xneg),
-                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, ypos),
-                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, yneg),
-                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, zpos),
-                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, zneg)
+                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_X, xpos, false),
+                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, xneg, false),
+                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, ypos, false),
+                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, yneg, false),
+                new Texture(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, zpos, false),
+                new Texture(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, zneg, false)
         };
 
         setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);

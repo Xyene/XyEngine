@@ -339,7 +339,7 @@ public class TargaReader extends ImageReader {
 
         // set up to read the data
         final int[] intData = ((DataBufferInt) raster.getDataBuffer()).getData(); // CHECK:  is this valid / acceptible?
-        int index = 0; // the index in the intData array
+        int index; // the index in the intData array
         int runLength = 0; // the number of pixels in a run length
         boolean readPixel = true; // if true then a raw pixel is read.  Used by the RLE.
         boolean isRaw = false; // if true then the next pixels should be read.  Used by the RLE.
@@ -412,7 +412,7 @@ public class TargaReader extends ImageReader {
                 if (readPixel) {
                     // NOTE:  the alpha must hav a default value since it is
                     //        not guaranteed to be present for each pixel read
-                    int red = 0, green = 0, blue = 0, alpha = 0xFF;
+                    int red, green, blue, alpha = 0xFF;
 
                     // read based on the number of bits per pixel
                     switch (header.getBitsPerPixel()) {
@@ -520,7 +520,7 @@ public class TargaReader extends ImageReader {
 
         // read each color map entry
         for (int i = 0; i < numberOfColors; i++) {
-            int red = 0, green = 0, blue = 0;
+            int red, green, blue;
 
             // read based on the number of bits per color map entry
             switch (bitsPerEntry) {

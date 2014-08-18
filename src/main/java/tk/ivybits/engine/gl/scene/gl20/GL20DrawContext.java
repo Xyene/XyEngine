@@ -40,6 +40,7 @@ public class GL20DrawContext implements IDrawContext {
         this.parent = parent;
         caps = new boolean[]{
                 true,  // Normal mapping
+                true,
                 true,  // Specular mapping
                 getCapabilities().OpenGL30, // Dynamic shadows
                 true,  // alpha testing
@@ -76,7 +77,7 @@ public class GL20DrawContext implements IDrawContext {
 
     @Override
     public ITesselator createTesselator(int flags, int type) {
-        return new GL20Tesselator(this, flags, type);
+        return new GL20Tesselator(flags, type);
     }
 
     @Override

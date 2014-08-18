@@ -29,6 +29,7 @@ public class DefaultPointLight implements IPointLight {
     private Color diffuseColor = Color.WHITE;
     private Color specularColor = Color.WHITE;
     private float intensity = 1;
+    private float attenuation = 0;
 
     public DefaultPointLight(DefaultSceneGraph scene) {
         this.scene = scene;
@@ -90,6 +91,18 @@ public class DefaultPointLight implements IPointLight {
 
     public DefaultPointLight setIntensity(float intensity) {
         this.intensity = intensity;
+        scene.fireEvent("pointLightUpdated", this);
+        return this;
+    }
+
+    @Override
+    public float getAttenuation() {
+        return attenuation;
+    }
+
+    @Override
+    public IPointLight setAttenuation(float attenuation) {
+        this.attenuation = attenuation;
         scene.fireEvent("pointLightUpdated", this);
         return this;
     }

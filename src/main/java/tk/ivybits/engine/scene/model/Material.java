@@ -26,11 +26,12 @@ import java.awt.*;
 import static tk.ivybits.engine.util.ToString.Printable;
 
 public class Material {
-    public @Printable IResource ambientTexture;
-    public @Printable IResource diffuseTexture;
-    public @Printable IResource specularTexture;
+    public @Printable IResource ambientMap;
+    public @Printable IResource diffuseMap;
+    public @Printable IResource glossMap;
     public @Printable IResource alphaTexture;
-    public @Printable IResource bumpMap;
+    public @Printable IResource normalMap;
+    public @Printable IResource heightMap;
     public @Printable Color ambientColor = Color.BLACK;
     public @Printable Color diffuseColor = Color.WHITE;
     public @Printable Color specularColor = Color.WHITE;

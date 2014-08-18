@@ -44,4 +44,8 @@ public interface IPointLight {
     float getIntensity();
 
     IPointLight setIntensity(float intensity);
+
+    float getAttenuation();
+
+    IPointLight setAttenuation(float attenuation);
 }

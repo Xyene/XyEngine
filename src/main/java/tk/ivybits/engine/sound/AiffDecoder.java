@@ -142,7 +142,7 @@ public class AiffDecoder {
      */
     public static AiffDecoder create(ByteBuffer buffer) {
         try {
-            byte[] bytes = null;
+            byte[] bytes;
 
             if (buffer.hasArray()) {
                 bytes = buffer.array();
@@ -168,7 +168,7 @@ public class AiffDecoder {
         AudioFormat audioformat = ais.getFormat();
 
         // get channels
-        int channels = 0;
+        int channels;
         if (audioformat.getChannels() == 1) {
             if (audioformat.getSampleSizeInBits() == 8) {
                 channels = AL_FORMAT_MONO8;
@@ -195,7 +195,7 @@ public class AiffDecoder {
                         * (int) ais.getFrameLength()
                         * audioformat.getSampleSizeInBits()
                         / 8];
-        int read = 0, total = 0;
+        int read, total = 0;
         try {
             while ((read = ais.read(buf, total, buf.length - total)) != -1
                     && total < buf.length) {

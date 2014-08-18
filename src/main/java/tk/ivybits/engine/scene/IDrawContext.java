@@ -25,7 +25,7 @@ import java.util.List;
 
 public interface IDrawContext {
     public static enum Capability {
-        NORMAL_MAPS, SPECULAR_MAPS, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS;
+        NORMAL_MAPPING, PARALLAX_MAPPING, SPECULAR_MAPPING, OBJECT_SHADOWS, ALPHA_TESTING, FOG, ANTIALIASING, BLOOM, REFLECTIONS;
 
         public static class Key<T> {
             public static final Key<Float> HDR_BLOOM_EXPOSURE = new Key<>();

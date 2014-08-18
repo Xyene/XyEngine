@@ -65,7 +65,7 @@ public class WavefrontReader implements IModelReader {
         ArrayList<Vector3f> VN = new ArrayList<>();
         ArrayList<Vector2f> VT = new ArrayList<>();
         Model model = new Model(in);
-        Material currentMaterial = null;
+        Material currentMaterial;
         HashMap<String, Material> materials = new HashMap<>();
         boolean tangent = false;
 
@@ -120,7 +120,7 @@ public class WavefrontReader implements IModelReader {
                     break;
                 case USE_MATERIAL:
                     currentMaterial = materials.get(concatTokens(tokens));
-                    tangent = currentMaterial.bumpMap != null;
+                    tangent = currentMaterial.normalMap != null;
                     if(currentMesh.getFaces().size() > 0)
                         model.getMeshes().add(currentMesh);
                     currentMesh = new Mesh(currentMaterial);
@@ -194,19 +194,19 @@ public class WavefrontReader implements IModelReader {
 
                     switch (type) {
                         case TEXTURE_AMBIENT:
-                            if (currentMaterial != null) currentMaterial.ambientTexture = img;
+                            if (currentMaterial != null) currentMaterial.ambientMap = img;
                             break;
                         case TEXTURE_DIFFUSE:
-                            if (currentMaterial != null) currentMaterial.diffuseTexture = img;
+                            if (currentMaterial != null) currentMaterial.diffuseMap = img;
                             break;
                         case TEXTURE_SPECULAR:
-                            if (currentMaterial != null) currentMaterial.specularTexture = img;
+                            if (currentMaterial != null) currentMaterial.glossMap = img;
                             break;
                         case TEXTURE_TRANSPARENCY:
                             if (currentMaterial != null) currentMaterial.alphaTexture = img;
                             break;
                         case TEXTURE_BUMP_MAP:
-                            if (currentMaterial != null) currentMaterial.bumpMap = img;
+                            if (currentMaterial != null) currentMaterial.normalMap = img;
                             break;
                     }
                     break;

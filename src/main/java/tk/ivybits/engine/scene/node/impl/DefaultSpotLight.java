@@ -18,6 +18,7 @@
 
 package tk.ivybits.engine.scene.node.impl;
 
+import tk.ivybits.engine.scene.node.IPointLight;
 import tk.ivybits.engine.scene.node.ISpotLight;
 
 import java.awt.*;
@@ -35,7 +36,8 @@ public class DefaultSpotLight implements ISpotLight {
     private float pitch;
     private float yaw;
     private float cutoff;
-    private float intensity;
+    private float intensity = 1;
+    private float attenuation = 0;
 
     public DefaultSpotLight(DefaultSceneGraph scene) {
         this.scene = scene;
@@ -138,6 +140,17 @@ public class DefaultSpotLight implements ISpotLight {
 
     public DefaultSpotLight setIntensity(float intensity) {
         this.intensity = intensity;
+        scene.fireEvent("spotLightUpdated", this);
+        return this;
+    }
+    @Override
+    public float getAttenuation() {
+        return attenuation;
+    }
+
+    @Override
+    public ISpotLight setAttenuation(float attenuation) {
+        this.attenuation = attenuation;
         scene.fireEvent("spotLightUpdated", this);
         return this;
     }

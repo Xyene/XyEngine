@@ -32,20 +32,35 @@ uniform samplerCube u_envMap;
 uniform vec3 u_eye;
 #endif
 
+
+varying vec3 tangent_eyeVec;
+
 void main(void)
 {
     vec3 fragment = vec3(0.0);
-    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, v_uv) : vec4(0.0);
+
+    vec2 uv = v_uv;
+
+    #ifdef PARALLAX_MAPPING
+    if(u_material.hasHeight)
+    {
+        vec2 scaleBias = vec2(0.04, -0.03);
+        float height = dot(texture2D(u_material.heightMap, uv).rgb, vec3(1.0)) / 3.0 * scaleBias.x + scaleBias.y;
+        uv = uv + normalize(tangent_eyeVec).xy * height;
+    }
+    #endif
+
+    vec4 diffuse = u_material.hasDiffuse ? texture2D(u_material.diffuseMap, uv) : vec4(0.0);
     vec3 texture = diffuse.rgb;
 
     vec3 specularTerm = u_material.specular;
 
     #ifdef SPECULAR_MAPPING
-    specularTerm *= texture2D(u_material.specularMap, v_uv).rgb;
+    specularTerm *= texture2D(u_material.specularMap, uv).rgb;
     #endif
 
     #ifdef NORMAL_MAPPING
-    vec3 N = u_material.hasNormal ? normalize(v_tangentMatrix * (texture2D(u_material.normalMap, v_uv).rgb * 2.0 - 1.0)) : v_normal;
+    vec3 N = u_material.hasNormal ? normalize(v_tangentMatrix * (texture2D(u_material.normalMap, uv).rgb * 2.0 - 1.0)) : v_normal;
     #else
     vec3 N = v_normal;
     #endif
@@ -75,17 +90,19 @@ void main(void)
         vec3 diffuse = u_material.diffuse * light.diffuse * max(dot(N, I), 0.0);
         vec3 specular = specularTerm * light.specular * pow(max(dot(normalize(-v_vertex), R), 0.0), u_material.shininess);
 
-        fragment += (ambient + (diffuse * texture) + specular) * light.intensity;
+        float attenuation = 1.0 / (1.0 + light.attenuation * pow(length(light.position - v_vertex), 2.0));
+
+        fragment += (ambient + attenuation * (diffuse * texture + specular)) * light.intensity;
     }
 
     for(int idx = 0; idx < u_spotLightCount; idx++) {
         SpotLight light = u_spotLights[idx];
         vec3 I = normalize(light.position - v_vertex);
-        vec3 spotDirection = normalize(light.direction);
+        vec3 D = normalize(light.direction);
         vec3 R = normalize(-reflect(I, N));
 
-        float theta = dot(-I, spotDirection);
-        float falloffArea = 0.886; // cosd(30)
+        float theta = dot(-I, D);
+        float falloffArea = cos(radians(30)); // cosd(30)
         float shadedArea = light.cutoff - falloffArea;
 
         if(theta <= shadedArea) continue;
@@ -95,10 +112,12 @@ void main(void)
         vec3 diffuse = u_material.diffuse * max(dot(N, I), 0.0) * light.diffuse;
         vec3 specular = specularTerm  * light.specular * pow(max(dot(normalize(-v_vertex), R), 0.0), u_material.shininess);
 
-        vec3 color = (falloff * (ambient + ((diffuse * texture) + specular) * light.intensity));
+        float attenuation = 1.0 / (1.0 + light.attenuation * pow(length(light.position - v_vertex), 2.0));
+
+        vec3 color = falloff * (ambient + attenuation * (diffuse * texture + specular) * light.intensity);
 
         #ifdef OBJECT_SHADOWS
-        color *= 1.0; // TODO
+        // color *= 1.0; // TODO
         #endif
 
         fragment += color;
@@ -107,10 +126,9 @@ void main(void)
     gl_FragColor = vec4(fragment, u_material.opaqueness * diffuse.a);
 
     #ifdef REFLECTIONS
-    if(u_material.reflectivity > 0)
+    if(u_material.reflectivity > 0.0)
     {
         vec3 I = normalize(v_vertex - u_eye);
-        vec3 R = reflect(I, N);
 
         vec3 refractedColor = vec3(
 			// Chromatic dispersion
@@ -118,7 +136,7 @@ void main(void)
 			textureCube(u_envMap, refract(I, N, u_material.refractionIndex + 0.008)).g,
 			textureCube(u_envMap, refract(I, N, u_material.refractionIndex + 0.016)).b
 		);
-        vec3 reflectedColor = textureCube(u_envMap, R).rgb;
+        vec3 reflectedColor = textureCube(u_envMap, reflect(I, N)).rgb;
 
         float fresnel = 1.0 * pow(1.0 + dot(I, N), 4.0);
         gl_FragColor.rgb += mix(refractedColor, reflectedColor, 1.0 - fresnel * (1.0 - u_material.opaqueness)) * u_material.reflectivity;

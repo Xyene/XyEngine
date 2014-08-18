@@ -30,13 +30,11 @@ import java.util.Arrays;
 import static tk.ivybits.engine.gl.GL.*;
 
 public class GL20Tesselator implements ITesselator {
-    private final GL20DrawContext drawContext;
     private final int flags;
     private int primitiveType;
     private FloatArrayList vertices, normals, tangents, textures;
 
-    public GL20Tesselator(GL20DrawContext drawContext, int flags, int primitiveType) {
-        this.drawContext = drawContext;
+    public GL20Tesselator(int flags, int primitiveType) {
         this.flags = flags;
         this.primitiveType = primitiveType;
         vertices = new FloatArrayList();

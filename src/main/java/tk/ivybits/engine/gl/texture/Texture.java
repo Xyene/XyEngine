@@ -63,6 +63,10 @@ public class Texture {
     }
 
     public Texture(int target, BufferedImage in) {
+        this(target,in,false);
+    }
+    public Texture(int target, BufferedImage in, boolean srgb) {
+      //  srgb=false;
         this.target = target;
         handle = glGenTextures();
         byte[] data;
@@ -98,7 +102,7 @@ public class Texture {
 
         // TODO: DSA would be much better, except that it seems to fail where target=GL_TEXTURE_CUBE_MAP
         glBindTexture(target, handle);
-        glTexImage2D(target, 0, this.format = alpha ? GL_RGBA : GL_RGB, width, height, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
+        glTexImage2D(target, 0, this.format = alpha ? (srgb ? GL_SRGB_ALPHA : GL_RGBA) : (srgb ? GL_SRGB : GL_RGB), width, height, 0, srcPixelFormat, GL_UNSIGNED_BYTE, nativeBuffer);
         glBindTexture(target, 0);
         ALL.add(this);
     }

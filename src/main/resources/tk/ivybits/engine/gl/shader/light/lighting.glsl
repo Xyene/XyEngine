@@ -6,6 +6,7 @@ struct SpotLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float attenuation;
 };
 
 struct PointLight {
@@ -14,6 +15,7 @@ struct PointLight {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    float attenuation;
 };
 
 struct DirectionalLight {
@@ -34,6 +36,10 @@ struct Material {
 #ifdef NORMAL_MAPPING
     bool hasNormal;
     sampler2D normalMap;
+#endif
+#ifdef PARALLAX_MAPPING
+    bool hasHeight;
+    sampler2D heightMap;
 #endif
     vec3 ambient;
     vec3 diffuse;

@@ -27,10 +27,12 @@ uniform mat4 u_modelMatrix;
 uniform mat3 u_normalMatrix;
 uniform mat4 u_mvpMatrix;
 
+uniform vec3 u_eye;
+
+varying vec3 tangent_eyeVec;
+
 void main(void)  
 {
-    //vec3 v = a_vertex;
-    //v.y = sin(v.x) + sin(v.z);
     vec4 hVertex = vec4(a_vertex, 1.0);
 
     gl_Position = u_mvpMatrix * hVertex;
@@ -52,10 +54,11 @@ void main(void)
     v_uv = a_uv;
 
     #ifdef NORMAL_MAPPING
-    vec3 tangent = normalize((u_normalMatrix * a_tangent).xyz);
-    tangent = normalize(tangent - dot(tangent, v_normal) * v_normal);
-    vec3 bitangent = cross(tangent, v_normal);
-    v_tangentMatrix = mat3(tangent, bitangent, v_normal);
+    vec3 tangent = normalize(u_normalMatrix * a_tangent);
+    v_tangentMatrix = mat3(tangent, cross(tangent, v_normal), v_normal);
+
+    tangent_eyeVec = u_eye - hVertex.xyz;
+    tangent_eyeVec *= v_tangentMatrix;
     #endif
 }
           

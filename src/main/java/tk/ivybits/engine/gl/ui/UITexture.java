@@ -116,7 +116,7 @@ public class UITexture {
         frame.setLayout(new BorderLayout());
         frame.add(component, BorderLayout.CENTER);
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         frame.addNotify();
         try {

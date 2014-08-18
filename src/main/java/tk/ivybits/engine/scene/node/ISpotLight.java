@@ -35,5 +35,7 @@ public interface ISpotLight extends IPointLight, IDirectionalLight {
 
     ISpotLight setIntensity(float intensity);
 
+    ISpotLight setAttenuation(float attenuation);
+
     ISpotLight setRotation(float pitch, float yaw);
 }

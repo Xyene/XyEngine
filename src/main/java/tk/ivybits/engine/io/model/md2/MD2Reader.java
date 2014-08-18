@@ -159,7 +159,7 @@ public class MD2Reader implements IModelReader {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
 
-        int readBytes = 0;
+        int readBytes;
         while ((readBytes = in.read(buffer)) > 0) {
             out.write(buffer, 0, readBytes);
         }

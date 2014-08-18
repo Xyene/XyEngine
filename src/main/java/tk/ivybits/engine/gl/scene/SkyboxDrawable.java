@@ -8,7 +8,6 @@ import static tk.ivybits.engine.gl.GL.*;
 
 class SkyboxDrawable implements IDrawable {
     private final Skybox skybox;
-
     private SkyboxShader shader;
     private IDrawable sphere;
 

@@ -65,6 +65,7 @@ public class BaseShader implements ISceneChangeListener {
 
     private static final String[] DEFINE_LOOKUP = {
             "NORMAL_MAPPING",
+            "PARALLAX_MAPPING",
             "SPECULAR_MAPPING",
             "OBJECT_SHADOWS",
             "FOG",
@@ -94,7 +95,7 @@ public class BaseShader implements ISceneChangeListener {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                tex = new Texture(image)
+                tex = new Texture(GL_TEXTURE_2D, image, false)
                         .setParameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR)
                         .setParameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
                         .setParameter(GL_GENERATE_MIPMAP, GL_TRUE)
@@ -110,7 +111,6 @@ public class BaseShader implements ISceneChangeListener {
     private CubeTexture environmentMap;
     private Vector3f eyePosition;
 
-
     private void setupHandles() {
         if (!needsScenePush) {
             return;
@@ -121,8 +121,8 @@ public class BaseShader implements ISceneChangeListener {
         updateLights();
         fogUpdated(scene.getSceneGraph().getAtmosphere().getFog());
         setProjection();
-        if(eyePosition != null) setEyePosition(eyePosition);
-        if(environmentMap != null) setEnvironmentMap(environmentMap);
+        if (eyePosition != null) setEyePosition(eyePosition);
+        if (environmentMap != null) setEnvironmentMap(environmentMap);
     }
 
     public BaseShader(Map<ProgramType, List<String>> sources, IScene scene, HashMap<Framebuffer, Matrix4f> shadowMapFBO) {
@@ -136,34 +136,44 @@ public class BaseShader implements ISceneChangeListener {
         setupHandles();
 
         int texture = 0;
-        if (material.diffuseTexture != null) {
+        if (material.diffuseMap != null) {
             shader.setUniform("u_material.hasDiffuse", true);
             if (shader.hasUniform("u_material.diffuseMap")) {
                 shader.setUniform("u_material.diffuseMap", texture);
-                textureCache.get(material.diffuseTexture).bind(texture++);
+                textureCache.get(material.diffuseMap).bind(texture++);
             }
         } else {
             shader.setUniform("u_material.hasDiffuse", false);
         }
-        if (scene.getDrawContext().isEnabled(SPECULAR_MAPS))
-            if (material.specularTexture != null) {
+        if (scene.getDrawContext().isEnabled(SPECULAR_MAPPING))
+            if (material.glossMap != null) {
                 shader.setUniform("u_material.hasSpecular", true);
                 if (shader.hasUniform("u_material.specularMap")) {
                     shader.setUniform("u_material.specularMap", texture);
-                    textureCache.get(material.specularTexture).bind(texture++);
+                    textureCache.get(material.glossMap).bind(texture++);
                 }
             } else {
                 shader.setUniform("u_material.hasSpecular", false);
             }
-        if (scene.getDrawContext().isEnabled(NORMAL_MAPS))
-            if (material.bumpMap != null) {
+        if (scene.getDrawContext().isEnabled(NORMAL_MAPPING))
+            if (material.normalMap != null) {
                 shader.setUniform("u_material.hasNormal", true);
                 if (shader.hasUniform("u_material.normalMap")) {
                     shader.setUniform("u_material.normalMap", texture);
-                    textureCache.get(material.bumpMap).bind(texture++);
+                    textureCache.get(material.normalMap).bind(texture++);
                 }
             } else {
                 shader.setUniform("u_material.hasNormal", false);
+            }
+        if (scene.getDrawContext().isEnabled(PARALLAX_MAPPING))
+            if (material.heightMap != null) {
+                shader.setUniform("u_material.hasHeight", true);
+                if (shader.hasUniform("u_material.heightMap")) {
+                    shader.setUniform("u_material.heightMap", texture);
+                    textureCache.get(material.heightMap).bind(texture++);
+                }
+            } else {
+                shader.setUniform("u_material.hasHeight", false);
             }
 
         Color ambient = material.ambientColor;
@@ -253,8 +263,9 @@ public class BaseShader implements ISceneChangeListener {
 
     public Program getProgram() {
         List<Boolean> identifier = Arrays.asList(
-                scene.getDrawContext().isEnabled(NORMAL_MAPS),
-                scene.getDrawContext().isEnabled(SPECULAR_MAPS),
+                scene.getDrawContext().isEnabled(NORMAL_MAPPING),
+                scene.getDrawContext().isEnabled(PARALLAX_MAPPING),
+                scene.getDrawContext().isEnabled(SPECULAR_MAPPING),
                 scene.getDrawContext().isEnabled(OBJECT_SHADOWS),
                 scene.getDrawContext().isEnabled(FOG),
                 scene.getDrawContext().isEnabled(REFLECTIONS)
@@ -342,6 +353,7 @@ public class BaseShader implements ISceneChangeListener {
                         specular.getRed() / 255F,
                         specular.getGreen() / 255F,
                         specular.getBlue() / 255F);
+                shader.setUniform(base + ".attenuation", light.getAttenuation());
             }
             shader.setUniform("u_pointLightCount", pointLights.size());
         }
@@ -371,6 +383,7 @@ public class BaseShader implements ISceneChangeListener {
                         specular.getRed() / 255F,
                         specular.getGreen() / 255F,
                         specular.getBlue() / 255F);
+                shader.setUniform(base + ".attenuation", light.getAttenuation());
             }
             shader.setUniform("u_spotLightCount", spotLights.size());
         }
@@ -461,8 +474,8 @@ public class BaseShader implements ISceneChangeListener {
         getProgram().attach();
         setupHandles();
         if (shader.hasUniform("u_envMap")) {
-            environmentMap.bind(3);
-            shader.setUniform("u_envMap", 3);
+            environmentMap.bind(4);
+            shader.setUniform("u_envMap", 4);
         }
         shader.detach();
     }

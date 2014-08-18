@@ -38,8 +38,8 @@ public class WobbleStroke implements Stroke {
         float points[] = new float[6];
         float moveX = 0, moveY = 0;
         float lastX = 0, lastY = 0;
-        float thisX = 0, thisY = 0;
-        int type = 0;
+        float thisX, thisY;
+        int type;
         boolean first = false;
         float next = 0;
 
@@ -87,8 +87,8 @@ public class WobbleStroke implements Stroke {
         return result;
     }
 
-    private float randomize(float x) {
-        return x + (float) Math.random() * amplitude * 2 - 1;
+    private float randomize(float n) {
+        return n + (float) Math.random() * amplitude * 2 - 1;
     }
 
 }

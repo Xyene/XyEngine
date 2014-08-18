@@ -106,6 +106,7 @@ public class Sandbox {
         cylinder.position(0, -2.5f, 10);
         cylinder.getMaterials().get(0).reflectivity = 1f;
         cylinder.getMaterials().get(0).opaqueness = 1f;
+        ground.getMaterials().get(0).heightMap = URLResource.getResource("/tk/ivybits/engine/game/model/ground-disp.png");
 
         Skybox skybox = root.track(new Skybox(
                 URLResource.getResource("/tk/ivybits/engine/game/skybox/left.png"),
@@ -240,7 +241,16 @@ public class Sandbox {
                                 .setPosition(camera.x(), camera.y(), camera.z())
                                 .setRotation(camera.pitch(), camera.yaw())
                                 .setDiffuseColor(Color.GREEN)
-                                .setIntensity(2);
+                                .setIntensity(10)
+                                .setAttenuation(0.1f);
+                        break;
+
+                    case Keyboard.KEY_U:
+                        scene.getSceneGraph().getRoot().createPointLight()
+                                .setPosition(camera.x(), camera.y(), camera.z())
+                                .setDiffuseColor(Color.RED)
+                                .setIntensity(10)
+                                .setAttenuation(0.05f);
                         break;
                     case Keyboard.KEY_LCONTROL:
                     case Keyboard.KEY_RCONTROL:
@@ -322,16 +332,9 @@ public class Sandbox {
         glClearColor(1, 1, 1, 0f);
 
         System.out.printf("OpenGL %s\n\t%s\n", glGetString(GL_VERSION), glGetString(GL_VENDOR));
-        System.out.println(glGetInteger(GL_MAX_LIGHTS) + " lights supported");
         System.out.printf("%s max texture size\n", glGetInteger(GL_MAX_TEXTURE_SIZE));
         System.out.printf("\tNon power-of-2 textures supported? %s\n", GLContext.getCapabilities().GL_ARB_texture_non_power_of_two);
-        System.out.println("Uniform buffers? " + GLContext.getCapabilities().GL_ARB_uniform_buffer_object);
-        System.out.println("# uniforms: " + glGetInteger(GL20.GL_MAX_VERTEX_UNIFORM_COMPONENTS));
-        System.out.println("CG shaders supported? " + GLContext.getCapabilities().GL_EXT_Cg_shader);
-        System.out.println("Assembly shaders supported? " + GLContext.getCapabilities().GL_ARB_shader_objects);
-
         System.out.println("(3.0) max samples: " + glGetInteger(GL_MAX_SAMPLES));
-        System.out.println("Accumulation buffer bits (red): " + glGetInteger(GL_ACCUM_RED_BITS));
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -389,7 +392,7 @@ public class Sandbox {
 
             for (final Integer i : sizes) {
                 final JRadioButton button = new JRadioButton(i + "");
-                if(i == scene.getDrawContext().getOption(Key.AA_SAMPLE_COUNT))
+                if (i.equals(scene.getDrawContext().getOption(Key.AA_SAMPLE_COUNT)))
                     button.setSelected(true);
                 button.addActionListener(new AbstractAction() {
                     @Override
@@ -452,21 +455,30 @@ public class Sandbox {
                 }
             });
         }
-        if (scene.getDrawContext().isSupported(NORMAL_MAPS)) {
-            JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping ", scene.getDrawContext().isEnabled(NORMAL_MAPS))));
+        if (scene.getDrawContext().isSupported(NORMAL_MAPPING)) {
+            JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Normal mapping ", scene.getDrawContext().isEnabled(NORMAL_MAPPING))));
             normals.addActionListener(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    scene.getDrawContext().setEnabled(NORMAL_MAPS, !scene.getDrawContext().isEnabled(NORMAL_MAPS));
+                    scene.getDrawContext().setEnabled(NORMAL_MAPPING, !scene.getDrawContext().isEnabled(NORMAL_MAPPING));
                 }
             });
         }
-        if (scene.getDrawContext().isSupported(SPECULAR_MAPS)) {
-            JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping ", scene.getDrawContext().isEnabled(SPECULAR_MAPS))));
+        if (scene.getDrawContext().isSupported(PARALLAX_MAPPING)) {
+            JCheckBox normals = ((JCheckBox) opts.add(new JCheckBox("Parallax mapping ", scene.getDrawContext().isEnabled(PARALLAX_MAPPING))));
+            normals.addActionListener(new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    scene.getDrawContext().setEnabled(PARALLAX_MAPPING, !scene.getDrawContext().isEnabled(PARALLAX_MAPPING));
+                }
+            });
+        }
+        if (scene.getDrawContext().isSupported(SPECULAR_MAPPING)) {
+            JCheckBox specular = ((JCheckBox) opts.add(new JCheckBox("Specular mapping ", scene.getDrawContext().isEnabled(SPECULAR_MAPPING))));
             specular.addActionListener(new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    scene.getDrawContext().setEnabled(SPECULAR_MAPS, !scene.getDrawContext().isEnabled(SPECULAR_MAPS));
+                    scene.getDrawContext().setEnabled(SPECULAR_MAPPING, !scene.getDrawContext().isEnabled(SPECULAR_MAPPING));
                 }
             });
         }
